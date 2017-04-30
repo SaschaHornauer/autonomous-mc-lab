@@ -67,7 +67,7 @@ if computer_name == 'Mr_Silver':
 if computer_name == 'Mr_Blue':
 	#PID_min_max = [1.5,2.5]
 	#motor_gain = 1.0
-	PID_min_max = [1.5.,2.5.]
+	PID_min_max = [1.5,2.5]
 	pass
 if computer_name == 'Mr_Yellow':
 	#motor_gain = 0.9
