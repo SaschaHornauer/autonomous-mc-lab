@@ -297,4 +297,9 @@ fi
 
 
 
-nmcli d wifi connect “--your wifi network name here--” password “--your password here--”
+nmcli d wifi connect "--your wifi network name here--" password "--your password here--"
+
+git clone https://github.com/karlzipser/kzpy3.1.git
+mv kzpy3.1 kzpy3
+git clone https://github.com/karlzipser/caffe_current.git
+
