@@ -43,7 +43,7 @@ steer_gain = 1.0
 motor_gain = 1.0
 acc2rd_threshold = 150
 
-PID_min_max = [2,3]
+PID_min_max = [1.5,2.5]
 
 gyro_freeze_threshold = 150
 acc_freeze_threshold_x = 7
@@ -62,8 +62,7 @@ if computer_name == 'Mr_Orange':
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_Silver':
-	Follow = 0.
-	Direct = 1.
+
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_Blue':
@@ -72,11 +71,13 @@ if computer_name == 'Mr_Blue':
 
 	pass
 if computer_name == 'Mr_Yellow':
-	PID_min_max = [1,2]
+	#PID_min_max = [1,2]
 	#motor_gain = 0.9
+	Follow = 1.
+	Direct = 0.
 	pass
 if computer_name == 'Mr_Black':
-	PID_min_max = [2.,3.]
+	#PID_min_max = [1.5,2.5]
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_White':
