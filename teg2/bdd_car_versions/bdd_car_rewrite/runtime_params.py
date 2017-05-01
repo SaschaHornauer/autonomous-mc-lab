@@ -27,7 +27,7 @@ Play = 0.
 Furtive = 0.
 Caf = 0.0
 Racing = 0.0
-Location =  'Fern' # 'local' #'Smyth_tape'
+Location =  'Fern_lead_follow' # 'local' #'Smyth_tape'
 
 solver_file_path = opjh("kzpy3/caf5/z2_color/solver_live.prototxt")
 #weights_file_path = opjh("caffe_current/z2_color.caffemodel")
@@ -62,17 +62,22 @@ if computer_name == 'Mr_Orange':
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_Silver':
+
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_Blue':
 	#PID_min_max = [1.5,2.5]
 	#motor_gain = 1.0
+
 	pass
 if computer_name == 'Mr_Yellow':
+	#PID_min_max = [1,2]
 	#motor_gain = 0.9
+	Follow = 1.
+	Direct = 0.
 	pass
 if computer_name == 'Mr_Black':
-	PID_min_max = [2.,3.]
+	#PID_min_max = [1.5,2.5]
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_White':
