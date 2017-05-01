@@ -133,6 +133,7 @@ class Lilliput_steering():
             #    threading.Thread(target=self.sendMessageAtRate).start()
             #    self.thread_started = True
             self.steer_pub.publish(self.steeringCmd_msg)
+            print("Publish commands ++++++++++++++++++++++++++++++++++++++++++++++")
             # This will be tested first with the new watchdog counter
     
     def lilliput_steering(self):
