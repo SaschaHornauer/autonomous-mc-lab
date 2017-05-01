@@ -47,7 +47,7 @@ class Lilliput_steering():
         
 
     def steering_callback(self,steering_model_data):
-        print("CALLBACK")        
+        #print("CALLBACK")        
         '''
         The dbw_mkz SteeringCmd message looks like this:
         # Steering Wheel
@@ -133,7 +133,7 @@ class Lilliput_steering():
             #    threading.Thread(target=self.sendMessageAtRate).start()
             #    self.thread_started = True
             self.steer_pub.publish(self.steeringCmd_msg)
-            print("Publish commands ++++++++++++++++++++++++++++++++++++++++++++++")
+            #print("Publish commands ++++++++++++++++++++++++++++++++++++++++++++++")
             # This will be tested first with the new watchdog counter
     
     def lilliput_steering(self):
