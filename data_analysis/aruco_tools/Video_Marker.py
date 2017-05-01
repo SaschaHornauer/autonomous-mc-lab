@@ -132,8 +132,8 @@ class Video_Marker(object):
                     
             average_angle, min_perceived_distance, markers = aruco_angle_retriever.get_boundary_angle_min_distance(cv_image, crop, 2)
             
-            if(min_perceived_distance < critical_distance):
-                evasion_needed = True
+            #if(min_perceived_distance < critical_distance):
+            evasion_needed = True
             
             if(average_angle != None):   
                 print("average angle " + str(np.rad2deg(average_angle)))
