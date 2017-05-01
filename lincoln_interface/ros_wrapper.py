@@ -31,6 +31,12 @@ class Lilliput_steering():
     
     steeringCmd_msg = None
     steer_pub = rospy.Publisher('/vehicle/steering_cmd', SteeringCmd, queue_size=10)
+    
+    counter = 0
+    watchdog_counter_used = False
+    watchdog_throttle = False
+    throttle_value = 0.5
+    
 while(True):
 
     # The five previous steering commands are used to smooth the response. They
@@ -40,6 +46,7 @@ while(True):
     smoothing_vector = np.array([0.05,0.05,0.10,0.10,0.15,0.15,0.2,0.2])
     last_execution_time = timer()
     thread_started = False
+    
     
     def __init__(self):
         self.lilliput_steering()
@@ -123,8 +130,19 @@ while(True):
             
             steeringCmd_msg.quiet = False
             
-            # setting the watchdog count. Unsure if it is ms or s so this has to be tested
-            steeringCmd_msg.count = 100
+            # If the watchdog counter should be increased do so
+            if(self.watchdog_counter_used):
+                steeringCmd_msg.count = self.counter
+                
+                # If the watchdog counter rises to quickly there is
+                # another trick here to make him rise slower 
+                
+                if(self.watchdog_throttle):
+                    if(np.random() > self.throttle_value):
+                        self.counter = self.counter + 1
+                else:
+                    self.counter = self.counter + 1
+                
             self.steeringCmd_msg = steeringCmd_msg
             
             # The message has to be sent at a higher rate than
@@ -146,14 +164,14 @@ while(True):
         if debug:
             rospy.spin()
                
-    def sendMessageAtRate(self):
-        
-        # Send 2 messages at a rate of 10hz. Since the net is throttle
-        # to 10 hz we expect that this way enough messages should be produced
-        # to achieve constantly 10 hz of commands. 
-        for i in range(0,2):
-            self.steer_pub.publish(self.steeringCmd_msg)
-            sleep(1/send_with_rate)
+    #def sendMessageAtRate(self):
+    #    
+    #    # Send 2 messages at a rate of 10hz. Since the net is throttle
+    #    # to 10 hz we expect that this way enough messages should be produced
+    #    # to achieve constantly 10 hz of commands. 
+    #    for i in range(0,2):
+    #        self.steer_pub.publish(self.steeringCmd_msg)
+    #        sleep(1/send_with_rate)
 
 if debug:
     test = Lilliput_steering()
