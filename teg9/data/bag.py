@@ -5,7 +5,7 @@ import rosbag
 import cv2
 from cv_bridge import CvBridge,CvBridgeError
 import threading
-import kzpy3.data_analysis.aruco_annotator as ann
+import kzpy3.data_analysis.aruco_tools.aruco_annotator as ann
 import kzpy3.teg9.data.nodes.arduino_node as ard
 
 #face_cascade = cv2.CascadeClassifier('cars.xml')
