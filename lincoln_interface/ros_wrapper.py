@@ -27,6 +27,8 @@ else:
 
 class Lilliput_steering():
     
+    print("LILLIPUT PUBLISHER STARTED +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    
     steeringCmd_msg = None
     steer_pub = rospy.Publisher('/vehicle/steering_cmd', SteeringCmd, queue_size=10)
 
