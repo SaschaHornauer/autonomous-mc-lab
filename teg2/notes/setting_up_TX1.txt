@@ -295,6 +295,11 @@ else
 fi
 
 
+sudo service network-manager restart
 
+sudo nmcli d wifi connect "AM_phone" password ""
+sudo rm -r kzpy3
+git clone https://github.com/karlzipser/kzpy3.1.git
+mv kzpy3.1 kzpy3
+git clone https://github.com/karlzipser/caffe_current.git
 
-nmcli d wifi connect “--your wifi network name here--” password “--your password here--”

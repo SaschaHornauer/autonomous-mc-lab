@@ -7,7 +7,7 @@ import cv2
 import cv2.aruco as aruco
 from Board import Board
 import sys
-from kzpy3.data_analysis.zed_parameter import Zed_Parameter
+from zed_parameter import Zed_Parameter
 import numpy as np
 from cv2 import polarToCart
 import math
@@ -130,10 +130,10 @@ class Video_Marker(object):
             front_left_limit_deg = -90
             front_right_limit_deg = 90
                     
-            average_angle, min_perceived_distance, markers = aruco_angle_retriever.get_boundary_angle_distance(cv_image, crop, 2)
+            average_angle, min_perceived_distance, markers = aruco_angle_retriever.get_boundary_angle_min_distance(cv_image, crop, 2)
             
-            if(min_perceived_distance < critical_distance):
-                evasion_needed = True
+            #if(min_perceived_distance < critical_distance):
+            evasion_needed = True
             
             if(average_angle != None):   
                 print("average angle " + str(np.rad2deg(average_angle)))
@@ -147,7 +147,10 @@ class Video_Marker(object):
                     steering_command = (opposite_angle / np.pi) * right_range 
                 
                 # Finally change the mapping from -50,50 to 0,100
-                steering_command = (steering_command + mid_steering_command)[0]
+                try:
+                    steering_command = (steering_command + mid_steering_command)[0]
+                except:
+                    steering_command = (steering_command + mid_steering_command)
                 
                 
                 # A special behaviour is investigated. This is a test

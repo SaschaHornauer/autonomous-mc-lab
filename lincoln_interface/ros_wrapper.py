@@ -10,16 +10,28 @@ roslib.load_manifest('dbw_mkz_msgs')
 import rospy
 import std_msgs.msg
 import numpy as np
+import threading
+from time import sleep
 from collections import deque
 from dbw_mkz_msgs.msg import SteeringCmd
 from timeit import default_timer as timer
 
 
 debug = False
+if debug:
+    send_with_rate = 1
+else:
+    send_with_rate = 1
+
+
 
 class Lilliput_steering():
-
+    
+    print("LILLIPUT PUBLISHER STARTED +++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    
+    steeringCmd_msg = None
     steer_pub = rospy.Publisher('/vehicle/steering_cmd', SteeringCmd, queue_size=10)
+
 
     # The five previous steering commands are used to smooth the response. They
     # are initialised by 49, because that is by definition, straight.
@@ -27,11 +39,15 @@ class Lilliput_steering():
     previous_steering_commands = deque([49,49,49,49,49,49,49,49])
     smoothing_vector = np.array([0.05,0.05,0.10,0.10,0.15,0.15,0.2,0.2])
     last_execution_time = timer()
-
+    thread_started = False
+    
     def __init__(self):
         self.lilliput_steering()
+        
+        
 
-    def steering_callback(self,steering_model_data):        
+    def steering_callback(self,steering_model_data):
+        print("CALLBACK")        
         '''
         The dbw_mkz SteeringCmd message looks like this:
         # Steering Wheel
@@ -58,6 +74,8 @@ class Lilliput_steering():
     
         max_update_frequency = 5 #hz
         time_passed = (time_now - self.last_execution_time)*100.0
+        
+        steeringCmd_msg = None
         
         if time_passed*max_update_frequency > 100.0:
             self.last_execution_time = time_now
@@ -105,8 +123,18 @@ class Lilliput_steering():
             
             steeringCmd_msg.quiet = False
             
-            # and publish it.
-            self.steer_pub.publish(steeringCmd_msg)
+            # setting the watchdog count. Unsure if it is ms or s so this has to be tested
+            steeringCmd_msg.count = 100
+            self.steeringCmd_msg = steeringCmd_msg
+            
+            # The message has to be sent at a higher rate than
+            # the net is working so that rate is realized here
+            #if not self.thread_started:
+            #    threading.Thread(target=self.sendMessageAtRate).start()
+            #    self.thread_started = True
+            self.steer_pub.publish(self.steeringCmd_msg)
+            print("Publish commands ++++++++++++++++++++++++++++++++++++++++++++++")
+            # This will be tested first with the new watchdog counter
     
     def lilliput_steering(self):
         if debug:
@@ -116,9 +144,11 @@ class Lilliput_steering():
         
         if debug:
             rospy.spin()
-        
-        
-
+               
+    def sendMessageAtRate(self):
+        while(True):
+            self.steer_pub.publish(self.steeringCmd_msg)
+            sleep(1/send_with_rate)
 
 if debug:
     test = Lilliput_steering()
