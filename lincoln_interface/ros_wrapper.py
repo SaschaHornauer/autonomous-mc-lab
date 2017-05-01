@@ -21,7 +21,7 @@ debug = False
 if debug:
     send_with_rate = 1
 else:
-    send_with_rate = 1
+    send_with_rate = 10
 
 
 
@@ -31,7 +31,7 @@ class Lilliput_steering():
     
     steeringCmd_msg = None
     steer_pub = rospy.Publisher('/vehicle/steering_cmd', SteeringCmd, queue_size=10)
-
+while(True):
 
     # The five previous steering commands are used to smooth the response. They
     # are initialised by 49, because that is by definition, straight.
@@ -72,7 +72,7 @@ class Lilliput_steering():
         # values. To produce a more stable behavior, a timer is used. 
         time_now = timer()
     
-        max_update_frequency = 5 #hz
+        max_update_frequency = 15 #hz
         time_passed = (time_now - self.last_execution_time)*100.0
         
         steeringCmd_msg = None
@@ -132,6 +132,7 @@ class Lilliput_steering():
             #if not self.thread_started:
             #    threading.Thread(target=self.sendMessageAtRate).start()
             #    self.thread_started = True
+            
             self.steer_pub.publish(self.steeringCmd_msg)
             #print("Publish commands ++++++++++++++++++++++++++++++++++++++++++++++")
             # This will be tested first with the new watchdog counter
@@ -146,7 +147,11 @@ class Lilliput_steering():
             rospy.spin()
                
     def sendMessageAtRate(self):
-        while(True):
+        
+        # Send 2 messages at a rate of 10hz. Since the net is throttle
+        # to 10 hz we expect that this way enough messages should be produced
+        # to achieve constantly 10 hz of commands. 
+        for i in range(0,2):
             self.steer_pub.publish(self.steeringCmd_msg)
             sleep(1/send_with_rate)
 
