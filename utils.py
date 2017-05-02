@@ -240,7 +240,7 @@ def load_obj(name ):
         name = name[:-len('.pkl')]
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)
-    
+lo = load_obj   
 
 def psave(dic,data_path_key,path):
     save_obj(dic[data_path_key],opj(path,data_path_key))
