@@ -10,14 +10,31 @@ from aruco_tools.Marker import Marker
 from Bagfile_Handler import Bagfile_Handler
 import aruco_tools.aruco_angle_retriever as aruco_data
 
+class Marker_Position(object):
+    '''
+    The Pythonic way of properties and setter/getters is ignored and the arrival of strong
+    types and real private fields is anticipated in agony. 
+    '''
+    
+    __pos_xy = None
+    __shift_xy = None
+    __marker_id = None
+    
+    def __init__(self,marker_id,pos_xy,shift_xy):
+        __marker_id = marker_id
+        __pos_xy = pos_xy
+        __shift_xy = shift_xy
+    
 
 class Area_Visualizer(object):
     
     persistent_markers = {}
+    marker_positions = {}
     base_x = 0.0
     base_y = 0.0 
-    encountered_first_time = True
-    #map = Map()
+    base_marker_id = None
+    base_marker_found = False
+    
         
     def __init__(self):
         pass      
@@ -115,66 +132,97 @@ class Area_Visualizer(object):
         scale_factor = 300.0 * (1.0/8.0)
         shift_factor = 300
         turn_factor = np.pi/2.0 
+        current_marker_ids = []
         
         # Reduce confidence for each marker in the persistent list, if there are any yet
         for marker_id in self.persistent_markers:
             self.persistent_markers[marker_id].confidence = self.persistent_markers[marker_id].confidence-0.1
         
-        # Add markers to list, overwriting old markers and thereby increasing confidence levels
+        # Add markers to list, overwriting old markers and thereby recalculating confidence levels
         for marker in markers:
             self.persistent_markers[str(marker.marker_id)] = marker
+            current_marker_ids.append(marker.marker_id)
         # This needs eventual rethinking because the more closer a marker is, the higher its
-        # confidence or probability it is there is.
-        
-        # Now draw lines onto new window
-        #for marker_id in self.persistent_markers:
-        #    
-        #    marker = self.persistent_markers[marker_id] 
-        #    
-        #    distance = aruco_data.get_distance(marker)
-        #    angle = aruco_data.get_angle_surface(marker)
-        #    
-        #    naiv_xy = cv2.polarToCart(distance, angle)
-        #    
-        #    cv2.circle(cv_image, (scale_factor*naiv_xy[0][0],scale_factor*naiv_xy[1][0]),2,(0,0,255),2)
-        
-        
-        # See a marker for the first time, lets say 67
-        marker_id = str(67)
-        if marker_id in self.persistent_markers and self.encountered_first_time:
-            print("Saw marker for the first time")
-            marker = self.persistent_markers[marker_id]
-            self.encountered_first_time = False
+        # confidence or probability it is there is. Also two for loops here are maybe not necessary
+
+        for marker_id in self.persistent_markers:
+
+            current_marker = self.persistent_markers[marker_id]
+
+            if not self.base_marker_found:
+                self.base_marker_id = marker_id
+                self.base_marker_found = True
             
-            # This marker has a distance and angle
-            distance = aruco_data.get_distance(marker)
-            angle = aruco_data.get_angle_surface(marker)
-            # and in that original reference frame also position x,y
-            orig_xy = cv2.polarToCart(distance, angle)
+                orig_xy = self.get_marker_xy(current_marker)
             
-            # We assume this is the basis of all future calculations
-            self.base_x = orig_xy[0][0]
-            self.base_y = orig_xy[1][0]
+                # We assume this is the basis of all future calculations
+                self.base_x = orig_xy[0]
+                self.base_y = orig_xy[1]
+                
+                # That base marker position is added with shift 0,0 because it is the reference
+                self.marker_positions[marker_id] = Marker_Position(marker_id,orig_xy,(0,0))
+            
+            
+            # if the base marker is already found we check if the base marker is still visible
+            else:
+                if self.base_marker_id in current_marker_ids:
+                    # do shift calculations according to base marker
+                    
+                    pass
+                else:
+                    # do more complicated calculations based on other shift values
+                    pass
+                
             
             # from now on, all future marker sightings of this marker mean a movement of the own vehicle
-        elif marker_id in self.persistent_markers and not self.encountered_first_time:
-            marker = self.persistent_markers[marker_id]            
-           
-            distance = aruco_data.get_distance(marker)
-            angle = aruco_data.get_angle_surface(marker)
-            # Now we can get the dx and dy of movement
-            new_xy = cv2.polarToCart(distance, angle)
-            
-            dx = new_xy[0][0]-self.base_x
-            dy = new_xy[1][0]-self.base_y
-            
-            # plot to see this
-            cv2.circle(cv_image, (scale_factor*dx+shift_factor,scale_factor*dy+shift_factor),2,(0,0,255),2)
-            
+#         elif marker_id in self.persistent_markers and not self.base_marker_found:
+#             marker = self.persistent_markers[marker_id]            
+#            
+#             distance = aruco_data.get_distance(marker)
+#             angle = aruco_data.get_angle_surface(marker)
+#             # Now we can get the dx and dy of movement
+#             new_xy = cv2.polarToCart(distance, angle)
+#             
+#             dx = new_xy[0][0]-self.base_x
+#             dy = new_xy[1][0]-self.base_y
+#             
+#             # plot to see this
+#             cv2.circle(cv_image, (scale_factor*dx+shift_factor,scale_factor*dy+shift_factor),2,(0,0,255),2)
+#         
+#             marker_id = str(59)
+#             marker = self.persistent_markers[marker_id]            
+#                
+#             distance = aruco_data.get_distance(marker)
+#             angle = aruco_data.get_angle_surface(marker)
+#             
+#             marker_two_xy = cv2.polarToCart(distance, angle)
+#             # Now we have the position of us, according to that second marker
+#             # It is now possible to calculate the shift in between the two markers
+#             
+#             self.shift_x = new_xy[0][0] - marker_two_xy[0][0]
+#             self.shift_y = new_xy[1][0] - marker_two_xy[1][0]
+#             
+#             # This is the value, all of the positions relative to the second marker are shifted.
+#             # To plot this, and the inaccuracy, we will plot first the new calculated position
+#             cv2.circle(cv_image, (scale_factor*marker_two_xy[0][0]+shift_factor,scale_factor*marker_two_xy[1][0]+shift_factor),2,(0,255,0),2)
+#             # And the corrected first position according to the second marker
+#             
+#             
+#             
+#             print self.get_marker_xy(marker)
+        #cv2.circle(cv_image, (scale_factor*marker_two_xy[0][0]+shift_factor,scale_factor*marker_two_xy[1][0]+shift_factor),2,(255,0,0),2)
+        
         #print(self.persistent_markers.keys())
         cv2.imshow('topView',cv_image)
         cv2.moveWindow('topView',700,0)
-        
+
+    def get_marker_xy(self,marker):
+        distance = aruco_data.get_distance(marker)
+        angle = aruco_data.get_angle_surface(marker)
+        # Now we can get the dx and dy of movement
+        xy = cv2.polarToCart(distance, angle)
+        return tuple((xy[0][0][0],xy[1][0][0]))
+
 if __name__ == "__main__":
     visualizer = Area_Visualizer()
     bagfile_path = sys.argv[1]
