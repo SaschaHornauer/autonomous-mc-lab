@@ -80,10 +80,20 @@ def arduino_master_thread():
         time.sleep(0.5)
 
 def query_states():
-    if 'steer_percent' in M and 'motor_percent' in M and 'current_state' in M:
-            if M['current_state'] != None:
-                return(M['steer_percent'],M['motor_percent'],M['current_state'].name)
-    return None
+    try:
+        assert('steer_pwm_lst' in M)
+        assert('motor_pwm_lst' in M)
+        assert(len(M['steer_pwm_lst'])) >= 10
+        assert(len(M['motor_pwm_lst'])) >= 10
+        steer_pwm = np.median(array(M['steer_pwm_lst'][-10:]))
+        motor_pwm = np.median(array(M['motor_pwm_lst'][-10:]))
+        steer_percent = ard_MSE.pwm_to_percent(M,M['steer_null'],steer_pwm,M['steer_max'],M['steer_min'])
+        motor_percent = ard_MSE.pwm_to_percent(M,M['motor_null'],motor_pwm,M['motor_max'],M['motor_min'])
+        return steer_percent,motor_percent
+    except Exception as e:
+        cprint("********** Exception ***********************",'red')
+        print(e.message, e.args)
+        return None,None
 
 
 ard_MSE.setup(M,Arduinos)

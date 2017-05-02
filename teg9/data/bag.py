@@ -5,7 +5,7 @@ import rosbag
 import cv2
 from cv_bridge import CvBridge,CvBridgeError
 import threading
-import kzpy3.data_analysis.aruco_tools.aruco_annotator as ann
+#import kzpy3.data_analysis.aruco_tools.aruco_annotator as ann
 import kzpy3.teg9.data.nodes.arduino_node as ard
 
 #face_cascade = cv2.CascadeClassifier('cars.xml')
@@ -165,6 +165,7 @@ def graph_thread(A):
 def animator_thread(A):
     #lock = threading.Lock()
     q_lst = []
+    #print("MAKE SURE TO CALIBRATE TRANSMITTER!!!")
     while True:
         while A['STOP_ANIMATOR_THREAD'] == False:
             #lock.acquire()
@@ -172,47 +173,94 @@ def animator_thread(A):
                 #print(d2n("len(A['left_image']) =",len(A['left_image'])))
                 time.sleep(0.1)
                 continue
-            states = ard.query_states()
-            s = 0
-            q = 0
-            
-            if states != None:
-                #print states[0]
-                q = 1.0-states[0]/99.
-                q_lst.append(q)
-                if len(q_lst) > 15:
-                    q_lst = q_lst[-10:]
-                q = array(q_lst[-10:]).mean()
-                s = (states[1] - 49.0)
-                if abs(s) < 2:
-                    s = 0.0
-                s = s/10.0+1
-                if abs(s) > 3:
-                    s *= 2
-                A['d_indx'] = s
+            if False:
+                steer_percent,motor_percent = ard.query_states()
+                #print steer_percent
+                #if abs(steer_percent-49)>2:
+                #    print "**********************************"
+                s = 0
+                q = 0
+                
+                if steer_percent != None and motor_percent != None:
+                    #print states[0]
+                    q = 1.0-steer_percent/99.
+                    s = (motor_percent - 49.0)
+                    if abs(s) < 2:
+                        s = 0.0
+                    s = s/10.0+1
+                    if abs(s) > 3:
+                        s *= 2
+                    A['d_indx'] = s
             A['current_img_index'] += A['d_indx']
             if A['current_img_index'] >= len(A['left_image']):
                 A['current_img_index'] = len(A['left_image'])-1
             elif A['current_img_index'] < 0:
                 A['current_img_index'] = 0
             indx = int(A['current_img_index'])
-            img = A['left_image'][indx][1]
-            p = int(q*shape(img)[1])
-            if p < 0:
-                p = 0
-            elif p >= shape(img)[1]:
-                p = shape(img)[1]-1
-            if abs(q-0.5) >0: # 0.1:
+            img = A['left_image'][indx][1].copy()
+            if False:
+                p = int(q*shape(img)[1])
+                if p < 0:
+                    p = 0
+                elif p >= shape(img)[1]:
+                    p = shape(img)[1]-1
+                #if abs(q-0.5) >0: # 0.1:
                 img[:,p,:] = 255
             cv2.imshow('animate',cv2.cvtColor(img,cv2.COLOR_RGB2BGR))
             k = cv2.waitKey(33)
 
-            if k == 119:
+            if k == ord(' '):
+                A['d_indx'] = 0
+            if k == ord('1'):
+                A['d_indx'] = 1
+            if k == ord('2'):
+                A['d_indx'] = 2
+            if k == ord('3'):
+                A['d_indx'] = 3
+            if k == ord('4'):
+                A['d_indx'] = 4
+            if k == ord('5'):
+                A['d_indx'] = 7
+            if k == ord('6'):
+                A['d_indx'] = 10
+            if k == ord('7'):
+                A['d_indx'] = 15
+            if k == ord('8'):
+                A['d_indx'] = 20
+            if k == ord('9'):
+                A['d_indx'] = 30   
+
+            if k == ord('!'):
+                A['d_indx'] = -1
+            if k == ord('@'):
+                A['d_indx'] = -2
+            if k == ord('#'):
+                A['d_indx'] = -3
+            if k == ord('$'):
+                A['d_indx'] = -4
+            if k == ord('%'):
+                A['d_indx'] = -7
+            if k == ord('^'):
+                A['d_indx'] = -10
+            if k == ord('&'):
+                A['d_indx'] = -15
+            if k == ord('*'):
+                A['d_indx'] = -20
+            if k == ord('('):
+                A['d_indx'] = -30
+
+            if k == ord('w'):
                 print("car ahead")
-            if k == 97:
+            if k == ord('a'):
                 print("car left")
-            if k == 100:
+            if k == ord('d'):
                 print("car right")
+
+            if k == ord('b'):
+                A['current_img_index'] -= 2*30
+                if A['current_img_index'] < 0:
+                    A['current_img_index'] = 0
+            #print k
 
             #mi_or_cv2(img[1],cv=True,delay=30,title='animate')
         time.sleep(0.2)
