@@ -37,8 +37,8 @@ class Marker_Position(object):
     def get_shift_xy(self):
         return self.__shift_xy
     
-    def get_pos_xy(self):
-        return self.__pos_xy
+    #def get_pos_xy(self):
+    #    return self.__pos_xy
     
     def __repr__(self):
         '''
@@ -197,10 +197,10 @@ class Area_Visualizer(object):
                     # do shift calculations according to base marker
                     
                     new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
-                    shift_x = new_pos_xy[0] + self.base_x
-                    shift_y = new_pos_xy[1] + self.base_y
+                    shift_x = new_pos_xy[0] - self.base_x
+                    shift_y = new_pos_xy[1] - self.base_y
                     new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
-                    print(shift_x)
+                    
                     if marker_id in self.marker_positions.keys():
                         # If the shift was already calculated then check at which distance and
                         # update only if the distance is smaller
@@ -243,8 +243,10 @@ class Area_Visualizer(object):
                         # now calculate position of our new marker 
                         new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
                         # and calculate the shift based on the shift to the intermediate marker
-                        shift_x = (new_pos_xy[0] + marker_pos_at_min_distance.get_pos_xy()[0]) + marker_pos_at_min_distance.get_shift_xy()[0]
-                        shift_y = (new_pos_xy[1] + marker_pos_at_min_distance.get_pos_xy()[1]) + marker_pos_at_min_distance.get_shift_xy()[1]
+                        other_pos, _,_ = self.get_marker_xy(self.persistent_markers[marker_pos_at_min_distance.get_marker_id()])
+                        
+                        shift_x = (new_pos_xy[0] - other_pos[0]) + marker_pos_at_min_distance.get_shift_xy()[0]
+                        shift_y = (new_pos_xy[1] - other_pos[1]) + marker_pos_at_min_distance.get_shift_xy()[1]
                         new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
                         self.marker_positions[marker_id] = new_marker_position
                     
@@ -254,12 +256,23 @@ class Area_Visualizer(object):
                         
                    
 #             current_xy, _, _ = self.get_marker_xy(current_marker) 
-        random_marker_id = str(current_visible_marker_ids[len(current_visible_marker_ids)-1])
-        random_visible_marker = self.persistent_markers[random_marker_id]
-        random_shift_values = self.marker_positions[random_marker_id].get_shift_xy()
-        current_xy, _, _ = self.get_marker_xy(random_visible_marker)
-        current_xy = (current_xy[0] + random_shift_values[0], current_xy[1] + random_shift_values[1])
-        #current_xy, _, _ = self.get_marker_xy(self.persistent_markers[self.base_marker_id]) 
+        # Iterate over all visible markers
+        marker_pos_at_min_distance = None
+        for tmp_marker_id in current_visible_marker_ids:
+            # check if already in list with shift values and if yes look 
+            # shift values with highest confidence 
+            if(str(tmp_marker_id) in self.marker_positions.keys()):
+                if(marker_pos_at_min_distance == None):
+                    marker_pos_at_min_distance = self.marker_positions[str(tmp_marker_id)]
+                else:
+                    if(self.marker_positions[str(tmp_marker_id)].get_distance() < marker_pos_at_min_distance.get_distance()):
+                        marker_pos_at_min_distance = self.marker_positions[str(str(tmp_marker_id))]
+         
+        #marker_pos_at_min_distance = self.marker_positions[str(self.base_marker_id)]                           
+        current_xy, _, _ = self.get_marker_xy(self.persistent_markers[marker_pos_at_min_distance.get_marker_id()])
+        print(marker_pos_at_min_distance.get_shift_xy()[0])
+        current_xy = (current_xy[0] + marker_pos_at_min_distance.get_shift_xy()[0], current_xy[1] + marker_pos_at_min_distance.get_shift_xy()[1])
+        #current_xy = (marker_pos_at_min_distance.get_shift_xy()[0],marker_pos_at_min_distance.get_shift_xy()[1])
         #print(current_xy[0])
         #print(random_shift_values[0])
         
