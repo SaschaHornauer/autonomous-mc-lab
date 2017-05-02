@@ -37,8 +37,8 @@ class Marker_Position(object):
     def get_shift_xy(self):
         return self.__shift_xy
     
-    #def get_pos_xy(self):
-    #    return self.__pos_xy
+    def get_pos_xy(self):
+        return self.__pos_xy
     
     def __repr__(self):
         '''
@@ -172,6 +172,7 @@ class Area_Visualizer(object):
         # This needs eventual rethinking because the more closer a marker is, the higher its
         # confidence or probability it is there is. Also two for loops here are maybe not necessary
 
+        # Update all positions relative to the first marker
         for marker_id in self.persistent_markers:
 
             current_marker = self.persistent_markers[marker_id]
@@ -187,7 +188,7 @@ class Area_Visualizer(object):
                 self.base_y = orig_xy[1]
                 
                 # That base marker position is added with shift 0,0 because it is the reference
-                self.marker_positions[marker_id] = Marker_Position(marker_id, orig_xy, (0, 0), orig_distance)
+                self.marker_positions[marker_id] = Marker_Position(marker_id, orig_xy, (0.0, (0.0,0.0)), orig_distance)
             
             
             elif marker_id != self.base_marker_id:
@@ -195,129 +196,68 @@ class Area_Visualizer(object):
                 # at it, we check if the base marker is still visible
                 
                 if int(self.base_marker_id) in current_visible_marker_ids:
-                     
+                    
                     # do shift calculations according to base marker
                     
-                    new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
-                    shift_x = new_pos_xy[0] - self.base_x
-                    shift_y = new_pos_xy[1] - self.base_y
-                    new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
+                    # Get the data of the new perceived marker
+                    new_pos_xy, new_distance, new_angle = self.get_marker_xy(current_marker)
                     
-                    if marker_id in self.marker_positions.keys():
-                        # If the shift was already calculated then check at which distance and
-                        # update only if the distance is smaller
-                        existing_position = self.marker_positions[marker_id]
-                        if existing_position.get_distance() > new_distance:
-                            self.marker_positions[marker_id] = new_marker_position
-                    else:
-                        # if this position is new we just add it as it is
-                        self.marker_positions[marker_id] = new_marker_position
-                        
-                    # for position take that base marker still
+                    # Get the data of the base marker, perceived from the new position
+                    pos_base, dist_base, ang_base = self.get_marker_xy(self.persistent_markers[self.base_marker_id])
                     
-                    current_xy, _, _ = self.get_marker_xy(self.persistent_markers[self.base_marker_id]) 
-                        
-                else:
-                    # if it is no longer visible we are looking at another marker.
-                    # All markers next to the base marker are in the list marker_positions
-                    # with their shift values
-                    # If the current visible marker has shift values, no update is performed.
-                    # if the marker is not in that list, it is new and has no shift values
-                    if not marker_id in self.marker_positions.keys():
-                        
-                        # now we pick an existing marker in the visible list
+                    phi = ang_base - new_angle
+                    
+                    new_x = new_pos_xy[0] * np.cos(phi) + new_pos_xy[1] * np.sin(phi)
+                    new_y = new_pos_xy[0] * np.sin(phi) + new_pos_xy[1] * np.cos(phi)
+                    
+                    shift_x = pos_base[0] - new_pos_xy[0]
+                    shift_y = pos_base[1] - new_pos_xy[1]
+                                       
+                    resulting_x = new_x + shift_x
+                    resulting_y = new_y + shift_y
+                    
+                    new_marker_position = Marker_Position(marker_id, (resulting_x,resulting_y), (phi,(shift_x,shift_y)), new_distance)
+                    
+                    self.marker_positions[marker_id] = new_marker_position
                          
-                        # get the marker position from the visible list which was acquired at a minimum distance
-                        marker_pos_at_min_distance = None
-                     
-                        # Iterate over all visible markers
-                        for tmp_marker_id in current_visible_marker_ids:
-                            # check if already in list with shift values and if yes look 
-                            # shift values with highest confidence 
-                            if(str(tmp_marker_id) in self.marker_positions.keys()):
-                                if(marker_pos_at_min_distance == None):
-                                    marker_pos_at_min_distance = self.marker_positions[str(tmp_marker_id)]
-                                else:
-                                    if(self.marker_positions[str(tmp_marker_id)].get_distance() < marker_pos_at_min_distance.get_distance()):
-                                        marker_pos_at_min_distance = self.marker_positions[str(str(tmp_marker_id))]
-                                    
-                                 
-                        # now calculate position of our new marker 
-                        new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
-                        # and calculate the shift based on the shift to the intermediate marker
-                        other_pos, _,_ = self.get_marker_xy(self.persistent_markers[marker_pos_at_min_distance.get_marker_id()])
                         
-                        shift_x = (new_pos_xy[0] - other_pos[0]) + marker_pos_at_min_distance.get_shift_xy()[0]
-                        shift_y = (new_pos_xy[1] - other_pos[1]) + marker_pos_at_min_distance.get_shift_xy()[1]
-                        new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
-                        self.marker_positions[marker_id] = new_marker_position
-                    
-                    
-                    # at this point all markers which are visible should have shift values.
-                    
-                        
-                   
-#             current_xy, _, _ = self.get_marker_xy(current_marker) 
-        # Iterate over all visible markers
-        marker_pos_at_min_distance = None
-        for tmp_marker_id in current_visible_marker_ids:
-            # check if already in list with shift values and if yes look 
-            # shift values with highest confidence 
-            if(str(tmp_marker_id) in self.marker_positions.keys()):
-                if(marker_pos_at_min_distance == None):
-                    marker_pos_at_min_distance = self.marker_positions[str(tmp_marker_id)]
                 else:
-                    if(self.marker_positions[str(tmp_marker_id)].get_distance() < marker_pos_at_min_distance.get_distance()):
-                        marker_pos_at_min_distance = self.marker_positions[str(str(tmp_marker_id))]
-         
-        #marker_pos_at_min_distance = self.marker_positions[str(self.base_marker_id)]                           
-        current_xy, _, _ = self.get_marker_xy(self.persistent_markers[marker_pos_at_min_distance.get_marker_id()])
-        current_xy = (current_xy[0]+marker_pos_at_min_distance.get_shift_xy()[0],current_xy[1]+marker_pos_at_min_distance.get_shift_xy()[1])
+                    # The base marker is no longer visible so the calculation is done
+                    # via intermediate markers
+                    
+                    # Get the data of the new perceived marker
+                    new_pos_xy, new_distance, new_angle = self.get_marker_xy(current_marker)
+                    
+                    # Get the data of the intermediate marker, perceived from the new position
+                    interim_marker_pos = self.marker_positions.values()[0]
+                    pos_base, dist_base, ang_base = self.get_marker_xy(self.persistent_markers[interim_marker_pos.get_marker_id()])
+                    
+                    phi_to_base = interim_marker_pos.get_shift_xy()[0]
+                    trans_to_base = interim_marker_pos.get_shift_xy()[1]
+                    
+                    phi = ang_base - new_angle - phi_to_base
+                    
+                    new_x = new_pos_xy[0] * np.cos(phi) + new_pos_xy[1] * np.sin(phi)
+                    new_y = new_pos_xy[0] * np.sin(phi) + new_pos_xy[1] * np.cos(phi)
+                    
+                    shift_x = pos_base[0] - new_pos_xy[0] - trans_to_base[0]
+                    shift_y = pos_base[1] - new_pos_xy[1] - trans_to_base[1]
+                                       
+                    resulting_x = new_x + shift_x
+                    resulting_y = new_y + shift_y
+                    
+                    new_marker_position = Marker_Position(marker_id, (resulting_x,resulting_y),(phi,(shift_x,shift_y)), new_distance)
+                    
+                    self.marker_positions[marker_id] = new_marker_position
+                         
+                        
         
-        cv2.circle(cv_image, (shift_factor,shift_factor), 2, (255, 255, 255), 2)
-        for marker in current_visible_marker:
-            pos_x = current_xy[0]
-            pos_y = current_xy[1]
-            #print (current_xy)
-            cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)
-        #cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)   
-            # from now on, all future marker sightings of this marker mean a movement of the own vehicle
-#         elif marker_id in self.persistent_markers and not self.base_marker_found:
-#             marker = self.persistent_markers[marker_id]            
-#            
-#             distance = aruco_data.get_distance(marker)
-#             angle = aruco_data.get_angle_surface(marker)
-#             # Now we can get the dx and dy of movement
-#             new_xy = cv2.polarToCart(distance, angle)
-#             
-#             dx = new_xy[0][0]-self.base_x
-#             dy = new_xy[1][0]-self.base_y
-#             
-#             # plot to see this
-#             cv2.circle(cv_image, (scale_factor*dx+shift_factor,scale_factor*dy+shift_factor),2,(0,0,255),2)
-#         
-#             marker_id = str(59)
-#             marker = self.persistent_markers[marker_id]            
-#                
-#             distance = aruco_data.get_distance(marker)
-#             angle = aruco_data.get_angle_surface(marker)
-#             
-#             marker_two_xy = cv2.polarToCart(distance, angle)
-#             # Now we have the position of us, according to that second marker
-#             # It is now possible to calculate the shift in between the two markers
-#             
-#             self.shift_x = new_xy[0][0] - marker_two_xy[0][0]
-#             self.shift_y = new_xy[1][0] - marker_two_xy[1][0]
-#             
-#             # This is the value, all of the positions relative to the second marker are shifted.
-#             # To plot this, and the inaccuracy, we will plot first the new calculated position
-#             cv2.circle(cv_image, (scale_factor*marker_two_xy[0][0]+shift_factor,scale_factor*marker_two_xy[1][0]+shift_factor),2,(0,255,0),2)
-#             # And the corrected first position according to the second marker
-#             
-#             
-#             
-#             print self.get_marker_xy(marker)
-        # cv2.circle(cv_image, (scale_factor*marker_two_xy[0][0]+shift_factor,scale_factor*marker_two_xy[1][0]+shift_factor),2,(255,0,0),2)
+        for marker in self.marker_positions.values():
+            
+            pos_x = marker.get_pos_xy()[0]
+            pos_y = marker.get_pos_xy()[1]
+            
+            cv2.circle(cv_image, (int(scale_factor*pos_x)+shift_factor,int(scale_factor*pos_y)+shift_factor),2,(255,0,0),2)
         
         # print(self.persistent_markers.keys())
         cv2.imshow('topView', cv_image)
