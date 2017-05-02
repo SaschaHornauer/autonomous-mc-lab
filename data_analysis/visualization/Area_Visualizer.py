@@ -6,6 +6,7 @@ Created on Apr 12, 2017
 import numpy as np
 import sys
 import cv2
+import random
 from aruco_tools.Marker import Marker
 from Bagfile_Handler import Bagfile_Handler
 import aruco_tools.aruco_angle_retriever as aruco_data
@@ -22,10 +23,10 @@ class Marker_Position(object):
     __aquired_at_distance = None
     
     def __init__(self, marker_id, pos_xy, shift_xy, distance):
-        __marker_id = marker_id
-        __pos_xy = pos_xy
-        __shift_xy = shift_xy
-        __aquired_at_distance = distance
+        self.__marker_id = marker_id
+        self.__pos_xy = pos_xy
+        self.__shift_xy = shift_xy
+        self.__aquired_at_distance = distance
         
     def get_distance(self):
         return self.__aquired_at_distance
@@ -35,6 +36,9 @@ class Marker_Position(object):
     
     def get_shift_xy(self):
         return self.__shift_xy
+    
+    def get_pos_xy(self):
+        return self.__pos_xy
     
     def __repr__(self):
         '''
@@ -149,10 +153,10 @@ class Area_Visualizer(object):
         cv_image = np.ones((600, 600, 3), np.uint8)
         
         # Some arbitrary scaling parameters for visualisation are set
-        scale_factor = int(300.0 * (1.0 / 8.0))
+        scale_factor = int(200.0 * (1.0 / 8.0))
         shift_factor = 300
         turn_factor = np.pi / 2.0 
-        current_marker_ids = []
+        current_visible_marker_ids = []
         current_xy = (0, 0)
         
         # Reduce confidence for each marker in the persistent list, if there are any yet
@@ -162,7 +166,7 @@ class Area_Visualizer(object):
         # Add markers to list, overwriting old markers and thereby recalculating confidence levels
         for marker in markers:
             self.persistent_markers[str(marker.marker_id)] = marker
-            current_marker_ids.append(marker.marker_id)
+            current_visible_marker_ids.append(marker.marker_id)
         # This needs eventual rethinking because the more closer a marker is, the higher its
         # confidence or probability it is there is. Also two for loops here are maybe not necessary
 
@@ -188,15 +192,15 @@ class Area_Visualizer(object):
                 # if the base marker is already found and we are not right now looking
                 # at it, we check if the base marker is still visible
                 
-                if int(self.base_marker_id) in current_marker_ids:
+                if int(self.base_marker_id) in current_visible_marker_ids:
                      
                     # do shift calculations according to base marker
                     
                     new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
-                    shift_x = new_pos_xy[0] - self.base_x
-                    shift_y = new_pos_xy[1] - self.base_y
+                    shift_x = new_pos_xy[0] + self.base_x
+                    shift_y = new_pos_xy[1] + self.base_y
                     new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
-                    
+                    print(shift_x)
                     if marker_id in self.marker_positions.keys():
                         # If the shift was already calculated then check at which distance and
                         # update only if the distance is smaller
@@ -207,50 +211,62 @@ class Area_Visualizer(object):
                         # if this position is new we just add it as it is
                         self.marker_positions[marker_id] = new_marker_position
                         
+                    # for position take that base marker still
+                    
+                    current_xy, _, _ = self.get_marker_xy(self.persistent_markers[self.base_marker_id]) 
+                        
                 else:
-                    # do more complicated calculations based on other shift values
-                    
-                    # get the marker position which was aquired at a minimum distance
-                    marker_pos_at_min_distance = None
-                    
-                    for marker_position in self.marker_positions:
-                        if(marker_pos_at_min_distance == None):
-                            marker_pos_at_min_distance = self.marker_positions[marker_position]
-                        else:
-                            if(self.marker_positions[marker_position].get_distance() < marker_pos_at_min_distance.get_distance()):
-                                marker_pos_at_min_distance = self.marker_positions[marker_position]
-
-                    # since the base marker is gone the new marker shift is calculated as a
-                    # vector in between the marker with quite good values ( because acquired at a minimum distance )
-                    # and the base vector
-
-                    new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
-                    shift_known_marker_xy = marker_pos_at_min_distance.get_shift_xy()
-                    print(marker_pos_at_min_distance)
-                    shift_x = new_pos_xy[0] - shift_known_marker_xy[0]
-                    shift_y = new_pos_xy[1] - shift_known_marker_xy[1]
-                    new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
-                    
-                    # Again check if that new marker position is already known
-                    if marker_id in self.marker_positions.keys():
-                        # If the shift was already calculated then check at which distance and
-                        # update only if the distance is smaller
-                        existing_position = self.marker_positions[marker_id]
-                        if existing_position.get_distance() > new_distance:
-                            self.marker_positions[marker_id] = new_marker_position
-                    else:
-                        # if this position is new we just add it as it is
+                    # if it is no longer visible we are looking at another marker.
+                    # All markers next to the base marker are in the list marker_positions
+                    # with their shift values
+                    # If the current visible marker has shift values, no update is performed.
+                    # if the marker is not in that list, it is new and has no shift values
+                    if not marker_id in self.marker_positions.keys():
+                        
+                        # now we pick an existing marker in the visible list
+                         
+                        # get the marker position from the visible list which was acquired at a minimum distance
+                        marker_pos_at_min_distance = None
+                     
+                        # Iterate over all visible markers
+                        for tmp_marker_id in current_visible_marker_ids:
+                            # check if already in list with shift values and if yes look 
+                            # shift values with highest confidence 
+                            if(str(tmp_marker_id) in self.marker_positions.keys()):
+                                if(marker_pos_at_min_distance == None):
+                                    marker_pos_at_min_distance = self.marker_positions[str(tmp_marker_id)]
+                                else:
+                                    if(self.marker_positions[str(tmp_marker_id)].get_distance() < marker_pos_at_min_distance.get_distance()):
+                                        marker_pos_at_min_distance = self.marker_positions[str(str(tmp_marker_id))]
+                                    
+                                 
+                        # now calculate position of our new marker 
+                        new_pos_xy, new_distance, _ = self.get_marker_xy(current_marker)
+                        # and calculate the shift based on the shift to the intermediate marker
+                        shift_x = (new_pos_xy[0] + marker_pos_at_min_distance.get_pos_xy()[0]) + marker_pos_at_min_distance.get_shift_xy()[0]
+                        shift_y = (new_pos_xy[1] + marker_pos_at_min_distance.get_pos_xy()[1]) + marker_pos_at_min_distance.get_shift_xy()[1]
+                        new_marker_position = Marker_Position(marker_id, new_pos_xy, (shift_x, shift_y), new_distance)
                         self.marker_positions[marker_id] = new_marker_position
                     
                     
-            else:
-                # The base marker is already found and the marker_id is the self marker so we
-                # take the position directly
-                current_xy, _, _ = self.get_marker_xy(current_marker) 
-                
+                    # at this point all markers which are visible should have shift values.
+                    
+                        
+                   
+#             current_xy, _, _ = self.get_marker_xy(current_marker) 
+        random_marker_id = str(current_visible_marker_ids[len(current_visible_marker_ids)-1])
+        random_visible_marker = self.persistent_markers[random_marker_id]
+        random_shift_values = self.marker_positions[random_marker_id].get_shift_xy()
+        current_xy, _, _ = self.get_marker_xy(random_visible_marker)
+        current_xy = (current_xy[0] + random_shift_values[0], current_xy[1] + random_shift_values[1])
+        #current_xy, _, _ = self.get_marker_xy(self.persistent_markers[self.base_marker_id]) 
+        #print(current_xy[0])
+        #print(random_shift_values[0])
+        
+            
         pos_x = current_xy[0]
         pos_y = current_xy[1]
-        print (current_xy)
+        #print (current_xy)
         cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)
             
             # from now on, all future marker sightings of this marker mean a movement of the own vehicle
