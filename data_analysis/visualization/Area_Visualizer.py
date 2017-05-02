@@ -270,18 +270,18 @@ class Area_Visualizer(object):
          
         #marker_pos_at_min_distance = self.marker_positions[str(self.base_marker_id)]                           
         current_xy, _, _ = self.get_marker_xy(self.persistent_markers[marker_pos_at_min_distance.get_marker_id()])
-        print(marker_pos_at_min_distance.get_shift_xy()[0])
-        current_xy = (current_xy[0] + marker_pos_at_min_distance.get_shift_xy()[0], current_xy[1] + marker_pos_at_min_distance.get_shift_xy()[1])
+        
+        current_xy = (current_xy[0] - marker_pos_at_min_distance.get_shift_xy()[0], current_xy[1] - marker_pos_at_min_distance.get_shift_xy()[1])
         #current_xy = (marker_pos_at_min_distance.get_shift_xy()[0],marker_pos_at_min_distance.get_shift_xy()[1])
         #print(current_xy[0])
         #print(random_shift_values[0])
-        
+ 
             
         pos_x = current_xy[0]
         pos_y = current_xy[1]
         #print (current_xy)
         cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)
-            
+        #cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)   
             # from now on, all future marker sightings of this marker mean a movement of the own vehicle
 #         elif marker_id in self.persistent_markers and not self.base_marker_found:
 #             marker = self.persistent_markers[marker_id]            
