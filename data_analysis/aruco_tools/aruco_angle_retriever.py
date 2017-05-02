@@ -3,7 +3,7 @@ import cv2
 from zed_parameter import Zed_Parameter
 import numpy as np
 from numpy import average
-from Marker import Marker
+from aruco_tools.Marker import Marker
 import sys
 
 
@@ -214,71 +214,69 @@ def get_markers_in_image(cv_image, crop=False):
             
     return markers
 
-def get_angle_to_center(cv_image, crop=False):
-    
-    markers = [] 
-        
-    if(crop):
-        height, width, channel = cv_image.shape
-        yMin = 0
-        yMax = height
-        xMin = 0
-        xMax = width / 2
-        cv_image = cv_image[yMin:yMax, xMin:xMax]    
-        
-    aruco_dict = cv2.aruco.getPredefinedDictionary(aruco.DICT_4X4_250)
-    parameters = aruco.DetectorParameters_create()
-    
-    corners, ids, rejected_points = aruco.detectMarkers(cv_image, aruco_dict, parameters=parameters)
-    cv_image = aruco.drawDetectedMarkers(cv_image, corners, borderColor=(0, 255, 0))
-    
-    marker_length = 0.2  # meter
-    
-    try:
-        rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_length, zed_parameters.cameraMatrix, zed_parameters.distCoeffs)
-    except:
-        rvecs, tvecs = aruco.estimatePoseSingleMarkers(corners, marker_length, zed_parameters.cameraMatrix, zed_parameters.distCoeffs)
-    
-    if rvecs != None:       
-                
-        for i in range(0, len(rvecs)):
-                        
-            rvec = rvecs[i]
-            tvec = tvecs[i]
-            
-            R, _ = cv2.Rodrigues(rvec)
-            # cameraRotationVector,_ = cv2.Rodrigues(cv2.transpose(R))
-            # Maybe needed later
-            cameraTranslationVector = np.dot(cv2.transpose(-R), cv2.transpose(tvec))
-            angle = np.arctan2(cameraTranslationVector[2], cameraTranslationVector[0])
-            
-            top_left_corner = tuple(corners[i][0][0].astype(int))
-            bottom_left_corner = tuple(corners[i][0][3].astype(int))
-           
-            # Corner 0 is the top left corner and corner 3 the bottom left. This can be used
-            # to detect flipped markers and change the angle accordingly
-            if top_left_corner[1] > bottom_left_corner[1]:
-                angle = np.pi - angle 
-            
-            # Some corrections to have the angle within reasonable values
-            angle = angle - np.pi / 2.0
-        
-            # cv2.putText(cv_image,str(np.round(np.rad2deg(angle[0]),2)), (top_left_corner[0],top_left_corner[1]+30), cv2.FONT_HERSHEY_SIMPLEX, 1, (25,25,255),2)
-            
-            # Now get the distance 
-            distance_marker = get_distance_of_line(0.2, top_left_corner, bottom_left_corner, zed_parameters.cameraMatrix, zed_parameters.distCoeffs)
-            
-            # add information as Marker
-            marker = Marker(ids[i], 1.0, corners, angle[0], distance_marker)
-            markers.append(marker)
-                
-    return markers
+# def get_angle_to_center(cv_image, crop=False):
+#     
+#     markers = [] 
+#         
+#     if(crop):
+#         height, width, channel = cv_image.shape
+#         yMin = 0
+#         yMax = height
+#         xMin = 0
+#         xMax = width / 2
+#         cv_image = cv_image[yMin:yMax, xMin:xMax]    
+#         
+#     aruco_dict = cv2.aruco.getPredefinedDictionary(aruco.DICT_4X4_250)
+#     parameters = aruco.DetectorParameters_create()
+#     
+#     corners, ids, rejected_points = aruco.detectMarkers(cv_image, aruco_dict, parameters=parameters)
+#     cv_image = aruco.drawDetectedMarkers(cv_image, corners, borderColor=(0, 255, 0))
+#     
+#     marker_length = 0.2  # meter
+#     
+#     try:
+#         rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_length, zed_parameters.cameraMatrix, zed_parameters.distCoeffs)
+#     except:
+#         rvecs, tvecs = aruco.estimatePoseSingleMarkers(corners, marker_length, zed_parameters.cameraMatrix, zed_parameters.distCoeffs)
+#     
+#     if rvecs != None:       
+#                 
+#         for i in range(0, len(rvecs)):
+#                         
+#             rvec = rvecs[i]
+#             tvec = tvecs[i]
+#             
+#             R, _ = cv2.Rodrigues(rvec)
+#             # cameraRotationVector,_ = cv2.Rodrigues(cv2.transpose(R))
+#             # Maybe needed later
+#             cameraTranslationVector = np.dot(cv2.transpose(-R), cv2.transpose(tvec))
+#             angle = np.arctan2(cameraTranslationVector[2], cameraTranslationVector[0])
+#             
+#             top_left_corner = tuple(corners[i][0][0].astype(int))
+#             bottom_left_corner = tuple(corners[i][0][3].astype(int))
+#            
+#             # Corner 0 is the top left corner and corner 3 the bottom left. This can be used
+#             # to detect flipped markers and change the angle accordingly
+#             if top_left_corner[1] > bottom_left_corner[1]:
+#                 angle = np.pi - angle 
+#             
+#             # Some corrections to have the angle within reasonable values
+#             angle = angle - np.pi / 2.0
+#         
+#             # cv2.putText(cv_image,str(np.round(np.rad2deg(angle[0]),2)), (top_left_corner[0],top_left_corner[1]+30), cv2.FONT_HERSHEY_SIMPLEX, 1, (25,25,255),2)
+#             
+#             # Now get the distance 
+#             distance_marker = get_distance_of_line(0.2, top_left_corner, bottom_left_corner, zed_parameters.cameraMatrix, zed_parameters.distCoeffs)
+#             
+#             # add information as Marker
+#             marker = Marker(ids[i], 1.0, corners, angle[0], distance_marker)
+#             markers.append(marker)
+#                 
+#     return markers
 
 
 def get_angle_to_center(marker):
-    
-    length = 0.2
-        
+            
     rvec = marker.rvec
     tvec = marker.tvec
     axisPoints = np.array([[0.0, 0.0, 0.0]])
