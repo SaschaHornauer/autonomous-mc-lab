@@ -157,6 +157,7 @@ class Area_Visualizer(object):
         shift_factor = 300
         turn_factor = np.pi / 2.0 
         current_visible_marker_ids = []
+        current_visible_marker = []
         current_xy = (0, 0)
         
         # Reduce confidence for each marker in the persistent list, if there are any yet
@@ -167,6 +168,7 @@ class Area_Visualizer(object):
         for marker in markers:
             self.persistent_markers[str(marker.marker_id)] = marker
             current_visible_marker_ids.append(marker.marker_id)
+            current_visible_marker.append(marker)
         # This needs eventual rethinking because the more closer a marker is, the higher its
         # confidence or probability it is there is. Also two for loops here are maybe not necessary
 
@@ -270,17 +272,14 @@ class Area_Visualizer(object):
          
         #marker_pos_at_min_distance = self.marker_positions[str(self.base_marker_id)]                           
         current_xy, _, _ = self.get_marker_xy(self.persistent_markers[marker_pos_at_min_distance.get_marker_id()])
+        current_xy = (current_xy[0]+marker_pos_at_min_distance.get_shift_xy()[0],current_xy[1]+marker_pos_at_min_distance.get_shift_xy()[1])
         
-        current_xy = (current_xy[0] - marker_pos_at_min_distance.get_shift_xy()[0], current_xy[1] - marker_pos_at_min_distance.get_shift_xy()[1])
-        #current_xy = (marker_pos_at_min_distance.get_shift_xy()[0],marker_pos_at_min_distance.get_shift_xy()[1])
-        #print(current_xy[0])
-        #print(random_shift_values[0])
- 
-            
-        pos_x = current_xy[0]
-        pos_y = current_xy[1]
-        #print (current_xy)
-        cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)
+        cv2.circle(cv_image, (shift_factor,shift_factor), 2, (255, 255, 255), 2)
+        for marker in current_visible_marker:
+            pos_x = current_xy[0]
+            pos_y = current_xy[1]
+            #print (current_xy)
+            cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)
         #cv2.circle(cv_image, (int(scale_factor * pos_x + shift_factor), int(scale_factor * pos_y + shift_factor)), 2, (0, 0, 255), 2)   
             # from now on, all future marker sightings of this marker mean a movement of the own vehicle
 #         elif marker_id in self.persistent_markers and not self.base_marker_found:
