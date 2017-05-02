@@ -4,7 +4,7 @@ import matplotlib
 try:
     import cv2
 except:
-    print("Couldn't import cv")
+    print("Couldn't import cv2")
 
 
 MacOSX = False
@@ -384,6 +384,18 @@ def mi_or_cv2_animate(img_array,cv=True,delay=30,title='animate'):
     else:
         print('I am confused')
         assert(False)
+
+
+def mci(img,delay=33,title='animate',scale=1.0):
+    if scale != 1.0:
+        scale_img = cv2.resize(cv2.cvtColor(img,cv2.COLOR_RGB2BGR), (0,0), fx=scale, fy=scale)
+    else:
+        scale_image = img
+    cv2.imshow(title,scale_img)
+    k = cv2.waitKey(delay)
+    return k
+
+
 
 def mi_or_cv2(img,cv=True,delay=30,title='animate'):
     if cv:
