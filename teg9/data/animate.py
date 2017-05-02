@@ -1,6 +1,7 @@
 from kzpy3.vis import *
 
-def prepare_image(img,steer,motor,state,delay,scale):
+def prepare_image(img,steer,motor,state,delay,scale,color_mode):
+    
     bar_color = [0,0,0]
     if state == 1:
         bar_color = [0,0,255]
@@ -10,21 +11,26 @@ def prepare_image(img,steer,motor,state,delay,scale):
         bar_color = [255,255,0]
     elif state == 7:
         bar_color = [255,0,255]
+    elif state == 2:
+        bar_color = [100,100,100]
     else:
         bar_color = [0,0,0]
     if steer != None:
         apply_rect_to_img(img,steer,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=True)
     if motor != None:
         apply_rect_to_img(img,motor,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=False)
+    
+     
     if delay == None:
-        scale_img = cv2.resize(cv2.cvtColor(img,cv2.COLOR_RGB2BGR), (0,0), fx=scale, fy=scale)
+        scale_img = cv2.resize(img, (0,0), fx=scale, fy=scale)
         return scale_img
     else:
         k = mci(img,delay,'animate',scale)
         return k  
 
 def animate(A):
-
+    timer = Timer(1)
+    ctr = 0
     while True:
         while A['STOP_ANIMATOR_THREAD'] == False:
 
@@ -32,7 +38,9 @@ def animate(A):
                 print 'waiting for images'
                 time.sleep(1)
                 continue
-
+            if timer.check():
+                print(d2s("A['current_img_index'] =", int(A['current_img_index'])))
+                timer.reset()
             A['current_img_index'] += A['d_indx']
             if A['current_img_index'] >= len(A['images']):
                 A['current_img_index'] = len(A['images'])-1
@@ -44,11 +52,27 @@ def animate(A):
             steer = A['steer'][indx]
             state = A['state'][indx]
             motor = A['motor'][indx]
+            #print state
 
-            k = prepare_image(img,steer,None,state,33,8.0)
+            if A['delay'] == None:
+                if len(A['images']) > A['save_stop_index']:
+                    A['STOP_LOADER_THREAD'] = True
+                if A['current_img_index'] > A['save_stop_index']:
+                    A['STOP_ANIMATOR_THREAD'] = True
+                    A['STOP_LOADER_THREAD'] = True
+                    return
+                if A['current_img_index'] >= A['save_start_index']:
+                    out_img = prepare_image(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])
+                    imsave(opjD('temp2',d2n(ctr,'.png')),out_img)
+                    print ctr
+                    ctr += 1
+                continue
+            else:
+                k = prepare_image(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])
 
             if k == ord('q'):
                 print('Exiting animate_thread.animate')
+                A['STOP_LOADER_THREAD'] = True
                 return
             if k == ord(' '):
                 A['d_indx'] = 0

@@ -386,11 +386,9 @@ def mi_or_cv2_animate(img_array,cv=True,delay=30,title='animate'):
         assert(False)
 
 
-def mci(img,delay=33,title='animate',scale=1.0):
-    if scale != 1.0:
-        scale_img = cv2.resize(cv2.cvtColor(img,cv2.COLOR_RGB2BGR), (0,0), fx=scale, fy=scale)
-    else:
-        scale_image = img
+def mci(img,delay=33,title='animate',scale=1.0,color_mode=cv2.COLOR_RGB2BGR):
+    img = cv2.cvtColor(img,color_mode)
+    scale_img = cv2.resize(img, (0,0), fx=scale, fy=scale)
     cv2.imshow(title,scale_img)
     k = cv2.waitKey(delay)
     return k
@@ -406,3 +404,33 @@ def mi_or_cv2(img,cv=True,delay=30,title='animate'):
         mi(img,title)
         pause(0.0001)
 
+
+
+
+def frames_to_video_with_ffmpeg(input_dir,output_path,img_range=()):
+    if input_dir[-1] == '/':
+        input_dir = input_dir[:-1] # the trailing / messes up the name.
+    _,fnames = dir_as_dic_and_list(input_dir)
+    frames_folder = input_dir.split('/')[-1]
+    unix('mkdir -p '+'/'.join(output_path.split('/')[:-1]))
+    unix_str = ' -i '+input_dir+'/%d.png -pix_fmt yuv420p -r 30 -b:v 14000k '+output_path
+    success = False
+    try:
+        print('Trying avconv.')
+        unix('avconv'+unix_str)
+        success = True
+    except Exception as e:
+        print "'avconv did not work.' ***************************************"
+        print e.message, e.args
+        print "***************************************"
+    if not success:
+        try:
+            print('Trying ffmpeg.')
+            unix('ffmpeg'+unix_str)
+            success = True
+        except Exception as e:
+            print "'ffmeg did not work.' ***************************************"
+            print e.message, e.args
+            print "***************************************"
+    if success:
+        print('frames_to_video_with_ffmpeg() had success with ' + frames_folder)
