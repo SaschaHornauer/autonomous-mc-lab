@@ -105,7 +105,7 @@ def preprocess(A,path):
 
 
 def multi_preprocess_pkl(A,meta_path,rgb_1to4_path):
-    A['meta'] = load_obj(meta_path)
+    A['meta'] = load_obj(opj(meta_path,'left_image_bound_to_data.pkl'))
 
     steer_previous = 49
     motor_previous = 49
@@ -149,7 +149,7 @@ def get_new_A(_=None):
     A['t_previous'] = 0
     A['left_deltas'] = []
     A['scale'] = 1.0
-    A['delay'] = None
+    A['delay'] = None#33
     A['steer'] = []
     A['state'] = []
     A['SMOOTHING'] = True
@@ -157,8 +157,8 @@ def get_new_A(_=None):
     A['images'] = []
     A['meta'] = None
     A['color_mode'] = cv2.COLOR_RGB2BGR
-    A['save_start_index'] = 1600
-    A['save_stop_index'] = 1600+30*30
+    A['save_start_index'] = 6700
+    A['save_stop_index'] = 7024
     return A
 
 
@@ -173,13 +173,20 @@ if __name__ == '__main__':
     A = get_new_A(A)
 
     if False:
-        meta_path = '/home/karlzipser/Desktop/bair_car_data_Main_Dataset/meta/direct_1Sept2016_Mr_Orange_local_sidewalks/left_image_bound_to_data.pkl' 
-        path2 = '/home/karlzipser/Desktop/bair_car_data_Main_Dataset/rgb_1to4/direct_1Sept2016_Mr_Orange_local_sidewalks'
+        #meta_path = '/home/karlzipser/Desktop/bair_car_data_new/meta/caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow'
+        #path2 =     '/home/karlzipser/Desktop/bair_car_data_new/rgb_1to4/caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow'
+        #meta_path = '/home/karlzipser/Desktop/bair_car_data_new/meta/caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow_A'
+        #path2 =     '/home/karlzipser/Desktop/bair_car_data_new/rgb_1to4/caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow_A'
+        meta_path = '/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_01May17_17h41m03s_Mr_Silver'
+        path2 =     '/home/karlzipser/Desktop/bair_car_data_new/rgb_1to4/direct_rewrite_test_01May17_17h41m03s_Mr_Silver'
+        
         multi_preprocess_pkl(A,meta_path,path2)
 
     if True:
-        meta_path = '/media/karlzipser/ExtraDrive2/Mr_Orange_28April2017/processed/direct_rewrite_test_28Apr17_18h55m31s_Mr_Orange/.preprocessed2/left_image_bound_to_data.pkl'
-        path2 = '/media/karlzipser/ExtraDrive2/Mr_Orange_28April2017/processed/direct_rewrite_test_28Apr17_18h55m31s_Mr_Orange'
+        #meta_path = '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017/processed/caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow/.preprocessed2/left_image_bound_to_data.pkl'
+        #path2 = '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017/processed/caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow'
+        meta_path = '/home/karlzipser/Desktop/one_bag/processed/direct_rewrite_test_01May17_17h41m03s_Mr_Silver/.preprocessed2/left_image_bound_to_data.pkl'
+        path2 = '/home/karlzipser/Desktop/one_bag/processed/direct_rewrite_test_01May17_17h41m03s_Mr_Silver'
         multi_preprocess_bags(A,meta_path,path2,bagfile_range=[])
 
 

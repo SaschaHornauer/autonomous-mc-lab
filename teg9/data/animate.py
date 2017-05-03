@@ -55,6 +55,7 @@ def animate(A):
             #print state
 
             if A['delay'] == None:
+                print('Writing to file instead of display!')
                 if len(A['images']) > A['save_stop_index']:
                     A['STOP_LOADER_THREAD'] = True
                 if A['current_img_index'] > A['save_stop_index']:

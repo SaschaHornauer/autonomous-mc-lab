@@ -8,9 +8,9 @@ import sys
 import os
 import cv2
 import random
-from aruco_tools.Marker import Marker
-from Bagfile_Handler import Bagfile_Handler
-import aruco_tools.aruco_angle_retriever as aruco_data
+from kzpy3.data_analysis.aruco_tools.Marker import Marker
+from kzpy3.data_analysis.Bagfile_Handler import Bagfile_Handler
+import kzpy3.data_analysis.aruco_tools.aruco_angle_retriever as aruco_data
 
 class Marker_Position(object):
     '''
