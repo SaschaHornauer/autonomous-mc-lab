@@ -1,9 +1,9 @@
 import cv2.aruco as aruco
 import cv2
-from zed_parameter import Zed_Parameter
+from kzpy3.data_analysis.zed_parameter import Zed_Parameter
 import numpy as np
 from numpy import average
-from aruco_tools.Marker import Marker
+from kzpy3.data_analysis.aruco_tools.Marker import Marker
 import sys
 
 

@@ -18,8 +18,8 @@ def setup_solver():
 	return solver
 
 solver = setup_solver()
-weights_file_path = opjD('z2_color_aruco')
-weights_file_path = most_recent_file_in_folder(weights_file_path,['z2_color','caffemodel'])
+weights_file_path = opjD('z2_color_aruco4')
+weights_file_path = '/home/karlzipser/caffe_models/solver_state_1_5_6_7_plus_extra_Smyth_racing_iter_400000.caffemodel'# most_recent_file_in_folder(weights_file_path,['z2_color','caffemodel']) #'/home/karlzipser/caffe_models/z2_color.caffemodel'#most_recent_file_in_folder(weights_file_path,['z2_color','caffemodel'])
 solver.net.copy_from(weights_file_path)
 cprint('Loaded weights from '+weights_file_path)
 #plt.ion()

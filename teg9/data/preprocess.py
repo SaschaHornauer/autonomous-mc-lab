@@ -15,6 +15,7 @@ if False:
 
 
 bag_folders_src_location = '/media/karlzipser/rosbags/Mr_Silver_20to25April2017'
+bag_folders_src_location = '/home/karlzipser/Desktop/one_bag'
 bag_folders_src = opj(bag_folders_src_location,'new' )
 #bag_folders_dst_rgb1to4_path = opjD('bair_car_data_new_24April2017/rgb_1to4')
 #bag_folders_dst_meta_path = opjD('bair_car_data_new_24April2017/meta_states_1_5_6_7_good')
