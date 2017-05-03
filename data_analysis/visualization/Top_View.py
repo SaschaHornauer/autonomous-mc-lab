@@ -29,6 +29,8 @@ class Marker_Position(object):
         self.__pos_xy = pos_xy
         self.__shift_xy = shift_xy
         self.__aquired_at_distance = distance
+        if(marker_id == 208 and shift_xy[0]==0.0):
+            print("SHIT")
         
     def get_distance(self):
         return self.__aquired_at_distance
@@ -36,7 +38,7 @@ class Marker_Position(object):
     def get_marker_id(self):
         return self.__marker_id
     
-    def get_shift_xy(self):
+    def get_shift_ang_trans(self):
         return self.__shift_xy
     
     def get_pos_xy(self):
@@ -99,6 +101,7 @@ class Top_View(object):
             orig_xy, orig_distance, orig_angle = self.get_marker_xy(first_marker)
             
             # That base marker position is added with shift 0,0 because it is the reference
+            #print("Base marker " + str(self.base_marker_id))
             self.marker_positions[self.base_marker_id] = Marker_Position(self.base_marker_id, orig_xy, (0.0, (0.0, 0.0)), orig_distance)
         
         for current_marker in current_visible_markers.values():
@@ -110,6 +113,7 @@ class Top_View(object):
                 orig_xy, orig_distance, orig_angle = self.get_marker_xy(current_visible_markers[current_marker])
             
                 # That base marker position is added with shift 0,0 because it is the reference
+                #print("Base marker " + str(current_marker.marker_id))
                 self.marker_positions[current_marker.marker_id] = Marker_Position(current_marker.marker_id, orig_xy, (0.0, (0.0, 0.0)), orig_distance)
         
             # If we dont look at the base marker
@@ -126,12 +130,24 @@ class Top_View(object):
                     self.marker_positions[current_marker.marker_id] = new_marker_position
                          
                 else:
-                    # The base marker is no longer visible so the calculation is done
-                    # via intermediate markers
-                      
-                    intermediate_marker = self.persistent_markers[str(self.marker_positions.keys()[0])]
-                    new_marker_position = self.calculate_marker_to_inter(intermediate_marker, current_marker)
-                    self.marker_positions[current_marker.marker_id] = new_marker_position
+                    # The base marker is no longer visible
+                    # For each marker in the visible markers list we look for one with existing shift values
+                    # to calculate everything in respect to this one
+                    intermediate_marker = None
+                    for tmp_marker in current_visible_markers.keys():
+                        
+                        if tmp_marker in self.marker_positions and self.marker_positions[tmp_marker].get_shift_ang_trans() != None:
+                            intermediate_marker = self.persistent_markers[str(self.marker_positions.keys()[0])]
+
+                    if(intermediate_marker == None):
+                        print("Warning, no more markers with knowledge about the base found")
+                    else:
+                        if intermediate_marker.marker_id == current_marker.marker_id:
+                            continue
+                        
+                        print("Found int marker " +str( intermediate_marker.marker_id) + " for "+str(current_marker.marker_id))
+                        new_marker_position = self.calculate_marker_to_inter(intermediate_marker, current_marker)
+                        self.marker_positions[current_marker.marker_id] = new_marker_position
                           
          
         for marker in self.marker_positions.values():
@@ -139,7 +155,7 @@ class Top_View(object):
             pos_x = marker.get_pos_xy()[0]
             pos_y = marker.get_pos_xy()[1]
             confidence_level = self.persistent_markers[str(marker.get_marker_id())].confidence
-            #confidence_level = 1.0
+            confidence_level = 1.0
             cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * confidence_level, 0, 0), 2)
         
         # print(self.persistent_markers.keys())
@@ -165,7 +181,7 @@ class Top_View(object):
          
         # Calculate the difference in angle for coordination transform rotation
         phi = ang_base - angle_surface_current
-         
+        
         # Calculate the translation by calculating the coordinates according to the rotated origin
         trans_pos_xy = cv2.polarToCart(distance_current, phi)
         trans_pos_xy = (trans_pos_xy[0][0][0],trans_pos_xy[1][0][0])
@@ -183,9 +199,15 @@ class Top_View(object):
         resulting_x = new_x + trans_rel_base[0]
         resulting_y = new_y + trans_rel_base[1]
          
+        
+         
         # The position is written into a marker position, which is technically our position perceived under the
         # new marker, transformated into the reference frame of the base marker
         new_marker_position = Marker_Position(marker_b.marker_id, (resulting_x, resulting_y), (phi, (trans_rel_base)), distance_current)
+#         if(marker_b.marker_id == 208):
+#             print(new_marker_position) 
+#             if phi == 0.0:
+#                 print"###########################"
         return new_marker_position      
         
         
@@ -196,32 +218,48 @@ class Top_View(object):
         # Get the data of the new perceived marker
         position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(marker_b)
         
-        # Get the data of the base marker, perceived from the new position
-        base_xy, dist_base, ang_base = self.get_marker_xy(interim_marker)
+        # Get the data of the interim marker, perceived from the new position
+        interim_xy, dist_interim, ang_interim = self.get_marker_xy(interim_marker)
          
         # Calculate the difference in angle for coordination transform rotation
-        phi = ang_base - angle_surface_current
+        phi = ang_interim - angle_surface_current
          
         # Calculate the translation by calculating the coordinates according to the rotated origin
         trans_pos_xy = cv2.polarToCart(distance_current, phi)
         trans_pos_xy = (trans_pos_xy[0][0][0],trans_pos_xy[1][0][0])
         
         # The translation vector is now the difference between the coordinates, relative to
-        # the base marker and the coordinates, relative to the new marker
-        trans_rel_base = np.subtract(base_xy, trans_pos_xy)                  
+        # the interim marker and the coordinates, relative to the new marker
+        trans_rel_interim = np.subtract(interim_xy, trans_pos_xy)                  
          
-        # Our position in the system of the base marker, given by the new marker, can now be calculated
+        # Our position in the system of the interim marker, given by the new marker, can now be calculated
         # First the rotation is applied
         new_x = position_current_xy[0] * np.cos(phi) + position_current_xy[1] * np.sin(phi)
         new_y = position_current_xy[0] * np.sin(phi) + position_current_xy[1] * np.cos(phi)
          
         # Then the translation is performed                                       
-        resulting_x = new_x + trans_rel_base[0]
-        resulting_y = new_y + trans_rel_base[1]
+        resulting_x = new_x + trans_rel_interim[0]
+        resulting_y = new_y + trans_rel_interim[1]
+        
+        interim_data = self.marker_positions[interim_marker.marker_id]
+             
+        interim_to_base_phi = interim_data.get_shift_ang_trans()[0]
+        interim_to_base_trans = interim_data.get_shift_ang_trans()[1]
+
+        new_x = resulting_x * np.cos(interim_to_base_phi) + resulting_y * np.sin(interim_to_base_phi)
+        new_y = resulting_x * np.sin(interim_to_base_phi) + resulting_y * np.cos(interim_to_base_phi)
          
+        # Then the translation is performed                                       
+        resulting_x = new_x + interim_to_base_trans[0]
+        resulting_y = new_y + interim_to_base_trans[1]
+       
+        resulting_phi = interim_to_base_phi - phi
+        resulting_trans = interim_to_base_trans + trans_rel_interim
+        
         # The position is written into a marker position, which is technically our position perceived under the
-        # new marker, transformated into the reference frame of the base marker
-        new_marker_position = Marker_Position(marker_b.marker_id, (resulting_x, resulting_y), (phi, (trans_rel_base)), distance_current)
+        # new marker, transformated into the reference frame of the interim marker
+        new_marker_position = Marker_Position(marker_b.marker_id, (resulting_x, resulting_y), (resulting_phi, (resulting_trans)), distance_current)
+        print(new_marker_position)
         return new_marker_position      
         
 
@@ -257,7 +295,7 @@ if __name__ == "__main__":
 #                     position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(current_marker)
 #                     
 #                     # Check if that marker already has shift values
-#                     if(current_marker.marker_id in self.marker_positions and self.marker_positions[current_marker.marker_id].get_shift_xy() != None):
+#                     if(current_marker.marker_id in self.marker_positions and self.marker_positions[current_marker.marker_id].get_shift_ang_trans() != None):
 #                         # If that is the case only the position is updated
 #                         self.marker_positions[current_marker.marker_id].set_pos_xy(position_current_xy)
 #                         continue
@@ -268,8 +306,8 @@ if __name__ == "__main__":
 #                     pos_interim_xy, dist_interim, ang_interim = self.get_marker_xy(self.persistent_markers[str(interim_marker_pos.get_marker_id())])
 #                     
 #                     # Get its shift phi and translation  
-#                     phi_to_base = interim_marker_pos.get_shift_xy()[0]
-#                     trans_to_base = interim_marker_pos.get_shift_xy()[1]
+#                     phi_to_base = interim_marker_pos.get_shift_ang_trans()[0]
+#                     trans_to_base = interim_marker_pos.get_shift_ang_trans()[1]
 #                     
 #                     # Calculate the angle shift in between the two markers and in between the marker and the base  
 #                     # known from the interim marker to have the overall shift
