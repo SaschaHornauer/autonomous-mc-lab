@@ -29,7 +29,7 @@ class Top_View(object):
         cv_image = np.ones((600, 600, 3), np.uint8)
         
         # Some arbitrary scaling parameters for visualisation are set
-        scale_factor = int(200.0 * (1.0 / 8.0))
+        scale_factor = int(100.0 * (1.0 / 8.0))
         shift_factor = 300
         turn_factor = np.pi / 2.0 
         
@@ -123,19 +123,29 @@ class Top_View(object):
                             self.persistent_markers[current_marker.marker_id] = current_marker
                           
         # self.persistent_markers.update(current_visible_markers)
+        avg_x = []
+        avg_y = []
         for marker in self.persistent_markers.values():
             try:
                 pos_x = marker.pos_xy[0]
                 pos_y = marker.pos_xy[1]
-                # confidence_level = marker.confidence
-                confidence_level = 1.0
-                cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * confidence_level, 0, 0), 2)
+                avg_x.append(pos_x)
+                avg_y.append(pos_y)
+                confidence_level = marker.confidence
+                #confidence_level = 1.0
+                cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * 1.0, 0, 0), 2)
             except AttributeError as ex:
                 print(str(ex) + str(marker.marker_id))
                 pass
             except TypeError as ex:
                 print(ex)
                 pass
+        try:
+            avg_x = np.mean(avg_x)
+            avg_y = np.mean(avg_y)
+            cv2.circle(cv_image, (int(scale_factor * avg_x) + shift_factor, int(scale_factor * avg_y) + shift_factor), 2, (0, 0, 255), 2)
+        except:
+            pass
         # print(self.persistent_markers.keys())
         cv2.imshow('topView', cv_image)
         cv2.moveWindow('topView', 700, 0)
