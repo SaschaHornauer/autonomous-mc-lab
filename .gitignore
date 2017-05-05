@@ -2,6 +2,7 @@
 Icon?
 .DS_Store
 *.caffemodel
+*.pyc
 # Compiled Object files
 *.slo
 *.lo
