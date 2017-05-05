@@ -31,7 +31,7 @@ class Marker(object):
         self.pos_xy = pos_xy
         self.shift_angle_trans = shift_angle_trans
         self.aquired_at_distance = distance
-        
+
     
     
     
