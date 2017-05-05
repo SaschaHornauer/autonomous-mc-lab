@@ -12,56 +12,12 @@ from aruco_tools.Marker import Marker
 from Bagfile_Handler import Bagfile_Handler
 import aruco_tools.aruco_angle_retriever as aruco_data
 
-class Marker_Position(object):
-    '''
-    The Pythonic way of properties and setter/getters is ignored and the arrival of strong
-    types and real private fields is anticipated in agony. 
-    '''
-    
-    __pos_xy = None
-    __shift_xy = None
-    __marker_id = None
-    __aquired_at_distance = None
-    
-    
-    def __init__(self, marker_id, pos_xy, shift_xy, distance):
-        self.__marker_id = marker_id
-        self.__pos_xy = pos_xy
-        self.__shift_xy = shift_xy
-        self.__aquired_at_distance = distance
-        if(marker_id == 208 and shift_xy[0]==0.0):
-            print("SHIT")
-        
-    def get_distance(self):
-        return self.__aquired_at_distance
-    
-    def get_marker_id(self):
-        return self.__marker_id
-    
-    def get_shift_ang_trans(self):
-        return self.__shift_xy
-    
-    def get_pos_xy(self):
-        return self.__pos_xy
-    
-    def set_pos_xy(self,pos_xy):
-        __pos_xy = pos_xy
-    
-    def __repr__(self):
-        '''
-        Quick string out method
-        '''
-        return str(self.__pos_xy) + "," + str(self.__shift_xy) + "," + str(self.__marker_id) + "," + str(self.__aquired_at_distance)
-    
     
 class Top_View(object):
     
     persistent_markers = {}
     marker_positions = {}
-    base_x = 0.0
-    base_y = 0.0 
-    base_marker_id = None
-    base_marker_found = False
+    base_marker = None
     frame_number = 0
         
     def __init__(self):
@@ -87,77 +43,77 @@ class Top_View(object):
         
         # Add markers to list, overwriting old markers and thereby recalculating confidence levels
         for marker in input_markers:
-            self.persistent_markers[str(marker.marker_id)] = marker
-            self.persistent_markers[str(marker.marker_id)].confidence = 1.0
-            # Convert the input list to a dict with the id as key
+            self.persistent_markers[marker.marker_id] = marker
+            self.persistent_markers[marker.marker_id].confidence = 1.0
+            # Convert the input marker list to a dict with the id as key
             current_visible_markers[marker.marker_id] = marker
 
         # See if the initial marker is found, if not take the first of the visible ones
-        if not self.base_marker_found:
+        if self.base_marker == None:
             # first entry is used
-            first_marker = current_visible_markers.itervalues().next()
-            self.base_marker_id = first_marker.marker_id
-            self.base_marker_found = True        
-            orig_xy, orig_distance, orig_angle = self.get_marker_xy(first_marker)
-            
-            # That base marker position is added with shift 0,0 because it is the reference
-            #print("Base marker " + str(self.base_marker_id))
-            self.marker_positions[self.base_marker_id] = Marker_Position(self.base_marker_id, orig_xy, (0.0, (0.0, 0.0)), orig_distance)
+            self.base_marker = current_visible_markers.itervalues().next()            
+            orig_xy, orig_distance, orig_angle = self.get_marker_xy(self.base_marker)
+            self.base_marker.pos_xy = orig_xy
+            self.base_marker.aquired_at_distance = orig_distance
+            # The base marker has no shift
+            self.base_marker.shift_angle_trans = (0.0,(0.0,0.0))
         
         for current_marker in current_visible_markers.values():
-            # Go over all visible marker to calculate its rotation and translation relative to the base
-            # marker. 
+            # Go over all visible marker to calculate their rotation and translation relative 
+            # to the base marker
             
             # If we are looking at the base marker, we just update its position. It has no shift
-            if current_marker == self.base_marker_id:
-                orig_xy, orig_distance, orig_angle = self.get_marker_xy(current_visible_markers[current_marker])
-            
-                # That base marker position is added with shift 0,0 because it is the reference
-                #print("Base marker " + str(current_marker.marker_id))
-                self.marker_positions[current_marker.marker_id] = Marker_Position(current_marker.marker_id, orig_xy, (0.0, (0.0, 0.0)), orig_distance)
-        
-            # If we dont look at the base marker
-            else:
+            if current_marker == self.base_marker:
+                orig_xy, orig_distance, orig_angle = self.get_marker_xy(current_marker)
+                self.base_marker.pos_xy = orig_xy
+                self.base_marker.aquired_at_distance = orig_distance
 
-                # for simplicity we calculate the shift new. This could be changed in the future
-                
+        
+            # If we dont look at the base marker though it was found beforehand
+            else:                
                 # we check if the base marker is still visible
-                if self.base_marker_id in current_visible_markers.keys():
+                if self.base_marker.marker_id in current_visible_markers:
                     
-                    # do shift calculations according to base marker
-                    base_marker = self.persistent_markers[str(self.base_marker_id)] 
-                    new_marker_position = self.calculate_marker_to_base(base_marker, current_marker)
-                    self.marker_positions[current_marker.marker_id] = new_marker_position
-                         
+                    # do shift calculations according to base marker and write them to the current marker
+                    self.update_pos_shift_to_base(self.base_marker, current_marker)                    
+                    #self.persistent_markers[current_marker.marker_id] = current_marker  
+                    
+                    
+                    
                 else:
                     # The base marker is no longer visible
                     # For each marker in the visible markers list we look for one with existing shift values
                     # to calculate everything in respect to this one
                     intermediate_marker = None
-                    for tmp_marker in current_visible_markers.keys():
+                    for tmp_marker in current_visible_markers.values():
                         
-                        if tmp_marker in self.marker_positions and self.marker_positions[tmp_marker].get_shift_ang_trans() != None:
-                            intermediate_marker = self.persistent_markers[str(self.marker_positions.keys()[0])]
-
+                        # First check if the tmp marker we want to use as an intermediate is the same as the one we are
+                        # interested in and then check if it has shift values
+                        if tmp_marker.marker_id != current_marker.marker_id and tmp_marker.shift_angle_trans != None:
+                            intermediate_marker = tmp_marker
+                        else:
+                            continue
                     if(intermediate_marker == None):
                         print("Warning, no more markers with knowledge about the base found")
-                    else:
-                        if intermediate_marker.marker_id == current_marker.marker_id:
-                            continue
+                    else:                      
+                        print("Found intermediate marker " +str( intermediate_marker.marker_id) + " for "+str(current_marker.marker_id))
+                        self.calculate_marker_to_inter(intermediate_marker, current_marker)
                         
-                        print("Found int marker " +str( intermediate_marker.marker_id) + " for "+str(current_marker.marker_id))
-                        new_marker_position = self.calculate_marker_to_inter(intermediate_marker, current_marker)
-                        self.marker_positions[current_marker.marker_id] = new_marker_position
                           
-         
-        for marker in self.marker_positions.values():
-            
-            pos_x = marker.get_pos_xy()[0]
-            pos_y = marker.get_pos_xy()[1]
-            confidence_level = self.persistent_markers[str(marker.get_marker_id())].confidence
-            confidence_level = 1.0
-            cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * confidence_level, 0, 0), 2)
-        
+        #self.persistent_markers.update(current_visible_markers)
+        for marker in self.persistent_markers.values():
+            try:
+                pos_x = marker.pos_xy[0]
+                pos_y = marker.pos_xy[1]
+                #confidence_level = marker.confidence
+                confidence_level = 1.0
+                cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * confidence_level, 0, 0), 2)
+            except AttributeError as ex:
+                print(str(ex) + str(marker.marker_id))
+                pass
+            except TypeError as ex:
+                print(ex)
+                pass
         # print(self.persistent_markers.keys())
         cv2.imshow('topView', cv_image)
         cv2.moveWindow('topView', 700, 0)
@@ -170,8 +126,7 @@ class Top_View(object):
         xy = cv2.polarToCart(distance, angle)
         return tuple((xy[0][0][0], xy[1][0][0])), distance, angle
     
-    def calculate_marker_to_base(self,base_marker, marker_b):
-
+    def update_pos_shift_to_base(self,base_marker, marker_b):
         
         # Get the data of the new perceived marker
         position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(marker_b)
@@ -198,17 +153,11 @@ class Top_View(object):
         # Then the translation is performed                                       
         resulting_x = new_x + trans_rel_base[0]
         resulting_y = new_y + trans_rel_base[1]
-         
         
-         
-        # The position is written into a marker position, which is technically our position perceived under the
-        # new marker, transformated into the reference frame of the base marker
-        new_marker_position = Marker_Position(marker_b.marker_id, (resulting_x, resulting_y), (phi, (trans_rel_base)), distance_current)
-#         if(marker_b.marker_id == 208):
-#             print(new_marker_position) 
-#             if phi == 0.0:
-#                 print"###########################"
-        return new_marker_position      
+        # Write the resulting data into the marker
+        marker_b.pos_xy = (resulting_x, resulting_y)
+        marker_b.shift_angle_trans = (phi, (trans_rel_base))
+        marker_b.aquired_at_distance = distance_current
         
         
         
@@ -257,11 +206,9 @@ class Top_View(object):
         resulting_trans = interim_to_base_trans + trans_rel_interim
         
         # The position is written into a marker position, which is technically our position perceived under the
-        # new marker, transformated into the reference frame of the interim marker
-        new_marker_position = Marker_Position(marker_b.marker_id, (resulting_x, resulting_y), (resulting_phi, (resulting_trans)), distance_current)
-        print(new_marker_position)
-        return new_marker_position      
-        
+        # new marker, transformed into the reference frame of the interim marker
+        marker_b.pos_xy = (resulting_x,resulting_y)
+        marker_b.shift_angle_trans = (resulting_phi,resulting_trans)
 
 if __name__ == "__main__":
     visualizer = Top_View()
