@@ -37,8 +37,9 @@ class Top_View(object):
         
         
         # Reduce confidence for each marker in the persistent list, if there are any yet
-        for marker_id in self.persistent_markers:
-            self.persistent_markers[marker_id].confidence = self.persistent_markers[marker_id].confidence - 0.1
+#         for marker_id in self.persistent_markers:
+#             self.persistent_markers[marker_id].confidence = self.persistent_markers[marker_id].confidence - 0.1
+        # Replace that concept with a more complete notion about the confidence
         
         # Add markers to list, overwriting old markers and thereby recalculating confidence levels
         for marker in input_markers:
@@ -46,10 +47,7 @@ class Top_View(object):
             # update some fields, and leave others as the shift information untouched
             if marker.marker_id in self.persistent_markers.keys():
                 known_marker = self.persistent_markers[marker.marker_id]
-                known_marker.confidence = 1.0
-                known_marker.corners_xy = marker.corners_xy
-                known_marker.rvec = marker.rvec
-                known_marker.tvec = marker.tvec
+                known_marker.update_perception(marker.corners_xy, marker.rvec, marker.tvec)
                 current_visible_markers[marker.marker_id] = known_marker                
             else:   
                 self.persistent_markers[marker.marker_id] = marker
@@ -60,10 +58,7 @@ class Top_View(object):
             # first entry is used
             self.base_marker = current_visible_markers.itervalues().next()            
             orig_xy, orig_distance, orig_angle = self.get_marker_xy(self.base_marker)
-            self.base_marker.pos_xy = orig_xy
-            self.base_marker.aquired_at_distance = orig_distance
-            # The base marker has no shift
-            self.base_marker.shift_angle_trans = (0.0, (0.0, 0.0))
+            self.base_marker.update_pos_and_shift(orig_xy, orig_distance, (0.0, (0.0, 0.0)))
         
         for current_marker in current_visible_markers.values():
             # Go over all visible marker to calculate their rotation and translation relative 
@@ -72,10 +67,7 @@ class Top_View(object):
             # If we are looking at the base marker, we just update its position. It has no shift
             if current_marker == self.base_marker:
                 orig_xy, orig_distance, orig_angle = self.get_marker_xy(current_marker)
-                self.base_marker.pos_xy = orig_xy
-                self.base_marker.aquired_at_distance = orig_distance
-                
-
+                self.base_marker.update_pos_and_shift(orig_xy, orig_distance, (0.0, (0.0, 0.0)))
         
             # If we dont look at the base marker though it was found beforehand
             else:                
@@ -123,30 +115,22 @@ class Top_View(object):
                             self.persistent_markers[current_marker.marker_id] = current_marker
                           
         # self.persistent_markers.update(current_visible_markers)
-        avg_x = []
-        avg_y = []
+
         for marker in self.persistent_markers.values():
             try:
+                
                 pos_x = marker.pos_xy[0]
                 pos_y = marker.pos_xy[1]
-                avg_x.append(pos_x)
-                avg_y.append(pos_y)
                 confidence_level = marker.confidence
-                #confidence_level = 1.0
-                cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * 1.0, 0, 0), 2)
+                # confidence_level = 1.0
+                cv2.circle(cv_image, (int(scale_factor * pos_x) + shift_factor, int(scale_factor * pos_y) + shift_factor), 2, (255 * confidence_level, 0, 0), 2)
             except AttributeError as ex:
                 print(str(ex) + str(marker.marker_id))
                 pass
             except TypeError as ex:
                 print(ex)
                 pass
-        try:
-            avg_x = np.mean(avg_x)
-            avg_y = np.mean(avg_y)
-            cv2.circle(cv_image, (int(scale_factor * avg_x) + shift_factor, int(scale_factor * avg_y) + shift_factor), 2, (0, 0, 255), 2)
-        except:
-            pass
-        # print(self.persistent_markers.keys())
+
         cv2.imshow('topView', cv_image)
         cv2.moveWindow('topView', 700, 0)
 
@@ -187,12 +171,10 @@ class Top_View(object):
         resulting_y = new_y + trans_rel_base[1]
         
         # Write the resulting data into the marker
-        marker_b.pos_xy = (resulting_x, resulting_y)
-        marker_b.shift_angle_trans = (phi, (trans_rel_base))
-        marker_b.aquired_at_distance = distance_current
+        marker_b.update_pos_and_shift((resulting_x, resulting_y),distance_current,(phi, (trans_rel_base)))
+
         
     def update_pos_given_shift(self, single_marker):
-        print("Calculate single")
         # Get the data of the new perceived marker
         position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(single_marker)
          
@@ -217,9 +199,8 @@ class Top_View(object):
         resulting_y = new_y + trans_rel_base[1]
         
         # Write the resulting data into the marker
-        single_marker.pos_xy = (resulting_x, resulting_y)
-        #single_marker.shift_angle_trans = (phi, (trans_rel_base))
-        #single_marker.aquired_at_distance = distance_current
+        single_marker.update_pos_and_shift((resulting_x, resulting_y),distance_current,(phi, (trans_rel_base)))
+
         
         
     def calculate_marker_to_inter(self, interim_marker, marker_b):
@@ -273,8 +254,7 @@ class Top_View(object):
         resulting_y = new_y + trans_rel_base[1]
         
         # Write the resulting data into the marker
-        marker_b.pos_xy = (resulting_x, resulting_y)
-        marker_b.shift_angle_trans = (phi_interim_to_base-phi_marker_to_interim,(trans_rel_base+trans_rel_interim))
+        marker_b.update_pos_and_shift((resulting_x, resulting_y), distance_current, (phi_interim_to_base - phi_marker_to_interim, (trans_rel_base + trans_rel_interim)))
         
 
 if __name__ == "__main__":

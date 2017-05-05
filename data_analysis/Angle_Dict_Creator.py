@@ -57,11 +57,10 @@ class Angle_Dict_Creator:
         marker_dict = {}
         
         angles_to_center, angles_surfaces, distances_marker, markers  = get_angles_and_distance(cv_image, False)
-
         
         for marker in markers:
             marker_id = marker.marker_id
-
+            
             marker_dict[marker_id] = {'angle_to_center':angles_to_center[marker_id],'angle_of_surface':angles_surfaces[marker_id],'distance_to_center':distances_marker[marker_id]}
 
             if(self.show_video):            
@@ -73,7 +72,7 @@ class Angle_Dict_Creator:
                 cv2.putText(cv_image, self.beautify_string(angles_to_center[marker_id],True), xy1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 255), 1)
                 cv2.putText(cv_image, self.beautify_string(angles_surfaces[marker_id],True), xy2, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
                 cv2.putText(cv_image, self.beautify_string(distances_marker[marker_id],False), xy3, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 200, 200), 1)
-        
+            self.detected_markers[marker_id] = marker
         return marker_dict
        
             
@@ -100,6 +99,7 @@ class Angle_Dict_Creator:
                     print("Error reading cv_image! Wrong number of camera?")
                 else:
                     self.calculate_data_to_dict(cv_image)
+                    print(self.detected_markers.keys())
                             
             if(self.show_video):
                 cv2.imshow('frame',cv_image)
