@@ -50,8 +50,7 @@ class Top_View(object):
                 known_marker.corners_xy = marker.corners_xy
                 known_marker.rvec = marker.rvec
                 known_marker.tvec = marker.tvec
-                current_visible_markers[marker.marker_id] = known_marker
-                
+                current_visible_markers[marker.marker_id] = known_marker                
             else:   
                 self.persistent_markers[marker.marker_id] = marker
                 current_visible_markers[marker.marker_id] = marker
@@ -86,7 +85,7 @@ class Top_View(object):
                     # do shift calculations according to base marker and write them to the current marker
                     self.update_pos_shift_to_base(self.base_marker, current_marker)                    
                     # self.persistent_markers[current_marker.marker_id] = current_marker  
-                    
+                    self.persistent_markers[current_marker.marker_id] = current_marker
                     
                     
                 else:
@@ -95,6 +94,7 @@ class Top_View(object):
                     # In the future check distance stuff
                     if current_marker.shift_angle_trans != None:
                         self.update_pos_given_shift(current_marker)
+                        self.persistent_markers[current_marker.marker_id] = current_marker
                     else:    
                         # If there are no such information we see a new marker and have to infer
                         # shift over an intermediate marker
@@ -108,6 +108,7 @@ class Top_View(object):
                                 intermediate_marker = tmp_marker
                             elif tmp_marker.shift_angle_trans == None:
                                 # If we found a marker without those values we need to look further
+                                print("Marker " + str(tmp_marker.marker_id) + " Has no shift values")
                                 continue
                             elif len(current_visible_markers) < 2:
                                 # If the current marker id is the same as the only one left in the list, 
@@ -119,7 +120,7 @@ class Top_View(object):
                         else:                      
                             print("Found intermediate marker " + str(intermediate_marker.marker_id) + " for " + str(current_marker.marker_id))
                             self.calculate_marker_to_inter(intermediate_marker, current_marker)
-                        
+                            self.persistent_markers[current_marker.marker_id] = current_marker
                           
         # self.persistent_markers.update(current_visible_markers)
         for marker in self.persistent_markers.values():
@@ -221,10 +222,10 @@ class Top_View(object):
         interim_xy, dist_interim, ang_interim = self.get_marker_xy(interim_marker)
          
         # Calculate the difference in angle for coordination transform rotation
-        phi = ang_interim - angle_surface_current
+        phi_marker_to_interim = ang_interim - angle_surface_current
          
         # Calculate the translation by calculating the coordinates according to the rotated origin
-        trans_pos_xy = cv2.polarToCart(distance_current, phi)
+        trans_pos_xy = cv2.polarToCart(distance_current, phi_marker_to_interim)
         trans_pos_xy = (trans_pos_xy[0][0][0], trans_pos_xy[1][0][0])
         
         # The translation vector is now the difference between the coordinates, relative to
@@ -233,8 +234,8 @@ class Top_View(object):
          
         # Our position in the system of the interim marker, given by the new marker, can now be calculated
         # First the rotation is applied
-        new_x = position_current_xy[0] * np.cos(phi) + position_current_xy[1] * np.sin(phi)
-        new_y = position_current_xy[0] * np.sin(phi) + position_current_xy[1] * np.cos(phi)
+        new_x = position_current_xy[0] * np.cos(phi_marker_to_interim) + position_current_xy[1] * np.sin(phi_marker_to_interim)
+        new_y = position_current_xy[0] * np.sin(phi_marker_to_interim) + position_current_xy[1] * np.cos(phi_marker_to_interim)
          
         # Then the translation is performed                                       
         resulting_x = new_x + trans_rel_interim[0]
@@ -243,10 +244,10 @@ class Top_View(object):
         # Now the shift needs to be done again to the base system. 
         # The shift values from the intermediate marker are known
         # Calculate the difference in angle for coordination transform rotation
-        phi = interim_marker.shift_angle_trans[0]
+        phi_interim_to_base = interim_marker.shift_angle_trans[0]
         
         # Calculate the translation by calculating the coordinates according to the rotated origin
-        trans_pos_xy = cv2.polarToCart(dist_interim, phi)
+        trans_pos_xy = cv2.polarToCart(dist_interim, phi_interim_to_base)
         trans_pos_xy = (trans_pos_xy[0][0][0], trans_pos_xy[1][0][0])
         
         # The translation vector is also in the marker 
@@ -254,8 +255,8 @@ class Top_View(object):
          
         # Our position in the system of the base marker, given by the new marker, can now be calculated
         # First the rotation is applied
-        new_x = resulting_x * np.cos(phi) + resulting_x * np.sin(phi)
-        new_y = resulting_y * np.sin(phi) + resulting_y * np.cos(phi)
+        new_x = resulting_x * np.cos(phi_interim_to_base) + resulting_x * np.sin(phi_interim_to_base)
+        new_y = resulting_y * np.sin(phi_interim_to_base) + resulting_y * np.cos(phi_interim_to_base)
          
         # Then the translation is performed                                       
         resulting_x = new_x + trans_rel_base[0]
@@ -263,6 +264,8 @@ class Top_View(object):
         
         # Write the resulting data into the marker
         marker_b.pos_xy = (resulting_x, resulting_y)
+        marker_b.shift_angle_trans = (phi_interim_to_base-phi_marker_to_interim,(trans_rel_base+trans_rel_interim))
+        
 
 if __name__ == "__main__":
     visualizer = Top_View()
