@@ -146,13 +146,7 @@ class Area_Visualizer(object):
                 
         
         img2 = img2[180:500, :]   
-
-        
-       
-
         img1 = cv_image
-     
-    
         h1, w1 = img1.shape[:2]
         h2, w2 = img2.shape[:2]
         
@@ -216,82 +210,81 @@ class Area_Visualizer(object):
                 self.marker_positions[marker_id] = Marker_Position(marker_id, orig_xy, (0.0, (0.0,0.0)), orig_distance)
             
             
-            elif marker_id != self.base_marker_id:
-                # if the base marker is already found and we are not right now looking
-                # at it, we check if the base marker is still visible
-                
-                if int(self.base_marker_id) in current_visible_marker_ids:
-                    
-                    # do shift calculations according to base marker
-                    base_marker = self.persistent_markers[self.base_marker_id]
-                    # Get the data of the new perceived marker
-                    position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(current_marker)
-                    
-                    # Get the data of the base marker, perceived from the new position
-                    base, dist_base, ang_base = self.get_marker_xy(base_marker)
-                    
-                    # Calculate the difference in angle for coordination transform rotation
-                    phi = ang_base - angle_surface_current
-                    
-                    # Get the angle to the markers to calculate the translation
-                    angle_center_base = aruco_data.get_angle_to_center(base_marker)
-                    angle_center_current = aruco_data.get_angle_to_center(current_marker)
-                    
-                    # Now calculate in the reference frame of the camera the positions of the two
-                    # markers
-                    rel_pos_base_xy = cv2.polarToCart(dist_base,angle_center_base)
-                    rel_pos_current_xy = cv2.polarToCart(distance_current,angle_center_current)
-                    rel_pos_base_xy = (rel_pos_base_xy[0][0],rel_pos_base_xy[1][0])
-                    rel_pos_current_xy = (rel_pos_current_xy[0][0],rel_pos_current_xy[1][0])
-                    # The translation vector is now that difference
-                    trans_rel_base = np.subtract(rel_pos_base_xy, rel_pos_current_xy)                  
-                    
-                    # Our position in the system of the base marker, given by the new marker, can now be calculated
-                    # First the rotation is applied
-                    new_x = position_current_xy[0] * np.cos(phi) + position_current_xy[1] * np.sin(phi)
-                    new_y = position_current_xy[0] * np.sin(phi) + position_current_xy[1] * np.cos(phi)
-                    
-                    # Then the translation is performed                                       
-                    resulting_x = new_x + trans_rel_base[0]
-                    resulting_y = new_y + trans_rel_base[1]
-                    
-                    # The position is written into a marker position, which is technically our position perceived under the
-                    # new marker, transformated into the reference frame of the base marker
-                    new_marker_position = Marker_Position(marker_id, (resulting_x,resulting_y), (phi,(trans_rel_base)), distance_current)
-                    
-                    self.marker_positions[marker_id] = new_marker_position
-             
-                        
-                else:
-                    # The base marker is no longer visible so the calculation is done
-                    # via intermediate markers
-                    
-                    # Get the data of the new perceived marker
-                    position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(current_marker)
-                    
-                    # Get the data of the intermediate marker, perceived from the new position
-                    interim_marker_pos = self.marker_positions.values()[0]
-                    pos_base, dist_base, ang_base = self.get_marker_xy(self.persistent_markers[interim_marker_pos.get_marker_id()])
-                    
-                    phi_to_base = interim_marker_pos.get_shift_xy()[0]
-                    trans_to_base = interim_marker_pos.get_shift_xy()[1]
-                    
-                    phi = ang_base - angle_surface_current - phi_to_base
-                    
-                    new_x = position_current_xy[0] * np.cos(phi) + position_current_xy[1] * np.sin(phi)
-                    new_y = position_current_xy[0] * np.sin(phi) + position_current_xy[1] * np.cos(phi)
-                    
-                    shift_x = pos_base[0] - position_current_xy[0] - trans_to_base[0]
-                    shift_y = pos_base[1] - position_current_xy[1] - trans_to_base[1]
-                                       
-                    resulting_x = new_x + shift_x
-                    resulting_y = new_y + shift_y
-                    
-                    new_marker_position = Marker_Position(marker_id, (resulting_x,resulting_y),(phi,(shift_x,shift_y)), distance_current)
-                    
-                    self.marker_positions[marker_id] = new_marker_position
-                         
-                        
+#             elif marker_id != self.base_marker_id:
+#                 # if the base marker is already found and we are not right now looking
+#                 # at it, we check if the base marker is still visible
+#                 
+#                 if int(self.base_marker_id) in current_visible_marker_ids:
+#                     
+#                     # do shift calculations according to base marker
+#                     base_marker = self.persistent_markers[self.base_marker_id]
+#                     # Get the data of the new perceived marker
+#                     position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(current_marker)
+#                     
+#                     # Get the data of the base marker, perceived from the new position
+#                     base, dist_base, ang_base = self.get_marker_xy(base_marker)
+#                     
+#                     # Calculate the difference in angle for coordination transform rotation
+#                     phi = ang_base - angle_surface_current
+#                     
+#                     # Get the angle to the markers to calculate the translation
+#                     angle_center_base = aruco_data.get_angle_to_center(base_marker)
+#                     angle_center_current = aruco_data.get_angle_to_center(current_marker)
+#                     
+#                     # Now calculate in the reference frame of the camera the positions of the two
+#                     # markers
+#                     rel_pos_base_xy = cv2.polarToCart(dist_base,angle_center_base)
+#                     rel_pos_current_xy = cv2.polarToCart(distance_current,angle_center_current)
+#                     rel_pos_base_xy = (rel_pos_base_xy[0][0],rel_pos_base_xy[1][0])
+#                     rel_pos_current_xy = (rel_pos_current_xy[0][0],rel_pos_current_xy[1][0])
+#                     # The translation vector is now that difference
+#                     trans_rel_base = np.subtract(rel_pos_base_xy, rel_pos_current_xy)                  
+#                     
+#                     # Our position in the system of the base marker, given by the new marker, can now be calculated
+#                     # First the rotation is applied
+#                     new_x = position_current_xy[0] * np.cos(phi) + position_current_xy[1] * np.sin(phi)
+#                     new_y = position_current_xy[0] * np.sin(phi) + position_current_xy[1] * np.cos(phi)
+#                     
+#                     # Then the translation is performed                                       
+#                     resulting_x = new_x + trans_rel_base[0]
+#                     resulting_y = new_y + trans_rel_base[1]
+#                     
+#                     # The position is written into a marker position, which is technically our position perceived under the
+#                     # new marker, transformated into the reference frame of the base marker
+#                     new_marker_position = Marker_Position(marker_id, (resulting_x,resulting_y), (phi,(trans_rel_base)), distance_current)
+#                     
+#                     self.marker_positions[marker_id] = new_marker_position
+#              
+#                         
+#                 else:
+#                     # The base marker is no longer visible so the calculation is done
+#                     # via intermediate markers
+#                     
+#                     # Get the data of the new perceived marker
+#                     position_current_xy, distance_current, angle_surface_current = self.get_marker_xy(current_marker)
+#                     
+#                     # Get the data of the intermediate marker, perceived from the new position
+#                     interim_marker_pos = self.marker_positions.values()[0]
+#                     pos_base, dist_base, ang_base = self.get_marker_xy(self.persistent_markers[interim_marker_pos.get_marker_id()])
+#                     
+#                     phi_to_base = interim_marker_pos.get_shift_xy()[0]
+#                     trans_to_base = interim_marker_pos.get_shift_xy()[1]
+#                     
+#                     phi = ang_base - angle_surface_current - phi_to_base
+#                     
+#                     new_x = position_current_xy[0] * np.cos(phi) + position_current_xy[1] * np.sin(phi)
+#                     new_y = position_current_xy[0] * np.sin(phi) + position_current_xy[1] * np.cos(phi)
+#                     
+#                     shift_x = pos_base[0] - position_current_xy[0] - trans_to_base[0]
+#                     shift_y = pos_base[1] - position_current_xy[1] - trans_to_base[1]
+#                                        
+#                     resulting_x = new_x + shift_x
+#                     resulting_y = new_y + shift_y
+#                     
+#                     new_marker_position = Marker_Position(marker_id, (resulting_x,resulting_y),(phi,(shift_x,shift_y)), distance_current)
+#                     
+#                     self.marker_positions[marker_id] = new_marker_position
+#                          
         
         for marker in self.marker_positions.values():
             
@@ -306,8 +299,8 @@ class Area_Visualizer(object):
 
     def get_marker_xy(self, marker):
         distance = aruco_data.get_distance(marker)
-        #angle = aruco_data.get_angle_surface(marker)
-        angle = aruco_data.get_angle_to_center(marker)
+        angle = aruco_data.get_angle_surface(marker)
+        #angle = aruco_data.get_angle_to_center(marker)
         # Now we can get the dx and dy of movement
         xy = cv2.polarToCart(distance, angle)
         return tuple((xy[0][0][0], xy[1][0][0])), distance, angle
@@ -327,8 +320,8 @@ if __name__ == "__main__":
         
         
             markers = aruco_data.get_markers_in_image(cv_image)
-            #visualizer.show_top_view(markers)
-            visualizer.visualize_markers_center_line(markers,tail,cv_image)
+            visualizer.show_top_view(markers)
+            #visualizer.visualize_markers_center_line(markers,tail,cv_image)
         cv2.imshow("video", cv_image)
         
         key = cv2.waitKey(1000 / 30) & 0xFF
