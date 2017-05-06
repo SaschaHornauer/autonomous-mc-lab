@@ -225,4 +225,3 @@ def get_distance_of_line(real_line_length, (px, py), (px_, py_), camMat, camDist
     
     distance = (real_line_length * F) / P
     return distance
-

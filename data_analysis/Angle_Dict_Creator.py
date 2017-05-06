@@ -30,15 +30,13 @@ def get_angles_and_distance(cv_image, crop=False):
 
 
 class Angle_Dict_Creator:
-    
-    detected_markers = {}
+
     area_visualizer = None # The choice if there is a visualizer or not is not yet implemented
     source_local_camera = False
     source_bagfile = True
     show_video = True
     crop = False # Should the input video be cropped to the left image input. If false this code might contain errors
-
-    
+    bagfile_handler = None
     def __init__(self, arguments):
         
         bagfile_path = arguments[1]
@@ -47,10 +45,12 @@ class Angle_Dict_Creator:
             self.show_video = False
         
         self.crop = False    
-        bagfile_handler = Bagfile_Handler(bagfile_path)
-        self.play_video(bagfile_handler, None)
+        print("Reading " + str(bagfile_path))
+        self.bagfile_handler = Bagfile_Handler(bagfile_path)
         
         
+    def get_dict(self):
+        return self.process_bagfile(self.bagfile_handler, None)
         
     def calculate_data_to_dict(self,cv_image):
         
@@ -61,7 +61,7 @@ class Angle_Dict_Creator:
         for marker in markers:
             marker_id = marker.marker_id
             
-            marker_dict[marker_id] = {'angle_to_center':angles_to_center[marker_id],'angle_of_surface':angles_surfaces[marker_id],'distance_to_center':distances_marker[marker_id]}
+            marker_dict[marker_id] = {'marker_id':marker_id,'angle_to_center':angles_to_center[marker_id],'angle_of_surface':angles_surfaces[marker_id],'distance_to_center':distances_marker[marker_id]}
 
             if(self.show_video):            
             
@@ -72,7 +72,7 @@ class Angle_Dict_Creator:
                 cv2.putText(cv_image, self.beautify_string(angles_to_center[marker_id],True), xy1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 255), 1)
                 cv2.putText(cv_image, self.beautify_string(angles_surfaces[marker_id],True), xy2, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
                 cv2.putText(cv_image, self.beautify_string(distances_marker[marker_id],False), xy3, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 200, 200), 1)
-            self.detected_markers[marker_id] = marker
+
         return marker_dict
        
             
@@ -84,10 +84,10 @@ class Angle_Dict_Creator:
             return str(np.round(number,2))
         
 
-    def play_video(self,bagfile_handler,capture_device):
+    def process_bagfile(self,bagfile_handler,capture_device):
           
         paused_video = False
-        
+        marker_dict = {}
         while True:
             if not paused_video:
                 if(not bagfile_handler == None and capture_device == None):
@@ -96,10 +96,10 @@ class Angle_Dict_Creator:
                     ret, cv_image = capture_device.read()
                    
                 if cv_image is None:
-                    print("Error reading cv_image! Wrong number of camera?")
+                    break
                 else:
-                    self.calculate_data_to_dict(cv_image)
-                    print(self.detected_markers.keys())
+                    marker_dict.update(self.calculate_data_to_dict(cv_image))
+                    
                             
             if(self.show_video):
                 cv2.imshow('frame',cv_image)
@@ -110,6 +110,7 @@ class Angle_Dict_Creator:
                     paused_video = not paused_video
                 if key == ord('w'):
                     bagfile_handler.fast_forward()
-                
-
-Angle_Dict_Creator(sys.argv)
+        print("Finished with file")
+        return marker_dict
+if __name__ == "__main__":
+    Angle_Dict_Creator(sys.argv)
