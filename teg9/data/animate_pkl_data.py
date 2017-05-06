@@ -273,19 +273,19 @@ if __name__ == '__main__':
 
 
 
+if False:
+    meta = sgg('/home/karlzipser/Desktop/bair_car_data_new/meta/*' )
+    for i in range(len(meta)):
 
-meta = sgg('/home/karlzipser/Desktop/bair_car_data_new/meta/*' )
-for i in range(len(meta)):
+        meta[i] = fname(meta[i])
+    meta = set(meta)
 
-    meta[i] = fname(meta[i])
-meta = set(meta)
-
-ctr = 0
-collisions = sgg('/home/karlzipser/Desktop/collisions/*' )
-for i in range(len(collisions)):
-    c = lo(collisions[i])
-    ctr += c.sum()
-    collisions[i] = fname(collisions[i]).split('.')[0]
-collisions = set(collisions)
+    ctr = 0
+    collisions = sgg('/home/karlzipser/Desktop/collisions/*' )
+    for i in range(len(collisions)):
+        c = lo(collisions[i])
+        ctr += c.sum()
+        collisions[i] = fname(collisions[i]).split('.')[0]
+    collisions = set(collisions)
 
 
