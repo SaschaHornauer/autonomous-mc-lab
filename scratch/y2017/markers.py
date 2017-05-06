@@ -19,27 +19,42 @@ def plot_it(angle1,distance1,angle2,distance2):
 	ax.add_patch(circ)
 	pause(0.03)
 
-for i in range(300,2300):
+marker_ids_all = []
+
+for i in range(0,2300):
 	img = imread('/home/karlzipser/Desktop/temp2_/'+str(i)+'.png' )
-	mi(img,2)
+	#mi(img,2)
 	angles_to_center, angles_surfaces, distances_marker, markers = get_angles_and_distance(img) 
 
-	fig=plt.figure(1)
-	plt.clf()
-	ax=fig.add_subplot(1,1,1)
-	xlim(-10,10)
-	ylim(-10,10)
+	#fig=plt.figure(1)
+	#plt.clf()
+	#ax=fig.add_subplot(1,1,1)
+	#xlim(-10,10)
+	#ylim(-10,10)
 
 	distance2 = 4*107/100.
 
 	marker_ids = angles_to_center.keys()
 
 	for m in marker_ids:
-			angle1 = angles_to_center[m]
-			distance1 = distances_marker[m]
-			angle2 = angles_surfaces[m]
-			if distance1 < 2:
-				plot_it(angle1,distance1,angle2,distance2)
+
+		angle1 = angles_to_center[m]
+		distance1 = distances_marker[m]
+		angle2 = angles_surfaces[m]
+		if distance1 < 2:
+			marker_ids_all.append(m)
+		if distance1 < 2:
+			pass #plot_it(angle1,distance1,angle2,distance2)
 
 	#raw_input('>')
 		
+if False:
+	seen = {}
+	new = []
+	for i in range(3500,len(marker_ids_all)):
+		m = marker_ids_all[i]
+		if m in seen:
+			pass
+		else:
+			new.append(m)
+			seen[m] = True

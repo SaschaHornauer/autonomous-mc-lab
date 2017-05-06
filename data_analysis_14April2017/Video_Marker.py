@@ -73,7 +73,7 @@ class Video_Marker(object):
                 # Get two dictionaries with xy positions about the corners of one marker and calculate also distance and angle to them
                 corner_xy, corner_dist_ang = self.get_marker_from_image(gray, rvec[i][0], tvec[i][0], zed_parameter.cameraMatrix, zed_parameter.distCoeffs)
                 # They are drawn onto the current image
-                self.drawPointAtSingleMarker(gray, corner_xy, corner_dist_ang)
+                self.drawPointAtSingleMarker(gray, corner_xy, corner_dist_ang,ids[i])
                 # Finally they are filled in the marker data object
                 
                 marker = Marker(i,confidence=1.0,corners_xy_pos=corner_xy,corners_distances_angles=corner_dist_ang)
@@ -147,7 +147,7 @@ class Video_Marker(object):
         
         return corners_xy, corners_dist_ang
     
-    def drawPointAtSingleMarker(self,image,corners_xy,corners_dist_ang):
+    def drawPointAtSingleMarker(self,image,corners_xy,corners_dist_ang,id):
         '''
         This method draws single markers and their distances 
         '''        
@@ -166,8 +166,8 @@ class Video_Marker(object):
         if text_zoomfactor > 1:
             text_zoomfactor = 1
         
-        cv2.putText(image, str(dp(distance,1)), xy1, cv2.FONT_HERSHEY_SIMPLEX, text_zoomfactor, (255, 255, 255), 2)
-        #cv2.putText(image,str(id),xy2,cv2.FONT_HERSHEY_SIMPLEX, text_zoomfactor, (0,255,0),2)
+        #cv2.putText(image, str(dp(distance,1)), xy1, cv2.FONT_HERSHEY_SIMPLEX, text_zoomfactor, (255, 255, 255), 2)
+        cv2.putText(image,str(id),xy1,cv2.FONT_HERSHEY_SIMPLEX, text_zoomfactor, (0,255,0),2)
 
     def get_distance_and_angle_of_line(self, real_object_width_m, (px, py), (px_, py_), camMat, camDist):
         '''
