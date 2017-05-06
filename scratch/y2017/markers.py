@@ -108,7 +108,7 @@ def plot_it2(angle1,distance1,angle2,distance2,xy):
 for i in range(0,2300):
 	try:
 		img = imread('/home/karlzipser/Desktop/temp2_/'+str(i)+'.png' )
-		#mi(img,2)
+		mci(img)
 		angles_to_center, angles_surfaces, distances_marker, markers = get_angles_and_distance(img) 
 
 		#fig=plt.figure(1)
