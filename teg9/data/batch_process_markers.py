@@ -117,4 +117,4 @@ Mr_Yellow_Silver = ['/media/karlzipser/ExtraDrive4/Mr_Yellow_25April2017/process
 
 if False:
 
-    multi_process_bag_folders(Mr_Black,meta_path,1)
+    multi_process_bag_folders(Mr_Yellow_Silver,meta_path,100)
