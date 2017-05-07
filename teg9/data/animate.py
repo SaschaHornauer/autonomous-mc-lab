@@ -2,7 +2,7 @@ from kzpy3.vis import *
 
 
 
-def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode,collision):
+def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode): #,collision):
     
     bar_color = [0,0,0]
     if state == 1:
@@ -21,8 +21,8 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
         apply_rect_to_img(img,steer,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=True)
     if motor != None:
         apply_rect_to_img(img,motor,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=False)
-    if collision == 1:
-        img[:10,:,:] = [255,0,0] 
+    #if collision == 1:
+    #    img[:10,:,:] = [255,0,0] 
      
     if delay == None:
         scale_img = cv2.resize(img, (0,0), fx=scale, fy=scale)
@@ -69,13 +69,14 @@ def animate_with_key_control(A):
                     A['STOP_LOADER_THREAD'] = True
                     return
                 if A['current_img_index'] >= A['save_start_index']:
-                    out_img = prepare_image(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])
+                    out_img = prepare_and_show_or_return_frame(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])#,A['collisions'][int(A['current_img_index'])])
+                    #mi(out_img);pause(0.001)
                     imsave(opjD('temp2',d2n(ctr,'.png')),out_img)
                     print ctr
                     ctr += 1
                 continue
             else:
-                k = prepare_and_show_or_return_frame(img,steer,None,state,A['delay'],A['scale'],A['color_mode'],A['collisions'][int(A['current_img_index'])])
+                k = prepare_and_show_or_return_frame(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])#,A['collisions'][int(A['current_img_index'])])
 
             if k == ord('q'):
                 print('Exiting animate_with_key_control')
@@ -200,7 +201,7 @@ def graph(A):
             xlim(t-30*5,t)
             motor = array(A['motor'])
             plot(motor,'b.-')
-            plot(10*A['loaded_collisions'])
+           # plot(10*A['loaded_collisions'])
             """
             N = 10
 
@@ -247,7 +248,7 @@ def graph(A):
             #multi_d = sqrt( (gyro_x/50.)**2 + (gyro_y/40.)**2 + (gyro_z/30.)**2 + ((acc_x-0.5)/2.5)**2 + ((acc_y-9.8)/5)**2 + ((acc_z-0.5)/2.5)**2 ) 
             #plot(multi_d,'ko-')
             """
-            plot(A['acc_xz_dst'])
+            #plot(A['acc_xz_dst'])
             ylim(-5,105)
             if False: #hist_timer.check():
                 figure('left_deltas')

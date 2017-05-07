@@ -72,7 +72,7 @@ def preprocess_bagfiles(A,path):
 
         color_mode = "rgb8"
 
-        for s in ['right']:
+        for s in ['left']:
             for m in bag.read_messages(topics=['/bair_car/zed/'+s+'/image_rect_color']):
                 t = round(m.timestamp.to_time(),3)
                 if A['t_previous'] > 0:            
@@ -182,8 +182,8 @@ def get_new_A(_=None):
     A['current_img_index'] = -A['d_indx']
     A['t_previous'] = 0
     A['left_deltas'] = []
-    A['scale'] = 1#4.0
-    A['delay'] = None
+    A['scale'] = 4.0
+    A['delay'] = 33
     A['steer'] = []
     A['state'] = []
     A['SMOOTHING'] = True
@@ -191,9 +191,8 @@ def get_new_A(_=None):
     A['images'] = []
     A['meta'] = None
     A['color_mode'] = cv2.COLOR_RGB2BGR
-    A['save_start_index'] = 0
-    A['save_stop_index'] = 100000
-    A['collisions'] = []
+    A['save_start_index'] = 6700
+    A['save_stop_index'] = 7024
     return A
 
 
@@ -201,6 +200,13 @@ def get_new_A(_=None):
 #bag_or_pkl = "pkl"  
 #data_path = opjD('bair_car_data_new')
 run_name = "direct_rewrite_test_25Apr17_12h40m27s_Mr_Black"
+
+
+
+
+from kzpy3.vis import *
+from kzpy3.data_analysis.Angle_Dict_Creator import get_angles_and_distance
+from kzpy3.data_analysis.markers_clockwise import markers_clockwise
 
 def main():
     A = {}
@@ -235,6 +241,7 @@ def main():
 
     A['run_name'] = run_name
     A['loaded_collisions'] = None
+    A['collisions'] = []
     collision_files = gg(opjD('collisions','*'))
     for c in collision_files:
         if run_name in c:
@@ -258,9 +265,175 @@ def main():
 
     threading.Thread(target=animate.animate_with_key_control,args=[A]).start()
     #threading.Thread(target=animate.graph,args=[A]).start()
-    animate.graph(A)
+    #animate.graph(A)
     #raw_input()
 
+
+
+    def plot_it(angle1,distance1,angle2,distance2):
+
+
+        xc = distance1 * np.sin(angle1)
+        yc = distance1 * np.cos(angle1)
+
+        plot([0,xc],[0,yc])
+
+        xd = distance2 * np.sin(angle2)
+        yd = distance2 * np.cos(angle2)
+
+        plot([xc,xd+xc],[yc,yd+yc])
+
+        circ=plt.Circle((xd+xc,yd+yc),distance2,fill=False)
+
+        ax.add_patch(circ)
+        pause(0.03)
+
+    marker_ids_all = []
+    """
+    for i in range(0,2300):
+        img = imread('/home/karlzipser/Desktop/temp2_/'+str(i)+'.png' )
+        #mi(img,2)
+        angles_to_center, angles_surfaces, distances_marker, markers = get_angles_and_distance(img) 
+
+        #fig=plt.figure(1)
+        #plt.clf()
+        #ax=fig.add_subplot(1,1,1)
+        #xlim(-10,10)
+        #ylim(-10,10)
+
+        distance2 = 4*107/100.
+
+        marker_ids = angles_to_center.keys()
+
+        for m in marker_ids:
+
+            angle1 = angles_to_center[m]
+            distance1 = distances_marker[m]
+            angle2 = angles_surfaces[m]
+            if distance1 < 2:
+                marker_ids_all.append(m)
+            if distance1 < 2:
+                pass #plot_it(angle1,distance1,angle2,distance2)
+
+        #raw_input('>')
+            
+    if False:
+        seen = {}
+        new = []
+        for i in range(3500,len(marker_ids_all)):
+            m = marker_ids_all[i]
+            if m in seen:
+                pass
+            else:
+                new.append(m)
+                seen[m] = True
+    """
+    marker_angles_dic = {}
+    marker_angles = 2*np.pi*np.arange(len(markers_clockwise))/(1.0*len(markers_clockwise))
+    marker_xys = []
+    for i in range(len(markers_clockwise)):
+        a = marker_angles[i]
+        marker_angles_dic[markers_clockwise[i]] = a
+        x = 4*107/100.*np.sin(a)
+        y = 4*107/100.*np.cos(a)
+        marker_xys.append([x,y])
+    #marker_xys = array(marker_xys)
+
+    markers_xy_dic = {}
+    figure(1)
+    clf()
+    assert(len(markers_clockwise) == len(marker_xys))
+    for i in range(len(markers_clockwise)):
+        m = markers_clockwise[i]
+        xy = marker_xys[i]
+        markers_xy_dic[m] = xy
+        plot(xy[0],xy[1],'bo-')
+        plt.text(xy[0],xy[1],str(m),fontsize=6)
+
+
+    #plot(marker_xys[:,0],marker_xys[:,1],'o')
+
+
+
+
+
+    def plot_it2(angle1,distance1,angle2,distance2,xy):
+
+
+        #xc = distance1 * np.sin(angle1)
+        #yc = distance1 * np.cos(angle1)
+
+        #plot([0,xc],[0,yc])
+
+        xd = distance1 * np.sin(angle2)
+        yd = distance1 * np.cos(angle2)
+
+        plot([xy[0],xd+xy[0]],[xy[1],yd+xy[1]])
+
+        #circ=plt.Circle((xd+xc,yd+yc),distance2,fill=False)
+
+        #ax.add_patch(circ)
+        pause(0.001)
+
+    x_avgs = []
+    y_avgs = []
+    ctr = 0
+    if True: #for i in range(300,2300,1):
+        try:
+            img = A['images'][int(A['current_img_index'])]
+            #k = mci(img)
+            #if k == ord('q'):
+            #    break
+            angles_to_center, angles_surfaces, distances_marker, markers = get_angles_and_distance(img) 
+            #print angles_surfaces
+            #print distances_marker
+            print "---------------------"
+            #fig=plt.figure(1)
+            #plt.clf()
+            #ax=fig.add_subplot(1,1,1)
+            #xlim(-10,10)
+            #ylim(-10,10)
+
+            distance2 = 4*107/100.
+
+            marker_ids = angles_to_center.keys()
+            xlim(-5,5);ylim(-5,5)
+            for m in marker_ids:
+                if m in markers_xy_dic:
+                    xy = markers_xy_dic[m]
+                    angle1 = angles_to_center[m]
+                    distance1 = distances_marker[m]
+                    print(m,(np.degrees(marker_angles_dic[m])),np.degrees(angles_surfaces[m]),distances_marker[m])
+                    angle2 = (np.pi+marker_angles_dic[m]) - (np.pi/2.0-angles_surfaces[m])
+                    #angle2=angle1
+                    #distance1 = 1
+                    #if distance1 < 2:
+                    #   plot_it2(angle1,distance1,angle2,distance2,xy)
+                    xd = distance1 * np.sin(angle2)
+                    yd = distance1 * np.cos(angle2)
+                    xs = []
+                    ys = []
+                    if distance1 < 2*distance2 and distance1 > 0.05:
+                        xs.append(xd+xy[0])
+                        ys.append(yd+xy[1])
+            x_avg = np.mean(array(xs))
+            y_avg = np.mean(array(ys))
+            x_avgs.append(x_avg)
+            y_avgs.append(y_avg)
+            #if np.mod(ctr,3) == 0:
+            if len(x_avgs)>10:
+                plot(array(x_avgs)[-10:].mean(),array(y_avgs[-10:]).mean(),'r.')
+                pause(0.001)
+            #ctr += 1
+            #plot(array(x_avgs[-5:]).mean(),array(y_avgs[-5:]).mean(),'r.')
+            #plot([xy[0],xd+xy[0]],[xy[1],yd+xy[1]])
+            
+
+                    #plot(x_avg,y_avg,'r.')
+                    #pause(0.001)
+            #raw_input('>')
+        except:
+           pass
 
 
         
