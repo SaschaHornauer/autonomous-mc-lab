@@ -94,27 +94,26 @@ def preprocess_bagfiles(A,path,visualize):
 meta_path = '/home/karlzipser/Desktop/bair_car_data_new/meta'
 
 Mr_Black = ['/media/karlzipser/ExtraDrive1/Mr_Black_25April2017/processed', 
-            '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed'#, 
-            #'/media/karlzipser/ExtraDrive1/Mr_Black_30April2017/processed'
+            '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed', 
+            '/media/karlzipser/ExtraDrive1/Mr_Black_30April2017/processed'
             ]
 
 Mr_Orange = ['/media/karlzipser/ExtraDrive2/Mr_Orange_25April2017/processed', 
-            '/media/karlzipser/ExtraDrive2/Mr_Orange_28April2017/processed'#, 
-            #'/media/karlzipser/ExtraDrive2/Mr_Orange_30April2017/processed'
+            '/media/karlzipser/ExtraDrive2/Mr_Orange_28April2017/processed', 
+            '/media/karlzipser/ExtraDrive2/Mr_Orange_30April2017/processed'
             ]
 
 Mr_Blue = ['/media/karlzipser/ExtraDrive3/Mr_Blue_25April2017/processed', 
-            '/media/karlzipser/ExtraDrive3/Mr_Blue_28April2017/processed'#, 
-            #'/media/karlzipser/ExtraDrive3/Mr_Blue_30April2017/processed'
+            '/media/karlzipser/ExtraDrive3/Mr_Blue_28April2017/processed', 
+            '/media/karlzipser/ExtraDrive3/Mr_Blue_30April2017/processed'
             ]
 
 Mr_Yellow_Silver = ['/media/karlzipser/ExtraDrive4/Mr_Yellow_25April2017/processed', 
             '/media/karlzipser/ExtraDrive4/Mr_Yellow_28April2017/processed', 
-            '/media/karlzipser/ExtraDrive4/Mr_Yellow_30April2017/processed'#,
-            #'/media/karlzipser/ExtraDrive4/Mr_Silver_28April2017/processed'
-            ]
+            '/media/karlzipser/ExtraDrive4/Mr_Yellow_30April2017/processed',
+            '/media/karlzipser/ExtraDrive4/Mr_Silver_28April2017/processed']
 
 
 if False:
 
-    multi_process_bag_folders(Mr_Yellow_Silver,meta_path,100)
+    multi_process_bag_folders(Mr_Black,meta_path,100)

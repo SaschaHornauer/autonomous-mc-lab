@@ -4,6 +4,8 @@ from kzpy3.teg9.data.preprocess_Bag_Folders import *
 from kzpy3.teg7.data.Bag_File import *
 import shutil
 
+#python kzpy3/teg9/data/preprocess.py
+
 # rsync -rav /home/karlzipser/Desktop/bair_car_data/ /media/karlzipser/bair_car_data_10/bair_car_data/
 
 tb = '\t'
@@ -14,8 +16,7 @@ if False:
 		backup_locations.append(opj('/media',username,'bair_car_data_'+str(i)))
 
 
-bag_folders_src_location = '/media/karlzipser/rosbags/Mr_Silver_20to25April2017'
-bag_folders_src_location = '/home/karlzipser/Desktop/one_bag'
+bag_folders_src_location = '/media/karlzipser/ExtraDrive1/Mr_Black_30April2017'
 bag_folders_src = opj(bag_folders_src_location,'new' )
 #bag_folders_dst_rgb1to4_path = opjD('bair_car_data_new_24April2017/rgb_1to4')
 #bag_folders_dst_meta_path = opjD('bair_car_data_new_24April2017/meta_states_1_5_6_7_good')

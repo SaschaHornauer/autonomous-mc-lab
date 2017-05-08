@@ -1,6 +1,6 @@
 from kzpy3.vis import *
 from kzpy3.data_analysis.markers_clockwise import markers_clockwise
-import operator
+
 
 
 out_img = zeros((1000,1000,3),np.uint8)
@@ -92,14 +92,12 @@ def get_position_and_heading(angles_to_center,angles_surfaces,distances_marker):
 			xd = distance1 * np.sin(angle2)
 			yd = distance1 * np.cos(angle2)
 			#print (dp(np.degrees(marker_angles_dic[m]+np.pi/2.0-angles_surfaces[m]+angles_to_center[m]),2))#,dp(np.degrees(marker_angles_dic[m]),2),dp(np.degrees(angles_surfaces[m]),2),dp(np.degrees(angles_to_center[m],2)))
+
 			if distance1 < 2*distance2 and distance1 > 0.05:
-			#if distance1 < 2 and distance1 > 0.05:
 				xs.append(xd+xy[0])
 				ys.append(yd+xy[1])
 				ds.append(distance1)
-				h = marker_angles_dic[m]+angles_surfaces[m]-np.pi/2.0+angles_to_center[m]
-				#print h
-				headings.append(h)
+				headings.append(marker_angles_dic[m]+angles_surfaces[m]-np.pi/2.0+angles_to_center[m])
 
 	d = 0
 	for i in range(len(xs)):
@@ -115,8 +113,6 @@ def get_position_and_heading(angles_to_center,angles_surfaces,distances_marker):
 	x_avg /= d_sum
 	y_avg /= d_sum
 	heading_avg /= d_sum
-	index,value = min(enumerate(ds),key=operator.itemgetter(1))
-	heading_avg = headings[index]+np.pi/2.0
 	median_d = max(median_d,1)
 	median_d = median_d**2+3
 
@@ -135,10 +131,7 @@ def get_position_and_heading(angles_to_center,angles_surfaces,distances_marker):
 
 
 
-
 def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,hour_correction=0):
-	if 'heading_prev' not in A:
-		A['heading_prev'] = 0
 	try:
 		A['timestamp_index'] = start_index
 		while A['ts'][A['timestamp_index']] < timestamp:	
@@ -155,7 +148,6 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 		distances_marker = A['marker_data_pkl'][ts[i]]['distances_marker']
 
 		marker_ids,x_avg,y_avg,median_d,heading = get_position_and_heading(angles_to_center,angles_surfaces,distances_marker)
-		#print np.degrees(heading - A['heading_prev'])
 		if marker_ids == None:
 			return
 		A['x_avgs'].append(x_avg)
@@ -167,32 +159,12 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 			if len(A['pts']) > 100:
 				A['pts'] = A['pts'][-100:]
 			if len(A['pts'])>11:
-				"""
 				for qq in range(10,0,-1):
 					x,y = A['pts'][-qq][0],A['pts'][-qq][1]
 					new_dot_color = array(dot_color)/(np.sqrt(qq))
 					x2,y2 = x+0.4*np.sin(heading),y+0.4*np.cos(heading)
-					if np.mod(i,10) == 0:
-						cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),(255,255,255))
-					cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
-				"""
-
-				x,y = A['pts'][-1][0],A['pts'][-1][1]
-				xp,yp = A['pts'][-2][0],A['pts'][-2][1]
-
-
-				dx,dy = (x-xp),(y-yp)
-				sq = np.sqrt(dx**2+dy**2)
-				x2,y2 = x+0.3*dx/sq,y+0.3*dy/sq
-				new_dot_color = dot_color
-				#new_dot_color = array(dot_color)/(np.sqrt(qq))
-				#x2,y2 = x+0.4*np.sin(heading),y+0.4*np.cos(heading)
-				cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
-				if np.mod(i,3) == 0:
 					cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),(255,255,255))
-
-
-
+					cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
 			for j in range(len(markers_clockwise)):
 				m = markers_clockwise[j]
 				xy = marker_xys[j]
@@ -207,7 +179,6 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 		if len(A['x_avgs']) > 100:
 			A['x_avgs'] = A['x_avgs'][-100:]
 			A['y_avgs'] = A['y_avgs'][-100:]
-		A['heading_prev'] = heading
 	except:
 		time.sleep(0.01)
 
