@@ -54,24 +54,23 @@ def plot_it2(angle1,distance1,angle2,distance2,xy):
 bag_folders_dst_rgb1to4_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/rgb_1to4'
 bag_folders_dst_meta_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta'
 
-"""
+
 run_name = 'direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
 Mr_Blue_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
 Bul = init_car_path(Mr_Blue_marker_data_pkl,'left','Mr_Blue')
 Bul['data'] = get_new_A.get_new_A()
 Bur = init_car_path(Mr_Blue_marker_data_pkl,'right','Mr_Blue_right')
 multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Bul['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
-"""
 
 
-"""
+
 run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
 Mr_Black_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
 Bkl = init_car_path(Mr_Black_marker_data_pkl,'left','Mr_Black')
 Bkl['data'] = get_new_A.get_new_A()
 Bkr = init_car_path(Mr_Black_marker_data_pkl,'right','Mr_Black_right')
 multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Bkl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
-"""
+
 
 """
 run_name = 'direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow'
@@ -92,6 +91,8 @@ multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Sl['data'],opj(bag_folde
 """
 
 
+Bur['pts'] = []
+Bul['pts'] = []
 
 
 
@@ -270,7 +271,7 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 						cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
 		if SHOW_GRAPHICS:
 			if quadrant == 0:
-				k = mci(out_img,delay=33,title='out_img')
+				k = mci(out_img,delay=1,title='out_img')
 				if k == ord('q'):
 					return;	
 		if len(A['x_avgs']) > 100:
@@ -288,10 +289,10 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 out_img *= 0
 iprev = 0
 tprev = 0
-for i in range(7750,9000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
+for i in range(7750,20000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
 	print i
 #	out_img -= 1
-	if np.mod(i,20*30) == 0:
+	if np.mod(i,20*30000) == 0:
 		out_img *= 0
 	t =  i/30.
 	#print t
@@ -303,13 +304,13 @@ for i in range(7750,9000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
 		c = (255,0,0)
 		cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
 	#img2 = Bul[]
-	show_timepoint(Bul,t,out_img,(0,0,255),100000.,0,0,0,False,False)
-	#show_timepoint(Bkl,t,out_img,(128,128,128),100000.,0,0,1)
+	show_timepoint(Bul,t,out_img,(  0,  0,255),100000.,0,0,0,10,True)
+	show_timepoint(Bkl,t,out_img,(100,100,100),100000.,0,0,1,10,True)
 	#show_timepoint(Yl,t,out_img,(255,255,0),100000.,0,-7,2)
 	#show_timepoint(Sl,t,out_img,(255,255,255),100000.,0,0,3)
 
-	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0,None,False,False)
-	#show_timepoint(Bkr,t,out_img,(100,100,100),100000.,0,0,None)
+	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0,None,10,True)
+	show_timepoint(Bkr,t,out_img,(80,80,80 ),100000.,0,0,None,10,True)
 	#show_timepoint(Yr,t,out_img,(150,150,0),100000.,0,-7,None)
 	#show_timepoint(Sr,t,out_img,(150,150,150),100000.,0,0,None)
 
@@ -322,19 +323,36 @@ for i in range(7750,9000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
 
 
 
+
+
 import scipy.interpolate
 CubicSpline = scipy.interpolate.CubicSpline
 
-def get_cubic_spline(time_points,data,n=20):
+def get_cubic_spline(time_points,data):
+	D,T = array(data),array(time_points)
+	cs = CubicSpline(T,D)
+	new_time_points = time_points #np.arange(time_points[0],time_points[-1],1)
+	plot(time_points,data,'o')
+	plot(T,D,'o', label='smoothed data')
+	plot(time_points,cs(time_points),label="S")
+	plt.legend(loc='lower left', ncol=2)
+	figure(10)
+	plot(T,D,'o')
+	plot(time_points,data,'x')
+	pause(0.1)
+	return cs
+
+
+
+def get_cubic_spline(time_points,data,n=100):
 	n = 10
 	D = []
 	T = []
 	for i in range(n/2,len(time_points),n):
-		D.append(data[i-n/2:i+n/2].mean())
-		T.append(time_points[i-n/2:i+n/2].mean())
+		D.append(data[i])#-n/2:i+n/2].mean())
+		T.append(time_points[i])#-n/2:i+n/2].mean())
 	D,T = array(D),array(T)
 	cs = CubicSpline(T,D)
-	new_time_points = np.arange(time_points[0],time_points[1],1)
 	plot(time_points,data,'o')
 	plot(T,D,'o', label='smoothed data')
 	plot(time_points,cs(time_points),label="S")
@@ -342,19 +360,67 @@ def get_cubic_spline(time_points,data,n=20):
 	return cs
 
 
+
+
+figure('side')
+
 time_points = array(Bul['pts'])[:,2]
-Bul['cs_x'] = get_cubic_spline(time_points,array(Bul['pts'])[:,0],n=80)
-Bul['cs_y'] = get_cubic_spline(time_points,array(Bul['pts'])[:,1],n=80)
+Bul['cs_x'] = get_cubic_spline(time_points,array(Bul['pts'])[:,0])
+Bul['cs_y'] = get_cubic_spline(time_points,array(Bul['pts'])[:,1])
 
 time_points = array(Bur['pts'])[:,2]
-Bur['cs_x'] = get_cubic_spline(time_points,array(Bur['pts'])[:,0],n=80)
-Bul['cs_y'] = get_cubic_spline(time_points,array(Bur['pts'])[:,1],n=80)
+Bur['cs_x'] = get_cubic_spline(time_points,array(Bur['pts'])[:,0])
+Bur['cs_y'] = get_cubic_spline(time_points,array(Bur['pts'])[:,1])
+
+time_points = array(Bkl['pts'])[:,2]
+Bkl['cs_x'] = get_cubic_spline(time_points,array(Bkl['pts'])[:,0])
+Bkl['cs_y'] = get_cubic_spline(time_points,array(Bkl['pts'])[:,1])
+
+time_points = array(Bkr['pts'])[:,2]
+Bkr['cs_x'] = get_cubic_spline(time_points,array(Bkr['pts'])[:,0])
+Bkr['cs_y'] = get_cubic_spline(time_points,array(Bkr['pts'])[:,1])
+
+
+
+
+figure('top')
+t1 = 1493425694.71+5
+t2 = 1493425899.676476 - 100
+T = np.arange(t1,t2,1/30.)
+plot(Bul['cs_x'](T),Bul['cs_y'](T),'o')
+plot(Bur['cs_x'](T),Bur['cs_y'](T),'o')
+plot(Bkl['cs_x'](T),Bkl['cs_y'](T),'o')
+plot(Bkr['cs_x'](T),Bkr['cs_y'](T),'o')
+
+
+if True:
+	CS = {}
+	CS['Mr_Blue'] = {}
+	CS['Mr_Blue']['left'] = (Bul['cs_x'],Bul['cs_y'])
+	CS['Mr_Blue']['right'] =(Bur['cs_x'],Bur['cs_y'])
+	CS['Mr_Black'] = {}
+	CS['Mr_Black']['left'] = (Bkl['cs_x'],Bkl['cs_y'])
+	CS['Mr_Black']['right'] =(Bkr['cs_x'],Bkr['cs_y'])
+	save_obj(CS,opjD('trajectories.pkl'))
+
+
+
+bcx = Bul['cs_x'](T)
+bcy = Bul['cs_y'](T)
+brcx = Bur['cs_x'](T)
+brcy = Bur['cs_y'](T)
+
+for i in range(len(T)):
+	x,y = bcx[i],bcy[i]
+	xr,yr = brcx[i],brcy[i]
+	cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,(90,100,110),-1)
+	cv2.circle(out_img,(int(-100*xr)+500,int(100*yr)+500),4,(90,100,110),-1)
+
+
 
 
 while True:
 	k = mci(out_img,delay=100,title='out_img')
 	if k == ord('q'):
 		break;
-
-
 

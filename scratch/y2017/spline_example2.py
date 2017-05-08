@@ -40,7 +40,7 @@ def get_cubic_spline(time_points,data,n=20):
 	T = []
 	for i in range(n/2,len(time_points),n):
 		D.append(data[i-n/2:i+n/2].mean())
-		T.append(time_points[i])
+		T.append(time_points[i-n/2:i+n/2].mean())
 	D,T = array(D),array(T)
 	cs = CubicSpline(T,D)
 	new_time_points = np.arange(time_points[0],time_points[1],1)
