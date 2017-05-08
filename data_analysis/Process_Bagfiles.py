@@ -21,6 +21,6 @@ if __name__ == '__main__':
             angle_dict_creator = Angle_Dict_Creator((None,bagfile_name, show_video))
             
             dictionary = angle_dict_creator.get_dict()
-            print(dictionary.keys())
+            print(dictionary)
             
             
