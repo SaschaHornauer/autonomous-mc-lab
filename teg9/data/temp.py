@@ -1,4 +1,5 @@
 from kzpy3.vis import *
+from kzpy3.data_analysis.Angle_Dict_Creator import get_angles_and_distance
 from kzpy3.data_analysis.markers_clockwise import markers_clockwise
 
 
@@ -29,44 +30,9 @@ for i in range(len(markers_clockwise)):
 
 
 
+img = imread('/home/karlzipser/Desktop/temp2_/882.png')
 
-
-def plot_it2(angle1,distance1,angle2,distance2,xy):
-
-	xd = distance1 * np.sin(angle2)
-	yd = distance1 * np.cos(angle2)
-
-	plot([xy[0],xd+xy[0]],[xy[1],yd+xy[1]])
-
-	pause(0.001)
-
-#Mr_Black_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/marker_data.pkl')
-#Mr_Blue_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/marker_data.pkl')
-
-#Mr_Silver_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_28Apr17_18h12m54s_Mr_Silver/marker_data.pkl' )
-
-#Mr_Orange_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_25Apr17_14h32m22s_Mr_Orange/marker_data.pkl' )
-#A = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_25Apr17_13h09m04s_Mr_Black/marker_data.pkl')
-#A = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_25Apr17_13h09m04s_Mr_Black/marker_data.pkl')
-#A = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_25Apr17_21h31m25s_Mr_Yellow/marker_data.pkl')
-#marker_data_pkl = Marker_Raw_Data['Mr_Yellow']['direct_rewrite_test_25Apr17_21h31m25s_Mr_Yellow']
-#Mr_Yellow_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_25Apr17_21h31m25s_Mr_Yellow/marker_data.pkl')
-
-
-
-def init_car_path(marker_data_pkl,side,name):
-	A = {}
-	A['marker_data_pkl'] = marker_data_pkl[side]
-	A['x_avgs'] = []
-	A['y_avgs'] = []
-	A['pts'] = []
-	A['ts'] = sorted(A['marker_data_pkl'].keys())
-	A['timestamp_index'] = 0
-	A['name'] = name
-	return A
-
-
-
+angles_to_center, angles_surfaces, distances_marker, markers = get_angles_and_distance(img)
 
 
 def get_position_and_heading(angles_to_center,angles_surfaces,distances_marker):
@@ -118,105 +84,3 @@ def get_position_and_heading(angles_to_center,angles_surfaces,distances_marker):
 
 
 
-	return marker_ids,x_avg,y_avg,median_d,heading_avg
-
-
-
-
-
-
-
-
-
-
-
-
-def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,hour_correction=0):
-	try:
-		A['timestamp_index'] = start_index
-		while A['ts'][A['timestamp_index']] < timestamp:	
-			A['timestamp_index'] += 1
-		if A['ts'][A['timestamp_index']]-timestamp > max_dt:
-			print A['ts'][A['timestamp_index']]-timestamp
-			return
-
-		i = A['timestamp_index']
-		ts = A['ts']
-
-		angles_to_center = A['marker_data_pkl'][ts[i]]['angles_to_center']
-		angles_surfaces = A['marker_data_pkl'][ts[i]]['angles_surfaces']
-		distances_marker = A['marker_data_pkl'][ts[i]]['distances_marker']
-
-		marker_ids,x_avg,y_avg,median_d,heading = get_position_and_heading(angles_to_center,angles_surfaces,distances_marker)
-		if marker_ids == None:
-			return
-		A['x_avgs'].append(x_avg)
-		A['y_avgs'].append(y_avg)
-		if len(A['x_avgs'])>10:
-			x = array(A['x_avgs'][-int(5*median_d):]).mean()
-			y = array(A['y_avgs'][-int(5*median_d):]).mean()
-			A['pts'].append([x,y])
-			if len(A['pts']) > 100:
-				A['pts'] = A['pts'][-100:]
-			if len(A['pts'])>11:
-				for qq in range(10,0,-1):
-					x,y = A['pts'][-qq][0],A['pts'][-qq][1]
-					new_dot_color = array(dot_color)/(np.sqrt(qq))
-					x2,y2 = x+0.4*np.sin(heading),y+0.4*np.cos(heading)
-					cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),(255,255,255))
-					cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
-			for j in range(len(markers_clockwise)):
-				m = markers_clockwise[j]
-				xy = marker_xys[j]
-				markers_xy_dic[m] = xy
-				c = (255,0,0)
-				if m in marker_ids:
-					c = (0,255,0)
-					cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
-		k = mci(out_img,delay=1,title='out_img')
-		if k == ord('q'):
-			return;	
-		if len(A['x_avgs']) > 100:
-			A['x_avgs'] = A['x_avgs'][-100:]
-			A['y_avgs'] = A['y_avgs'][-100:]
-	except:
-		time.sleep(0.01)
-
-"""
-Yl = init_car_path(Mr_Yellow_marker_data_pkl,'left','Mr_Yellow')
-Yr = init_car_path(Mr_Yellow_marker_data_pkl,'right','Mr_Yellow')
-
-Ol = init_car_path(Mr_Orange_marker_data_pkl,'left','Mr_Orange')
-Or = init_car_path(Mr_Orange_marker_data_pkl,'right','Mr_Orange')
-
-#Sl = init_car_path(Mr_Silver_marker_data_pkl,'right','Mr_Orange')
-#Sr = init_car_path(Mr_Silver_marker_data_pkl,'right','Mr_Orange')
-
-Bkl = init_car_path(Mr_Black_marker_data_pkl,'left','Mr_Black')
-Bkr = init_car_path(Mr_Black_marker_data_pkl,'right','Mr_Black')
-"""
-Bul = init_car_path(Mr_Blue_marker_data_pkl,'left','Mr_Blue')
-Bur = init_car_path(Mr_Blue_marker_data_pkl,'right','Mr_Blue')
-
-out_img *= 0
-iprev = 0
-tprev = 0
-for i in range(len(Bul['ts'])):
-	t =  i/30.
-	#print t
-	t += Bul['ts'][0]
-	for j in range(len(markers_clockwise)):
-		m = markers_clockwise[j]
-		xy = marker_xys[j]
-		markers_xy_dic[m] = xy
-		c = (255,0,0)
-		cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
-	show_timepoint(Bul,t,out_img,(0,0,255),100000.,0,-7)
-	#show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0)
-	#show_timepoint(Bkl,t,out_img,(255,100,0),100000.,0,-7)
-	#show_timepoint(Bkr,t,out_img,(255,0,0),100000.,0,0)
-	tprev = t
-	iprev = i
-	if t-tprev > 1:
-		print tprev
-	

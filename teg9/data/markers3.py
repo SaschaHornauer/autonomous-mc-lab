@@ -183,13 +183,13 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 
 				dx,dy = (x-xp),(y-yp)
 				sq = np.sqrt(dx**2+dy**2)
-				x2,y2 = x+0.3*dx/sq,y+0.3*dy/sq
+				x2,y2 = x+0.1*dx/sq,y+0.1*dy/sq
 				new_dot_color = dot_color
 				#new_dot_color = array(dot_color)/(np.sqrt(qq))
 				#x2,y2 = x+0.4*np.sin(heading),y+0.4*np.cos(heading)
-				cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
-				if np.mod(i,3) == 0:
-					cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),(255,255,255))
+				#cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
+				if np.mod(i,1) == 0:
+					cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),new_dot_color)
 
 
 
@@ -241,7 +241,7 @@ for i in range(len(Bul['ts'])):
 		c = (255,0,0)
 		cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
 	show_timepoint(Bul,t,out_img,(0,0,255),100000.,0,-7)
-	#show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0)
+	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0)
 	#show_timepoint(Bkl,t,out_img,(255,100,0),100000.,0,-7)
 	#show_timepoint(Bkr,t,out_img,(255,0,0),100000.,0,0)
 	tprev = t
