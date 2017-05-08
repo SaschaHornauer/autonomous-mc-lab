@@ -36,6 +36,7 @@ plt.ion()
 plt.show()
 PP,FF = plt.rcParams,'figure.figsize'
 
+#plt.figure(figsize=(6.5, 4))
 
 def kzpy_vis_test():
     img_dic = get_some_images()

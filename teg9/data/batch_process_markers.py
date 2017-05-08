@@ -114,6 +114,16 @@ Mr_Yellow_Silver = ['/media/karlzipser/ExtraDrive4/Mr_Yellow_25April2017/process
             '/media/karlzipser/ExtraDrive4/Mr_Silver_28April2017/processed']
 
 
-if False:
+Mr_Mixed =['/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_14April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_15April2017/new',
+'/media/karlzipser/ExtraDrive3/from_Mr_Silver/Mr_Silver_Fern_11April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Orange/Mr_Orange_11_13April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_15April2017/new',
+'/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_14April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_11April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_Fern_15April2017/new' 
+]
+if True:
 
-    multi_process_bag_folders(Mr_Black,meta_path,100)
+    multi_process_bag_folders(Mr_Mixed,meta_path,100)

@@ -1,7 +1,8 @@
 from kzpy3.vis import *
 from kzpy3.data_analysis.markers_clockwise import markers_clockwise
 import operator
-
+import kzpy3.teg9.data.multi_preprocess_pkl_files_1 as multi_preprocess_pkl_files_1
+import kzpy3.teg9.data.get_new_A as get_new_A
 
 out_img = zeros((1000,1000,3),np.uint8)
 
@@ -29,6 +30,16 @@ for i in range(len(markers_clockwise)):
 
 
 
+def init_car_path(marker_data_pkl,side,name):
+	A = {}
+	A['marker_data_pkl'] = marker_data_pkl[side]
+	A['x_avgs'] = []
+	A['y_avgs'] = []
+	A['pts'] = []
+	A['ts'] = sorted(A['marker_data_pkl'].keys())
+	A['timestamp_index'] = 0
+	A['name'] = name
+	return A
 
 
 def plot_it2(angle1,distance1,angle2,distance2,xy):
@@ -40,8 +51,52 @@ def plot_it2(angle1,distance1,angle2,distance2,xy):
 
 	pause(0.001)
 
+bag_folders_dst_rgb1to4_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/rgb_1to4'
+bag_folders_dst_meta_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta'
+
+"""
+run_name = 'direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
+Mr_Blue_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
+Bul = init_car_path(Mr_Blue_marker_data_pkl,'left','Mr_Blue')
+Bul['data'] = get_new_A.get_new_A()
+Bur = init_car_path(Mr_Blue_marker_data_pkl,'right','Mr_Blue_right')
+multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Bul['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
+"""
+
+
+"""
+run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
+Mr_Black_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
+Bkl = init_car_path(Mr_Black_marker_data_pkl,'left','Mr_Black')
+Bkl['data'] = get_new_A.get_new_A()
+Bkr = init_car_path(Mr_Black_marker_data_pkl,'right','Mr_Black_right')
+multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Bkl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
+"""
+
+"""
+run_name = 'direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow'
+Mr_Yellow_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
+Yl = init_car_path(Mr_Yellow_marker_data_pkl,'left','Mr_Yellow')
+Yl['data'] = get_new_A.get_new_A()
+Yr = init_car_path(Mr_Yellow_marker_data_pkl,'right','Mr_Yellow_right')
+multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Yl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
+"""
+
+"""
+run_name = 'direct_rewrite_test_28Apr17_17h27m30s_Mr_Silver'
+Mr_Silver_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
+Sl = init_car_path(Mr_Silver_marker_data_pkl,'left','Mr_Silver')
+Sl['data'] = get_new_A.get_new_A()
+Sr = init_car_path(Mr_Silver_marker_data_pkl,'right','Mr_Silver_right')
+multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Sl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
+"""
+
+
+
+
+
+
 #Mr_Black_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/marker_data.pkl')
-#Mr_Blue_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/marker_data.pkl')
 
 #Mr_Silver_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/direct_rewrite_test_28Apr17_18h12m54s_Mr_Silver/marker_data.pkl' )
 
@@ -54,16 +109,6 @@ def plot_it2(angle1,distance1,angle2,distance2,xy):
 
 
 
-def init_car_path(marker_data_pkl,side,name):
-	A = {}
-	A['marker_data_pkl'] = marker_data_pkl[side]
-	A['x_avgs'] = []
-	A['y_avgs'] = []
-	A['pts'] = []
-	A['ts'] = sorted(A['marker_data_pkl'].keys())
-	A['timestamp_index'] = 0
-	A['name'] = name
-	return A
 
 
 
@@ -136,7 +181,7 @@ def get_position_and_heading(angles_to_center,angles_surfaces,distances_marker):
 
 
 
-def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,hour_correction=0):
+def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,hour_correction=0,quadrant=0,TEMPORAL_SMOOTHING=False,SHOW_GRAPHICS=True):
 	if 'heading_prev' not in A:
 		A['heading_prev'] = 0
 	try:
@@ -150,6 +195,22 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 		i = A['timestamp_index']
 		ts = A['ts']
 
+
+		
+
+		if quadrant == None:
+			pass
+		else:
+			img = A['data'] ['left'] [i] #[A['data']['t_to_indx']] [ts[i]]
+			if quadrant == 0:
+				out_img[:shape(img)[0],:shape(img)[1]] = img
+			elif quadrant == 1:
+				out_img[-shape(img)[0]:,:shape(img)[1]] = img
+			elif quadrant == 2:
+				out_img[:shape(img)[0]:,-shape(img)[1]:] = img
+			elif quadrant == 3:
+				out_img[-shape(img)[0]:,-shape(img)[1]:] = img
+
 		angles_to_center = A['marker_data_pkl'][ts[i]]['angles_to_center']
 		angles_surfaces = A['marker_data_pkl'][ts[i]]['angles_surfaces']
 		distances_marker = A['marker_data_pkl'][ts[i]]['distances_marker']
@@ -161,11 +222,16 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 		A['x_avgs'].append(x_avg)
 		A['y_avgs'].append(y_avg)
 		if len(A['x_avgs'])>10:
-			x = array(A['x_avgs'][-int(5*median_d):]).mean()
-			y = array(A['y_avgs'][-int(5*median_d):]).mean()
-			A['pts'].append([x,y])
-			if len(A['pts']) > 100:
-				A['pts'] = A['pts'][-100:]
+			if TEMPORAL_SMOOTHING != False:
+				e = TEMPORAL_SMOOTHING # 5
+				x = array(A['x_avgs'][-int(e*median_d):]).mean()
+				y = array(A['y_avgs'][-int(e*median_d):]).mean()
+			else:
+				x,y = x_avg,y_avg
+
+			A['pts'].append([x,y,ts[i]])
+			#if len(A['pts']) > 100:
+			#	A['pts'] = A['pts'][-100:]
 			if len(A['pts'])>11:
 				"""
 				for qq in range(10,0,-1):
@@ -188,49 +254,45 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 				#new_dot_color = array(dot_color)/(np.sqrt(qq))
 				#x2,y2 = x+0.4*np.sin(heading),y+0.4*np.cos(heading)
 				#cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
-				if np.mod(i,1) == 0:
-					cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),new_dot_color)
+				if SHOW_GRAPHICS:
+					if np.mod(i,1) == 0:
+						cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),new_dot_color)
 
 
-
-			for j in range(len(markers_clockwise)):
-				m = markers_clockwise[j]
-				xy = marker_xys[j]
-				markers_xy_dic[m] = xy
-				c = (255,0,0)
-				if m in marker_ids:
-					c = (0,255,0)
-					cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
-		k = mci(out_img,delay=1,title='out_img')
-		if k == ord('q'):
-			return;	
+			if SHOW_GRAPHICS:
+				for j in range(len(markers_clockwise)):
+					m = markers_clockwise[j]
+					xy = marker_xys[j]
+					markers_xy_dic[m] = xy
+					c = (255,0,0)
+					if m in marker_ids:
+						c = (0,255,0)
+						cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
+		if SHOW_GRAPHICS:
+			if quadrant == 0:
+				k = mci(out_img,delay=33,title='out_img')
+				if k == ord('q'):
+					return;	
 		if len(A['x_avgs']) > 100:
 			A['x_avgs'] = A['x_avgs'][-100:]
 			A['y_avgs'] = A['y_avgs'][-100:]
 		A['heading_prev'] = heading
-	except:
+
+	except Exception as e:
+		print("********** Exception ***********************")
+		print(e.message, e.args)
 		time.sleep(0.01)
 
-"""
-Yl = init_car_path(Mr_Yellow_marker_data_pkl,'left','Mr_Yellow')
-Yr = init_car_path(Mr_Yellow_marker_data_pkl,'right','Mr_Yellow')
 
-Ol = init_car_path(Mr_Orange_marker_data_pkl,'left','Mr_Orange')
-Or = init_car_path(Mr_Orange_marker_data_pkl,'right','Mr_Orange')
-
-#Sl = init_car_path(Mr_Silver_marker_data_pkl,'right','Mr_Orange')
-#Sr = init_car_path(Mr_Silver_marker_data_pkl,'right','Mr_Orange')
-
-Bkl = init_car_path(Mr_Black_marker_data_pkl,'left','Mr_Black')
-Bkr = init_car_path(Mr_Black_marker_data_pkl,'right','Mr_Black')
-"""
-Bul = init_car_path(Mr_Blue_marker_data_pkl,'left','Mr_Blue')
-Bur = init_car_path(Mr_Blue_marker_data_pkl,'right','Mr_Blue')
 
 out_img *= 0
 iprev = 0
 tprev = 0
-for i in range(len(Bul['ts'])):
+for i in range(7750,9000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
+	print i
+#	out_img -= 1
+	if np.mod(i,20*30) == 0:
+		out_img *= 0
 	t =  i/30.
 	#print t
 	t += Bul['ts'][0]
@@ -240,12 +302,59 @@ for i in range(len(Bul['ts'])):
 		markers_xy_dic[m] = xy
 		c = (255,0,0)
 		cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
-	show_timepoint(Bul,t,out_img,(0,0,255),100000.,0,-7)
-	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0)
-	#show_timepoint(Bkl,t,out_img,(255,100,0),100000.,0,-7)
-	#show_timepoint(Bkr,t,out_img,(255,0,0),100000.,0,0)
+	#img2 = Bul[]
+	show_timepoint(Bul,t,out_img,(0,0,255),100000.,0,0,0,False,False)
+	#show_timepoint(Bkl,t,out_img,(128,128,128),100000.,0,0,1)
+	#show_timepoint(Yl,t,out_img,(255,255,0),100000.,0,-7,2)
+	#show_timepoint(Sl,t,out_img,(255,255,255),100000.,0,0,3)
+
+	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0,None,False,False)
+	#show_timepoint(Bkr,t,out_img,(100,100,100),100000.,0,0,None)
+	#show_timepoint(Yr,t,out_img,(150,150,0),100000.,0,-7,None)
+	#show_timepoint(Sr,t,out_img,(150,150,150),100000.,0,0,None)
+
+
 	tprev = t
 	iprev = i
 	if t-tprev > 1:
 		print tprev
-	
+
+
+
+
+import scipy.interpolate
+CubicSpline = scipy.interpolate.CubicSpline
+
+def get_cubic_spline(time_points,data,n=20):
+	n = 10
+	D = []
+	T = []
+	for i in range(n/2,len(time_points),n):
+		D.append(data[i-n/2:i+n/2].mean())
+		T.append(time_points[i-n/2:i+n/2].mean())
+	D,T = array(D),array(T)
+	cs = CubicSpline(T,D)
+	new_time_points = np.arange(time_points[0],time_points[1],1)
+	plot(time_points,data,'o')
+	plot(T,D,'o', label='smoothed data')
+	plot(time_points,cs(time_points),label="S")
+	plt.legend(loc='lower left', ncol=2)
+	return cs
+
+
+time_points = array(Bul['pts'])[:,2]
+Bul['cs_x'] = get_cubic_spline(time_points,array(Bul['pts'])[:,0],n=80)
+Bul['cs_y'] = get_cubic_spline(time_points,array(Bul['pts'])[:,1],n=80)
+
+time_points = array(Bur['pts'])[:,2]
+Bur['cs_x'] = get_cubic_spline(time_points,array(Bur['pts'])[:,0],n=80)
+Bul['cs_y'] = get_cubic_spline(time_points,array(Bur['pts'])[:,1],n=80)
+
+
+while True:
+	k = mci(out_img,delay=100,title='out_img')
+	if k == ord('q'):
+		break;
+
+
+

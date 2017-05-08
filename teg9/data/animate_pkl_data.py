@@ -189,6 +189,7 @@ def get_new_A(_=None):
     A['SMOOTHING'] = True
     A['motor'] = []
     A['images'] = []
+    A['left'] = []
     A['meta'] = None
     A['color_mode'] = cv2.COLOR_RGB2BGR
     A['save_start_index'] = 0
