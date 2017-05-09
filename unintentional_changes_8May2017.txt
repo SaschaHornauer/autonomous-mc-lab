@@ -31,3 +31,32 @@ Fast-forward
  create mode 100644 data_analysis/trajectory_generator/trajectory_tools.py
  create mode 100644 data_analysis/visualization/show_trajectories.py
 karlzipser@bdd2:~/kzpy3$ 
+
+
+
+fixes:
+
+karlzipser@bdd2:~/kzpy3$ git pull
+remote: Counting objects: 29, done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 29 (delta 27), reused 29 (delta 27), pack-reused 0
+Unpacking objects: 100% (29/29), done.
+From https://github.com/karlzipser/kzpy3.1
+   40d5622..7806dbb  master     -> origin/master
+Updating 40d5622..7806dbb
+Fast-forward
+ caf6/cafutils.py                           | 12 +++++-----
+ caf6/cafutils2.py                          | 12 +++++-----
+ caf6/z2_color/train2.py                    |  6 ++---
+ caf6/z2_color_big/train2.py                |  6 ++---
+ caf6/z2_color_deeper/train2.py             |  6 ++---
+ caf6/z2_color_deeper_multiscale/train2.py  |  6 ++---
+ caf6/z2_color_deeper_multiscale2/train2.py |  6 ++---
+ caf6/z2_color_small/train2.py              |  6 ++---
+ misc/thean.py                              | 12 +++++-----
+ scratch/y2017/radar.py                     |  6 ++---
+ scratch/y2017/spline_example2.py           | 10 ++++----
+ teg6/train2.py                             |  6 ++---
+ teg9/data/markers3.py                      | 38 +++++++++++++++---------------
+ 13 files changed, 66 insertions(+), 66 deletions(-)
+karlzipser@bdd2:~/kzpy3$ 
