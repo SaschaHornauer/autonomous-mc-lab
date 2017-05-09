@@ -394,7 +394,12 @@ def mci(img,delay=33,title='animate',scale=1.0,color_mode=cv2.COLOR_RGB2BGR):
     k = cv2.waitKey(delay)
     return k
 
-
+def mcia(img_block,delay=33,title='animate',scale=1.0,color_mode=cv2.COLOR_RGB2BGR):
+    assert(len(shape(img_block)) == 4)
+    for i in range(shape(img_block)[0]):
+        k = mci(img_block[i,:,:,:],delay,title,scale,color_mode)
+        if k == ord('q'):
+            return
 
 def mi_or_cv2(img,cv=True,delay=30,title='animate'):
     if cv:
