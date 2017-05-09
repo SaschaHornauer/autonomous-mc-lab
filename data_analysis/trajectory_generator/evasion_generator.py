@@ -13,14 +13,11 @@ framerate = 1./30.
 def get_state(own_xy, timestep_start):
      
     # Init our own position
-    print(len(own_xy))
-    print(timestep_start)
     init_xy = own_xy[timestep_start]
          
     # Get our intended heading based on three timesteps in the future
     # which add as slight smoothing
     heading = get_heading(own_xy[timestep_start:timestep_start+3])
-    print (own_xy[timestep_start:timestep_start+10])
     # Get the velocity over the first two timesteps
     velocity = get_velocities([own_xy[timestep_start],own_xy[timestep_start+1]], framerate)
     return init_xy,heading,velocity
@@ -36,11 +33,12 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, timesteps_ahead, dist
     '''
      
     init_xy_own, heading_own, velocity_own = get_state(own_xy,timestep_start)
+    init_xy_other, heading_other, velocity_init_other = get_state(other_xy,timestep_start)
      
     goal_xy = project_pos(init_xy_own, heading_own, distance_ahead) # The goal is distance_ahead m in front of us 
      
     # make and set-up vehicle
-    vehicle = Holonomic(shapes=Circle(0.1))
+    vehicle = Holonomic(shapes=Circle(0.25))
      
     # plan from the last known position
     vehicle.set_initial_conditions(init_xy_own,velocity_own)
@@ -50,20 +48,23 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, timesteps_ahead, dist
     vehicle.set_options({'safety_distance': 0.5})
      
     # make and set-up environment #TODO
-    environment = Environment(room={'shape': Square(12.)})
-    #vel_values = get_velocities(other_xy,1./30.)
+    environment = Environment(room={'shape': Square(30.)})
+    
+    # get velocities of other vehicles
+    other_positions = other_xy[timestep_start:timestep_start+timesteps_ahead]
+    other_velocities = get_velocities(other_positions, 1./30.)
     # generate trajectory for moving obstacle
     # TODO need to relate the seconds here to our framerate / movement
-    #traj = {'velocity': {'time': np.linspace(0.,timesteps_ahead*(1./30.),timesteps_ahead-1),
-    #                     'values': vel_values}}
+    traj = {'position': {'time': np.linspace(0.,timesteps_ahead*(1./30.),timesteps_ahead),
+                         'values': other_positions}}
     # TODO check if the values here are in the correct form [x,y],[x+1,y+1],...
     # TODO chekf it more than 1 value is possible
      
     # add moving obstacle to environment
     # TODO Change size to a reasonable limit
-    #init_other_xy = other_xy[0]
-    #environment.add_obstacle(Obstacle({'position': init_other_xy}, shape=Circle(0.4),
-    #    simulation={'trajectories': traj}))
+    
+    environment.add_obstacle(Obstacle({'position': init_xy_other}, shape=Circle(0.25),
+        simulation={'trajectories': traj}))
       
     # give problem settings and create problem
     problem = Point2point(vehicle, environment)
