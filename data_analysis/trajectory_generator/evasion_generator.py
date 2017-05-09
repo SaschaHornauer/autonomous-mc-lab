@@ -4,7 +4,7 @@ Created on May 8, 2017
 @author: picard
 '''
 from omgtools import *
-from trajectory_tools import *
+from kzpy3.data_analysis.trajectory_generator.trajectory_tools import *
 import cv2
 
 
