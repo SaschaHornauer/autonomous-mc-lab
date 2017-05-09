@@ -251,7 +251,36 @@ layer {
 	p = p.replace("BOTTOM2",bottom2)
 	return p
 
-
+def scale(top,bottom,scale,bias):
+	p = """
+layer {
+  name: "TOP"
+  type: "Scale"
+  bottom: "BOTTOM"
+  top: "TOP"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  scale_param {
+    filler {
+      value: SCALE    }
+    bias_term: true
+    bias_filler {
+      value: BIAS
+    }
+  }
+}
+	"""
+	p = p.replace("TOP",top)
+	p = p.replace("BOTTOM",bottom)
+	p = p.replace("SCALE",str(scale))
+	p = p.replace("BIAS",str(bias))
+	return p
 
 def solver_proto(
 	model_path='kzpy3/caf6/z2_color_streamline',
@@ -288,6 +317,15 @@ snapshot_prefix: \""""+opjD(fname(model_path),fname(model_path))+"""\"
 	#print solver_str
 	#list_of_strings_to_txt_file(opj(model_path,'solver.prototxt'),[solver_str])
 	return solver_str
+
+
+
+
+
+
+
+
+
 
 
 

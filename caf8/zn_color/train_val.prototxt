@@ -1,5 +1,5 @@
 # /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 09:09:23 AM
+# Tuesday, 09 May 2017, 10:00:25 AM
 
 layer {
 	name: "steer_motor_target_data"
@@ -30,24 +30,78 @@ layer {
 	
 
 layer {
-	name: "ZED_data_pool2"
+	name: "ZED_data"
 	type: "DummyData"
-	top: "ZED_data_pool2"
+	top: "ZED_data"
 	dummy_data_param {
 		shape {
 			dim: 1
 			dim: 12
-			dim: 94
-			dim: 168
+			dim: 376
+			dim: 672
 		}
 	}
 }
 	
 
 layer {
+	name: "ZED_data_pool"
+	type: "Pooling"
+	bottom: "ZED_data"
+	top: "ZED_data_pool"
+	pooling_param {
+		pool: AVE
+		kernel_size: 3
+		stride: 2
+		pad_h: 0
+		pad_w: 0
+	}
+}
+	
+
+layer {
+	name: "ZED_data_pool_pool"
+	type: "Pooling"
+	bottom: "ZED_data_pool"
+	top: "ZED_data_pool_pool"
+	pooling_param {
+		pool: AVE
+		kernel_size: 3
+		stride: 2
+		pad_h: 0
+		pad_w: 0
+	}
+}
+	
+
+layer {
+  name: "ZED_data_pool2_scale"
+  type: "Scale"
+  bottom: "ZED_data_pool_pool"
+  top: "ZED_data_pool2_scale"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  scale_param {
+    filler {
+      value: 0.003921    }
+    bias_term: true
+    bias_filler {
+      value: -0.5
+    }
+  }
+}
+	
+
+layer {
 	name: "conv1"
 	type: "Convolution"
-	bottom: "ZED_data_pool2"
+	bottom: "ZED_data_pool2_scale"
 	top: "conv1"
 	convolution_param {
 		num_output: 96

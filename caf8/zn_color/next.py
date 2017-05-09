@@ -1,5 +1,5 @@
-#from common import *
-from kzpy3.caf8.zn_color.common import *
+from common import *
+#from kzpy3.caf8.zn_color.common import *
 
 os.environ['GLOG_minloglevel'] = '2'
 
@@ -13,10 +13,12 @@ if gpu >= 0:
 exec('from '+REPO+'.'+CAF+'.'+MODEL+'.solver import solver,model_path')
 
 
-weights_file_path =  most_recent_file_in_folder(opjD('z2_color_aruco'))#fname(model_path)))
+weights_file_path =  most_recent_file_in_folder(opjD('z2_color_aruco'),['caffemodel'])#fname(model_path)))
+weights_file_path =  most_recent_file_in_folder(opjh('caffe_models'),['z2_color.caffemodel'])#fname(model_path)))
+weights_file_path = None
 
 if weights_file_path:
-	print(d2s("Copying weights from"+weights_file_path+"to",solver))
+	print(d2s("Copying weights from",weights_file_path,"to",solver))
 	solver.net.copy_from(weights_file_path)
 else:
 	print(d2s("No weights loaded to",solver))
