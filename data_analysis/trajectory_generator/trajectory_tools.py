@@ -7,16 +7,17 @@ Created on May 8, 2017
 import numpy as np
 import cv2
 
-def get_heading(seq_xy, timesteps=3):
+def get_heading(seq_xy):
     '''
-    Get over the last [timesteps] a mean heading in rad
+    Give an average heading over all positions. Two different positions are 
+    the minimum, more will return a smoothed angle
     '''
 
     diffsX = []
     diffsY = []
     
     # calculate the angle:
-    for i in range(len(seq_xy)-timesteps,len(seq_xy)-1):
+    for i in range(len(seq_xy),len(seq_xy)-1):
         diffsX.append(seq_xy[i+1][0]-seq_xy[i][0])
         diffsY.append(seq_xy[i+1][1]-seq_xy[i][1])
     
