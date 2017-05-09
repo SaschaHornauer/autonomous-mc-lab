@@ -20,34 +20,34 @@ def get_close_encounters(own_xys, other_xys, timesteps):
         
     encounter_list = []
     triangle_points = {}
-    timestep_counter = 0
-    
+
     smooth_over_timesteps = 3
     own_xys = np.transpose(own_xys)
+    other_xys = np.transpose(other_xys)
     
-    for i in range(smooth_over_timesteps,len(own_xys)):
+    for t in range(smooth_over_timesteps,len(timesteps)):
         
-        current_own_xys = own_xys[i-smooth_over_timesteps:i]
-        triangle_fov = get_fov(current_own_xys,get_heading(current_own_xys))
+        current_own_xys = own_xys[t-smooth_over_timesteps:t]
         
-        for other_xy in np.transpose(other_xys):
-            point_xy = Point(other_xy[0], other_xy[1])
+        triangle_fov = get_fov_one_camera(current_own_xys,get_heading(current_own_xys))
+                
+        point_xy = Point(other_xys[t][0], other_xys[t][1])
             
-            if(triangle_fov.isInside(point_xy)):
-                encounter_list.append(timesteps[timestep_counter])
-                triangle_points[str(timesteps[timestep_counter])]=triangle_fov
-            timestep_counter = timestep_counter + 1
+        if(triangle_fov.isInside(point_xy)):
+            encounter_list.append(timesteps[t])
+            triangle_points[str(timesteps[t])]=triangle_fov
+            
         
     return encounter_list, triangle_points
 
 
-def get_fov(xy, heading):
+def get_fov_one_camera(xy, heading):
     '''
     returns the field of view as triangle, based on a sequence of
     coordinates. It will always regard the last coordinates in that list
     '''
     
-    estimate_fov = 110.  # degree    
+    estimate_fov = 66.  # degree of one camera    
     estimate_distance = 1  # meter
     
     limit_left = heading - np.deg2rad(estimate_fov / 2.0)
@@ -86,8 +86,8 @@ if __name__ == '__main__':
     #y_blue_at_crash = pickle_file['Mr_Blue']['left'][1](encounters)
     plt.figure('top',figsize=(6,6)) 
     #print(T)
-    T = encounters
-    print(T)
+    #T = encounters
+    #print(T)
     color = 'black'
     for car in ['Mr_Black','Mr_Blue']:
         for side in ['left','right']:
