@@ -1,7 +1,11 @@
 
-from common import *
-
+REPO = 'kzpy3'
+CAF = 'caf8'
+MODEL = 'zn_color'
+exec('from '+REPO+'.utils import *')
 exec('import '+REPO+'.'+CAF+'.protos as protos')
+
+
 
 ##############################################################################
 #
@@ -80,4 +84,54 @@ for t in solver_lst:
 list_of_strings_to_txt_file(opj(model_path,'train_val.prototxt'),train_val_lst)
 list_of_strings_to_txt_file(opj(model_path,'solver.prototxt'),solver_lst)
 
-solver = protos.setup_solver(opj(model_path,'solver.prototxt'))
+
+
+
+
+def put_data_into_model(data,solver):
+	############## load data into solver #####################
+	#
+	ctr = 0
+	for c in range(3):
+		for camera in ('left','right'):
+			for t in range(N_FRAMES):
+				solver.net.blobs['ZED_data_pool2'].data[0,ctr,:,:] = data[camera][t][:,:,c]
+				ctr += 1
+	Racing = 0
+	Caf = 0
+	Follow = 0
+	Direct = 0
+	Play = 0
+	Furtive = 0
+	if data['labels']['racing']:
+		Racing = 1.0
+	if data['states'][0] == 6:
+		Caf = 1.0
+	if data['labels']['follow']:
+		Follow = 1.0
+	if data['labels']['direct']:
+		Direct = 1.0
+	if data['labels']['play']:
+		Play = 1.0
+	if data['labels']['furtive']:
+		Furtive = 1.0
+	solver.net.blobs['metadata'].data[0,0,:,:] = Racing
+	solver.net.blobs['metadata'].data[0,1,:,:] = Caf
+	solver.net.blobs['metadata'].data[0,2,:,:] = Follow
+	solver.net.blobs['metadata'].data[0,3,:,:] = Direct
+	solver.net.blobs['metadata'].data[0,4,:,:] = Play
+	solver.net.blobs['metadata'].data[0,5,:,:] = Furtive
+	solver.net.blobs['steer_motor_target_data'].data[0,:N_STEPS] = data['steer'][-N_STEPS:]/99.
+	solver.net.blobs['steer_motor_target_data'].data[0,N_STEPS:] = data['motor'][-N_STEPS:]/99.
+	#
+	##########################################################
+
+
+
+
+
+
+
+
+
+
