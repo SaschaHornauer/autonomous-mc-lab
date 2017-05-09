@@ -9,22 +9,30 @@ timestamps = np.arange(t1,t2,1/30.)
 
 CA()
 figure('top',figsize=(6,6))
-#for car in ['Mr_Black','Mr_Blue']:
+
 car = 'Mr_Black'
 side = 'left'
-
 own_xy = []
 
-for t in range(1929,1939):
-	x = CS[car][side][0](timestamps[t])
-	y = CS[car][side][1](timestamps[t])
-	
+for t in timestamps:
+	x = CS[car][side][0](t)
+	y = CS[car][side][1](t)
 	own_xy.append([float(x),float(y)])
 
 car = 'Mr_Blue'
-
 other_xys = []
-# 1929
+
+for t in timestamps:
+	x = CS[car][side][0](t)
+	y = CS[car][side][1](t)
+	other_xys.append([float(x),float(y)])
+
+#own_xy,other_xy,timestep_start, timesteps_ahead
+get_evasive_trajectory(own_xy,other_xys,1929, 20,1.5)
+
+
+
+# collision timestamps# 1929
 # 1930
 # 1931
 # 1932
@@ -56,9 +64,3 @@ other_xys = []
 # 1970
 # 1971
 # 1972
-for t in range(40,50):
-	x = CS[car][side][0](timestamps[t])
-	y = CS[car][side][1](timestamps[t])
-	other_xys.append([float(x),float(y)])
-	
-get_evasive_trajectory(own_xy,other_xys,10, 1.5)

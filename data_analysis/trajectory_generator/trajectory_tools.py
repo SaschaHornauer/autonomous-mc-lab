@@ -37,6 +37,33 @@ def project_pos(xy,current_heading, distance=2):
     return [x[0][0]+xy[0],y[0][0]+xy[1]]
 
 
+def get_velocities(xy_positions,framerate):
+    '''
+    Returns the diffs in between two x,y positions divided by the
+    framerate aka velocity in m/s since the distance in time between two
+    positions is exactly that framerate
+    '''
+    
+    velocities = []
+    
+    for i in range(1,len(xy_positions)):
+        x = xy_positions[i-1][0]
+        y = xy_positions[i-1][1]
+        x_t1 = xy_positions[i][0]
+        y_t1 = xy_positions[i][1]
+    
+        sx = x_t1 - x
+        sy = y_t1 - y
+        
+        vx = sx / framerate
+        vy = sy / framerate
+
+        velocities.append([vx,vy])
+        
+    
+    return velocities
+
+
 
 
 ### Approach by Martin Thoma https://martin-thoma.com/author/martin-thoma/

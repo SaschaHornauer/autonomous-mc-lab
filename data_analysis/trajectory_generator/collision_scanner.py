@@ -6,6 +6,8 @@ Created on May 8, 2017
 from trajectory_tools import *
 import cPickle as pickle
 import matplotlib.pyplot as plt
+import numpy as np
+import cv2
 import os
 
 def get_close_encounters(own_xys, other_xys, timesteps):
