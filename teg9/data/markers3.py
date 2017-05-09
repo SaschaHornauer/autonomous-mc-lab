@@ -329,15 +329,15 @@ import scipy.interpolate
 CubicSpline = scipy.interpolate.CubicSpline
 
 def get_cubic_spline(time_points,data):
-	D,T = array(data),array(time_points)
-	cs = CubicSpline(T,D)
+	D,timestamps = array(data),array(time_points)
+	cs = CubicSpline(timestamps,D)
 	new_time_points = time_points #np.arange(time_points[0],time_points[-1],1)
 	plot(time_points,data,'o')
-	plot(T,D,'o', label='smoothed data')
+	plot(timestamps,D,'o', label='smoothed data')
 	plot(time_points,cs(time_points),label="S")
 	plt.legend(loc='lower left', ncol=2)
 	figure(10)
-	plot(T,D,'o')
+	plot(timestamps,D,'o')
 	plot(time_points,data,'x')
 	pause(0.1)
 	return cs
@@ -347,14 +347,14 @@ def get_cubic_spline(time_points,data):
 def get_cubic_spline(time_points,data,n=100):
 	n = 10
 	D = []
-	T = []
+	timestamps = []
 	for i in range(n/2,len(time_points),n):
 		D.append(data[i])#-n/2:i+n/2].mean())
-		T.append(time_points[i])#-n/2:i+n/2].mean())
-	D,T = array(D),array(T)
-	cs = CubicSpline(T,D)
+		timestamps.append(time_points[i])#-n/2:i+n/2].mean())
+	D,timestamps = array(D),array(timestamps)
+	cs = CubicSpline(timestamps,D)
 	plot(time_points,data,'o')
-	plot(T,D,'o', label='smoothed data')
+	plot(timestamps,D,'o', label='smoothed data')
 	plot(time_points,cs(time_points),label="S")
 	plt.legend(loc='lower left', ncol=2)
 	return cs
@@ -386,11 +386,11 @@ Bkr['cs_y'] = get_cubic_spline(time_points,array(Bkr['pts'])[:,1])
 figure('top')
 t1 = 1493425694.71+5
 t2 = 1493425899.676476 - 100
-T = np.arange(t1,t2,1/30.)
-plot(Bul['cs_x'](T),Bul['cs_y'](T),'o')
-plot(Bur['cs_x'](T),Bur['cs_y'](T),'o')
-plot(Bkl['cs_x'](T),Bkl['cs_y'](T),'o')
-plot(Bkr['cs_x'](T),Bkr['cs_y'](T),'o')
+timestamps = np.arange(t1,t2,1/30.)
+plot(Bul['cs_x'](timestamps),Bul['cs_y'](timestamps),'o')
+plot(Bur['cs_x'](timestamps),Bur['cs_y'](timestamps),'o')
+plot(Bkl['cs_x'](timestamps),Bkl['cs_y'](timestamps),'o')
+plot(Bkr['cs_x'](timestamps),Bkr['cs_y'](timestamps),'o')
 
 
 if True:
@@ -405,12 +405,12 @@ if True:
 
 
 
-bcx = Bul['cs_x'](T)
-bcy = Bul['cs_y'](T)
-brcx = Bur['cs_x'](T)
-brcy = Bur['cs_y'](T)
+bcx = Bul['cs_x'](timestamps)
+bcy = Bul['cs_y'](timestamps)
+brcx = Bur['cs_x'](timestamps)
+brcy = Bur['cs_y'](timestamps)
 
-for i in range(len(T)):
+for i in range(len(timestamps)):
 	x,y = bcx[i],bcy[i]
 	xr,yr = brcx[i],brcy[i]
 	cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,(90,100,110),-1)

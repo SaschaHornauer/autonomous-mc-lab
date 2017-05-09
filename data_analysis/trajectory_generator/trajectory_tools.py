@@ -33,7 +33,8 @@ def project_pos(xy,current_heading, distance=2):
     '''
     
     x,y = cv2.polarToCart(distance,current_heading)
-    return [x[0]+xy[0],y[0]+xy[1]]
+    
+    return [x[0][0]+xy[0],y[0][0]+xy[1]]
 
 
 

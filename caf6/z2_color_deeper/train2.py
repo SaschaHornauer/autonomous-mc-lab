@@ -80,9 +80,9 @@ ctr = 0
 steer = []
 motor = []
 
-T = 6
-timer = Timer(T)
-id_timer = Timer(3*T)
+timestamps = 6
+timer = Timer(timestamps)
+id_timer = Timer(3*timestamps)
 while False:
 	random.shuffle(ks)
 	for k in ks:

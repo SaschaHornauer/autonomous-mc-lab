@@ -93,11 +93,11 @@ while not timer.check():
 			# Number of samplepoints
 			N = 256
 			# sample spacing
-			T = 1.0 / 800.0
-			x = np.linspace(0.0, N*T, N)
+			timestamps = 1.0 / 800.0
+			x = np.linspace(0.0, N*timestamps, N)
 			y = d[0,:]
 			yf = scipy.fftpack.fft(y)
-			xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
+			xf = np.linspace(0.0, 1.0/(2.0*timestamps), N/2)
 
 			plot(xf, 2.0/N * np.abs(yf[:N//2]))
 

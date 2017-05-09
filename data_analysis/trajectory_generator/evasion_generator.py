@@ -7,41 +7,8 @@ from omgtools import *
 from trajectory_tools import *
 import cv2
 
-    
-#     # make and set-up vehicle
-#     vehicle = Holonomic()
-#     vehicle.set_initial_conditions([-1.0, -1.5])
-#     vehicle.set_terminal_conditions([-1.25, -1.25])
-#     vehicle.set_options({'safety_distance': 0.1})
-#     
-#     # make and set-up environment
-#     environment = Environment(room={'shape': Square(5.)})
-#     
-#     # add stationary obstacles to environment
-#     rectangle = Rectangle(width=3., height=0.2)
-#     environment.add_obstacle(Obstacle({'position': [-2.1, -0.5]}, shape=rectangle))
-#     environment.add_obstacle(Obstacle({'position': [ 1.7, -0.5]}, shape=rectangle))
-#     
-#     # generate trajectory for moving obstacle
-#     traj = {'velocity': {'time': [3., 4.],
-#                          'values': [[-0.15, 0.0], [0., 0.15]]}}
-#     # add moving obstacle to environment
-#     environment.add_obstacle(Obstacle({'position': [1.5, 0.5]}, shape=Circle(0.4),
-#         simulation={'trajectories': traj}))
-#     
-#     # give problem settings and create problem
-#     problem = Point2point(vehicle, environment)
-#     problem.init()
-#     
-#     # simulate, plot some signals and save a movie
-#     simulator = Simulator(problem)
-#     vehicle.plot('input', labels=['v_x (m/s)', 'v_y (m/s)'])
-#     problem.plot('scene')
-#     trajectories, signals = simulator.run()
-#     print(trajectories['state'][len(trajectories)])
- 
 
-def get_evasive_trajectory(own_xy,other_xy,timesteps_ahead):
+def get_evasive_trajectory(own_xy,other_xy,timesteps_ahead, distance_ahead):
     '''
     Returns a short term evasion trajectory, in steering commands for 
     as many timesteps ahead as given as variable.
@@ -50,24 +17,69 @@ def get_evasive_trajectory(own_xy,other_xy,timesteps_ahead):
     other_xy can be a list of x,y tuples or a list of list for each other vehicle
     
     '''
+    # Init our own position
+    init_xy = own_xy[len(own_xy)-1]
+    
+    # Get the goal where we want to go
+    heading = get_heading(own_xy[len(own_xy)-3:len(own_xy)])
+    goal_xy = project_pos(init_xy, heading, distance_ahead) # The goal is distance_ahead m in front of us 
+    
     # make and set-up vehicle
     vehicle = Holonomic()
     
     # plan from the last known position
-    init_xy = own_xy[len(own_xy)]
     vehicle.set_initial_conditions([init_xy[0], init_xy[1]])
     
     # plan as if the current movement should be continued 
-    dest_xy = project_pos(own_xy,get_heading(own_xy))
-    vehicle.set_terminal_conditions([-1.25, -1.25])
-    vehicle.set_options({'safety_distance': 0.1})
+    vehicle.set_terminal_conditions(goal_xy)
+    vehicle.set_options({'safety_distance': 0.5})
     
-    print(dest_xy)
+    # make and set-up environment #TODO
+    environment = Environment(room={'shape': Square(10.)})
+    vel_values = get_velocities(other_xy,1./30.)
+    # generate trajectory for moving obstacle
+    # TODO need to relate the seconds here to our framerate / movement
+    traj = {'velocity': {'time': np.linspace(0.,timesteps_ahead*(1./30.),timesteps_ahead-1),
+                         'values': vel_values}}
+    # TODO check if the values here are in the correct form [x,y],[x+1,y+1],...
+    # TODO chekf it more than 1 value is possible
+    
+    # add moving obstacle to environment
+    # TODO Change size to a reasonable limit
+    init_other_xy = other_xy[0]
+    environment.add_obstacle(Obstacle({'position': init_other_xy}, shape=Circle(0.4),
+        simulation={'trajectories': traj}))
+     
+    # give problem settings and create problem
+    problem = Point2point(vehicle, environment)
+    problem.init()
+     
+    # simulate, plot some signals and save a movie
+    simulator = Simulator(problem)
+    vehicle.plot('input', labels=['v_x (m/s)', 'v_y (m/s)'])
+    problem.plot('scene')
+    trajectories, signals = simulator.run()
 
+def get_velocities(other_xy,framerate):
+    
+    velocities = []
+    
+    for i in range(1,len(other_xy)):
+        x = other_xy[i-1][0]
+        y = other_xy[i-1][1]
+        x_t1 = other_xy[i][0]
+        y_t1 = other_xy[i][1]
+    
+        sx = x_t1 - x
+        sy = y_t1 - y
+        
+        vx = sx / framerate
+        vy = sy / framerate
 
-
-
-   
+        velocities.append([vx,vy])
+        
+    
+    return velocities
 if __name__ == '__main__':
-    print(project_pos((3,0),np.pi/3.))
+    pass
     

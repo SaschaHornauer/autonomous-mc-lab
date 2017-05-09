@@ -37,15 +37,15 @@ time_points = array(Bul['pts'])[:,2]
 def get_cubic_spline(time_points,data,n=20):
 	n = 10
 	D = []
-	T = []
+	timestamps = []
 	for i in range(n/2,len(time_points),n):
 		D.append(data[i-n/2:i+n/2].mean())
-		T.append(time_points[i-n/2:i+n/2].mean())
-	D,T = array(D),array(T)
-	cs = CubicSpline(T,D)
+		timestamps.append(time_points[i-n/2:i+n/2].mean())
+	D,timestamps = array(D),array(timestamps)
+	cs = CubicSpline(timestamps,D)
 	new_time_points = np.arange(time_points[0],time_points[1],1)
 	plot(time_points,data,'o')
-	plot(T,D,'o', label='smoothed data')
+	plot(timestamps,D,'o', label='smoothed data')
 	plot(time_points,cs(time_points),label="S")
 	plt.legend(loc='lower left', ncol=2)
 	return cs
