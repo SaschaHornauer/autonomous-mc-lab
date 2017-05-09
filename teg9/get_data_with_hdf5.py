@@ -2,8 +2,14 @@ from kzpy3.teg7.data.preprocess_bag_data import *
 from kzpy3.teg7.data.Bag_File import *
 from kzpy3.misc.progress import *
 from kzpy3.vis import *
-os.environ['GLOG_minloglevel'] = '2'
-import caffe
+
+
+
+"""
+This should be pure data, no caffe code
+"""
+
+
 
 
 i_variables = ['state','steer','motor','run_','runs','run_labels','meta_path','rgb_1to4_path','B_','left_images','right_images','unsaved_labels']
@@ -12,18 +18,15 @@ i_labels = ['mostly_caffe','mostly_human','aruco_ring','out1_in2','direct','home
 not_direct_modes = ['out1_in2','left','furtive','play','racing','follow']
 
 for q in i_variables + i_labels:
-	exec(d2n(q,' = ',"\'",q,"\'")) # I use leading underscore because this facilitates auto completion in ipython
+	exec(d2n(q,' = ',"\'",q,"\'")) 
 
 
-print("WARNING, MAKE SURE PATHS ARE SET CORRECTLY IN train_with_hdf5_utils.py")
-bair_car_data_path = opjD('bair_car_data_new')
-#bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+
+
 
 Segment_Data = {} # main data dictionary for segments
-hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs') # large hdf5 files for runs
-hdf5_segment_metadata_path = opj(bair_car_data_path,'hdf5/segment_metadata') # metatdata associated with runs
-#hdf5_runs_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/hdf5/runs'
-#hdf5_segment_metadata_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/hdf5/segment_metadata'
+
+
 
 
 def function_load_hdf5(path):
@@ -53,6 +56,9 @@ def function_load_hdf5(path):
 			labels[k] = False
 	S = F['segments']
 	return (labels,S)
+
+
+
 
 
 def load_animate_hdf5(path,start_at_time=0):
@@ -115,7 +121,9 @@ A5 = load_animate_hdf5
 
 
 
-def load_run_codes():
+
+
+def load_run_codes(hdf5_segment_metadata_path):
 	"""
 	def load_run_codes():
 	Each run is given a code number. This function loads the numbers into Segment_Data
@@ -129,7 +137,10 @@ def load_run_codes():
 		Segment_Data['runs'][run_name]['run_code'] = n
 
 
-def run_into_Segment_Data(run_code_num):
+
+
+
+def run_into_Segment_Data(run_code_num,hdf5_segment_metadata_path,hdf5_runs_path):
 	"""
 	def run_into_Segment_Data(run_code_num):
 	This function loads a given run's data into Segment_Data
@@ -147,6 +158,7 @@ def run_into_Segment_Data(run_code_num):
 	Segment_Data['runs'][run_name]['low_steer'] = low_steer
 	Segment_Data['runs'][run_name]['state_hist_list'] = state_hist_list
 	return run_name
+
 
 
 def animate_segment(run_code_num,seg_num):
@@ -179,6 +191,8 @@ def animate_segment(run_code_num,seg_num):
 		apply_rect_to_img(img,smooth_steer,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=True)
 		apply_rect_to_img(img,motors[i],0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=False)
 		mi_or_cv2(img)
+
+
 
 
 def get_data(run_code_num,seg_num,offset,slen,img_offset,img_slen,ignore=[left,out1_in2],require_one=[],smooth_steer=True,use_states=[1,5,6,7]):
@@ -237,36 +251,15 @@ def get_data(run_code_num,seg_num,offset,slen,img_offset,img_slen,ignore=[left,o
 	data['labels'] = labels
 	return data
 
-#########################################
 
 
-def print_solver(solver):
-	print("")
-	for l in [(k, v[0].data.shape) for k, v in solver.net.params.items()]:
-		print(l)
-	print("")
-	for l in [(k, v.data.shape) for k, v in solver.net.blobs.items()]:
-		if 'split' not in l[0]:
-			print(l)
-
-def setup_solver(solver_file_path):
-	solver = caffe.SGDSolver(solver_file_path)
-	print_solver(solver)
-	return solver
-
-def array_to_int_list(a):
-	l = []
-	for d in a:
-		l.append(int(d*100))
-	return l
-
-
-def val_to_category(value,cat_min,cat_max,num_bins):
-	s = zeros(num_bins)
-	i = int((value / (1.*cat_max-cat_min)) * num_bins)
-	if i < 0:
-		i = 0
-	if i > num_bins-1:
-		i = num_bins-1
-	return i
-
+def load_Segment_Data(hdf5_segment_metadata_path,hdf5_runs_path):
+	load_run_codes(hdf5_segment_metadata_path)
+	pb = ProgressBar(len(Segment_Data['run_codes']))
+	ctr = 0
+	print("doing run_into_Segment_Data...")
+	for n in Segment_Data['run_codes'].keys():
+		ctr+=1
+		pb.animate(ctr)
+		run_into_Segment_Data(n,hdf5_segment_metadata_path,hdf5_runs_path)
+	pb.animate(len(Segment_Data['run_codes']))

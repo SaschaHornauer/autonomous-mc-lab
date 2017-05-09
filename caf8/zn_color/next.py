@@ -13,8 +13,7 @@ if gpu >= 0:
 exec('from '+REPO+'.'+CAF+'.'+MODEL+'.solver import solver,model_path')
 
 
-weights_file_path =  most_recent_file_in_folder(opjD('z2_color_aruco'),['caffemodel'])#fname(model_path)))
-weights_file_path =  most_recent_file_in_folder(opjh('caffe_models'),['z2_color.caffemodel'])#fname(model_path)))
+weights_file_path =  most_recent_file_in_folder(opjD(fname(model_path)))
 weights_file_path = None
 
 if weights_file_path:
@@ -22,4 +21,8 @@ if weights_file_path:
 	solver.net.copy_from(weights_file_path)
 else:
 	print(d2s("No weights loaded to",solver))
+
+
+
+
 
