@@ -108,9 +108,9 @@ def train(caffe_net,solver_inputs_dic,keys,version,model_file_path,time_limit=No
 	ctr = 0
 	steer = []
 	motor = []
-	timestamps = 6
-	timer = Timer(timestamps)
-	id_timer = Timer(3*timestamps)
+	T = 6
+	timer = Timer(T)
+	id_timer = Timer(3*T)
 	while True:
 		ks = keys.keys()
 		random.shuffle(ks)
@@ -142,9 +142,9 @@ def test(caffe_net,solver_inputs_dic,keys,version,model_path,time_limit):
 	ctr = 0
 	steer = []
 	motor = []
-	timestamps = 6
-	timer = Timer(timestamps)
-	id_timer = Timer(3*timestamps)
+	T = 6
+	timer = Timer(T)
+	id_timer = Timer(3*T)
 	ks = keys.keys()
 	random.shuffle(ks) # shuffling lets us use subsamples of the test data
 	loss = []

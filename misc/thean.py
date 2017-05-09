@@ -5,7 +5,7 @@ import gzip
 import timeit
 
 import theano
-import theano.tensor as timestamps
+import theano.tensor as T
 from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 
@@ -38,7 +38,7 @@ def load_data(dataset_with_path):
 
 
 class InnerProductLayer(object):
-    def __init__(self, rng, input, n_in, n_out, activation=timestamps.tanh):
+    def __init__(self, rng, input, n_in, n_out, activation=T.tanh):
         
         W_values = np.asarray(
                 rng.uniform(
@@ -62,17 +62,17 @@ class InnerProductLayer(object):
         self.W = W
         self.b = b
         
-        self.lin_output = timestamps.dot(input, self.W) + self.b
+        self.lin_output = T.dot(input, self.W) + self.b
         self.params = [self.W, self.b]
         self.input = input
         self.output = (
             self.lin_output if activation is None
             else activation(self.lin_output)
         )
-        self.output_argmax = timestamps.argmax(self.output, axis=0)
+        self.output_argmax = T.argmax(self.output, axis=0)
 
     def mean_sqr_error(self, y):
-        return timestamps.mean(timestamps.sqr(self.output - y))
+        return T.mean(T.sqr(self.output - y))
 
 
 class LeNetConvPoolLayer(object):
@@ -151,7 +151,7 @@ class LeNetConvPoolLayer(object):
         # reshape it to a tensor of shape (1, n_filters, 1, 1). Each bias will
         # thus be broadcasted across mini-batches and feature map
         # width & height
-        self.output = timestamps.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
+        self.output = T.tanh(pooled_out + self.b.dimshuffle('x', 0, 'x', 'x'))
 
         # store parameters of this layer
         self.params = [self.W, self.b]
