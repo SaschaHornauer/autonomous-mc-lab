@@ -1,5 +1,5 @@
 from kzpy3.vis import *
-from data_analysis.trajectory_generator.evasion_generator import *
+from kzpy3.data_analysis.trajectory_generator.evasion_generator import *
 CS = lo(opjh('kzpy3/teg9/trajectories.pkl'))
 
 figure('top')
