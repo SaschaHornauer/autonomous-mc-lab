@@ -4,6 +4,7 @@ Created on May 8, 2017
 @author: picard
 '''
 from omgtools import *
+from trajectory_tools import *
 import cv2
 
     
@@ -38,7 +39,7 @@ import cv2
 #     problem.plot('scene')
 #     trajectories, signals = simulator.run()
 #     print(trajectories['state'][len(trajectories)])
-
+ 
 
 def get_evasive_trajectory(own_xy,other_xy,timesteps_ahead):
     '''
@@ -57,40 +58,15 @@ def get_evasive_trajectory(own_xy,other_xy,timesteps_ahead):
     vehicle.set_initial_conditions([init_xy[0], init_xy[1]])
     
     # plan as if the current movement should be continued 
-    
+    dest_xy = project_pos(own_xy,get_heading(own_xy))
     vehicle.set_terminal_conditions([-1.25, -1.25])
     vehicle.set_options({'safety_distance': 0.1})
     
-    
-    
-    pass
+    print(dest_xy)
 
 
-def get_heading(seq_xy, timesteps=3):
-    '''
-    Get over the last [timesteps] a mean heading in rad
-    '''
 
-    diffsX = []
-    diffsY = []
-    
-    # calculate the angle:
-    for i in range(len(seq_xy)-timesteps,len(seq_xy)-1):
-        diffsX.append(seq_xy[i+1][0]-seq_xy[i][0])
-        diffsY.append(seq_xy[i+1][1]-seq_xy[i][1])
-    
-    myAngle = np.arctan2(diffsY, diffsX)
-    
-    return np.mean(myAngle)
 
-def project_pos(xy,current_heading, distance=2):
-    '''
-    Take the position as xy and the current heading and returns future
-    xy in a distance of distance
-    '''
-    
-    x,y = cv2.polarToCart(distance,current_heading)
-    return [x[0]+xy[0],y[0]+xy[1]] 
    
 if __name__ == '__main__':
     print(project_pos((3,0),np.pi/3.))
