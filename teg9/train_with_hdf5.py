@@ -1,31 +1,58 @@
-REPO = 'kzpy3'
-TEG = 'teg9'
-
-#exec('from '+REPO+'.utils import *')
-#exec(d2n("import ",REPO,".",TEG,".get_data_with_hdf5 as get_data_with_hdf5"))
-
-from kzpy3.utils import *
+from kzpy3.vis import *
 import kzpy3.teg9.get_data_with_hdf5 as get_data_with_hdf5
-
-os.environ['GLOG_minloglevel'] = '2'
-
 import caffe
 
-gpu = 1
+REPO = 'kzpy3'
+TEG = 'teg9'
+CAF = 'caf8'
+
+ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
+require_one = [] # at least one of this type of run lable is required
+use_states = [1]
+
+if False:
+	MODEL = 'z2_color'
+	bair_car_data_path = opjD('bair_car_data_new') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
+	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
+	weights_file_path = None
+	N_FRAMES = 2 # how many timesteps with images.
+	N_STEPS = 10 # how many timestamps with non-image data
+	gpu = 1
+
+if False:
+	MODEL = 'z3_color'
+	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	weights_file_path = None
+	N_FRAMES = 3 # how many timesteps with images.
+	N_STEPS = 30 # how many timestamps with non-image data
+	gpu = 0
+
+
+if False:
+	MODEL = 'z1_color'
+	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	weights_file_path = None
+	N_FRAMES = 1 # how many timesteps with images.
+	N_STEPS = 10 # how many timestamps with non-image data
+	gpu = 1
+
+
+
+
+
+
+
+
 if gpu >= 0:
 	caffe.set_device(gpu)
 	caffe.set_mode_gpu()
 
-
-CAF = 'caf8'
-MODEL = 'zn_color'
-#exec('from '+REPO+'.'+CAF+'.'+MODEL+'.solver import solver,model_path,put_data_into_model')
-import kzpy3.caf8.zn_color.solver as Solver
-
-model_path = Solver.model_path
-
-weights_file_path =  most_recent_file_in_folder(opjD(fname(model_path)))
-weights_file_path = None
+import_str = "import REPO.CAF.MODEL.solver as Solver"
+import_str = import_str.replace("REPO",REPO)
+import_str = import_str.replace("CAF",CAF)
+import_str = import_str.replace("MODEL",MODEL)
+exec(import_str)
 
 if weights_file_path:
 	print(d2s("Copying weights from",weights_file_path,"to",Solver.solver))
@@ -34,17 +61,8 @@ else:
 	print(d2s("No weights loaded to",Solver.solver))
 
 
-
-
-bair_car_data_path = opjD('bair_car_data_new') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
 hdf5_segment_metadata_path = opj(bair_car_data_path,'hdf5/segment_metadata')
-
-N_FRAMES = 10 # how many timesteps with images.
-N_STEPS = 40 # how many timestamps with non-image data
-ignore = ['reject_run','left','out1_in2'] # runs with these labels are ignored
-require_one = ['direct'] # at least one of this type of run lable is required
-use_states = [1,5,6,7]
 
 print_timer = Timer(5)
 loss10000 = []
@@ -55,16 +73,14 @@ rate_ctr = 0
 figure('steer',figsize=(3,2))
 figure('loss',figsize=(3,2))
 
-
-
 get_data_with_hdf5.load_Segment_Data(hdf5_segment_metadata_path,hdf5_runs_path)
 
 
 
 print('\nloading low_steer... (takes awhile)')
-low_steer = load_obj(opj(bair_car_data_path,'hdf5/segment_metadata/low_steer'))
+low_steer = load_obj(opj(hdf5_segment_metadata_path,'low_steer'))
 print('\nloading high_steer... (takes awhile)')
-high_steer = load_obj(opj(bair_car_data_path,'hdf5/segment_metadata/high_steer'))
+high_steer = load_obj(opj(hdf5_segment_metadata_path,'high_steer'))
 len_high_steer = len(high_steer)
 len_low_steer = len(low_steer)
 figure('high low steer histograms',figsize=(2,1))
@@ -149,22 +165,25 @@ while True:
 		plot(loss10000[-lm:])
 		print(d2s('loss10000 =',loss10000[-1]))
 	if print_timer.check():
-		print(Solver.solver.net.blobs['metadata'].data[0,:,5,5])
-		cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[0,:][:]),'green','on_red')
-		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[0,:][:]),'red','on_green')
+
+		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
+
+		cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
+		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
+		
 		figure('steer')
 		clf()
-		ylim(-1.05,1.05);xlim(0,10)
-		t = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:]
-		print(shape(Solver.solver.net.blobs['steer_motor_target_data'].data))
-		print Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
-		print Solver.solver.net.blobs['ip2'].data[-1,:]
+		ylim(-0.05,1.05);#xlim(0,19)
+		t = Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
 		o = Solver.solver.net.blobs['ip2'].data[-1,:]
-		steer_ip2 = o[0:10]-o[10:20]
-		steer_tar = t[0:10]-t[10:20]
-		#plot(zeros(xlen+1)+49,'k');
-		plot(steer_ip2,'g'); plot(steer_tar,'r'); plt.title(data['name']);pause(0.001)
+		plot(o,'og'); plot(t,'or'); plt.title(data['name']);pause(0.001)
+		
+		#print(shape(Solver.solver.net.blobs['steer_motor_target_data'].data))
+		#print Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
+		#print Solver.solver.net.blobs['ip2'].data[-1,:]
+
 		mi_or_cv2_animate(data['left'],delay=33)
+
 		print_timer.reset()
 
 

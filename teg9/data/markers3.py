@@ -72,23 +72,23 @@ Bkr = init_car_path(Mr_Black_marker_data_pkl,'right','Mr_Black_right')
 multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Bkl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
 
 
-"""
+
 run_name = 'direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow'
 Mr_Yellow_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
 Yl = init_car_path(Mr_Yellow_marker_data_pkl,'left','Mr_Yellow')
 Yl['data'] = get_new_A.get_new_A()
 Yr = init_car_path(Mr_Yellow_marker_data_pkl,'right','Mr_Yellow_right')
 multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Yl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
-"""
 
-"""
+
+
 run_name = 'direct_rewrite_test_28Apr17_17h27m30s_Mr_Silver'
 Mr_Silver_marker_data_pkl = lo('/home/karlzipser/Desktop/bair_car_data_new/meta/'+run_name+'/marker_data.pkl')
 Sl = init_car_path(Mr_Silver_marker_data_pkl,'left','Mr_Silver')
 Sl['data'] = get_new_A.get_new_A()
 Sr = init_car_path(Mr_Silver_marker_data_pkl,'right','Mr_Silver_right')
 multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(Sl['data'],opj(bag_folders_dst_meta_path,run_name),opj(bag_folders_dst_rgb1to4_path,run_name))
-"""
+
 
 
 Bur['pts'] = []
@@ -306,13 +306,13 @@ for i in range(7750,20000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
 	#img2 = Bul[]
 	show_timepoint(Bul,t,out_img,(  0,  0,255),100000.,0,0,0,10,True)
 	show_timepoint(Bkl,t,out_img,(100,100,100),100000.,0,0,1,10,True)
-	#show_timepoint(Yl,t,out_img,(255,255,0),100000.,0,-7,2)
-	#show_timepoint(Sl,t,out_img,(255,255,255),100000.,0,0,3)
+	show_timepoint(Yl,t,out_img,(255,255,0),100000.,   0,0,2,10,True)
+	show_timepoint(Sl,t,out_img,(255,255,255),100000. ,0,0,3,10,True)
 
 	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0,None,10,True)
 	show_timepoint(Bkr,t,out_img,(80,80,80 ),100000.,0,0,None,10,True)
-	#show_timepoint(Yr,t,out_img,(150,150,0),100000.,0,-7,None)
-	#show_timepoint(Sr,t,out_img,(150,150,150),100000.,0,0,None)
+	show_timepoint(Yr,t,out_img,(150,150,0),100000.,0,0,None,10,True)
+	show_timepoint(Sr,t,out_img,(150,150,150),100000.,0,0,None,10,True)
 
 
 	tprev = t

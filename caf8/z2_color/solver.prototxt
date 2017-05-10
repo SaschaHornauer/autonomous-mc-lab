@@ -1,7 +1,7 @@
-# /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 09:21:37 PM
+# /home/karlzipser/kzpy3/caf8/z2_color
+# Wednesday, 10 May 2017, 04:07:33 PM
 
-net: "/home/karlzipser/kzpy3/caf8/zn_color/train_val.prototxt"
+net: "/home/karlzipser/kzpy3/caf8/z2_color/train_val.prototxt"
 test_iter: 1
 test_interval: 1000000
 test_initialization: false
@@ -14,5 +14,5 @@ power: 0.75
 display: 20000
 max_iter: 10000000
 snapshot: 100000
-snapshot_prefix: "/home/karlzipser/Desktop/zn_color/zn_color"
+snapshot_prefix: "/home/karlzipser/Desktop/z2_color/z2_color"
 	
