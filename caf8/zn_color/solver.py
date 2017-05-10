@@ -12,7 +12,7 @@ import kzpy3.caf8.protos as protos
 #
 model_path = opjh(REPO,CAF,MODEL)
 
-
+batch_size = 256
 
 """
 ('steer_motor_target_data', (1, 40))
@@ -42,10 +42,10 @@ train_val_lst += [
 	d2s('#',model_path),
 	d2s('#',time_str('Pretty')),
 
-	protos.dummy('steer_motor_target_data',(1,40)),
-	protos.dummy('metadata',(1,10,14,26)),
-	protos.dummy('color_data_pool_pool',(1,12,94,168)),
-	protos.dummy('motion_data_pool_pool',(1,10,94,168)),
+	protos.dummy('steer_motor_target_data',(batch_size,40)),
+	protos.dummy('metadata',(batch_size,10,14,26)),
+	protos.dummy('color_data_pool_pool',(batch_size,12,94,168)),
+	protos.dummy('motion_data_pool_pool',(batch_size,10,94,168)),
 	protos.scale('color_data_pool_pool_scale','color_data_pool_pool',0.003921,-0.5),
 	protos.scale('motion_data_pool_pool_scale','motion_data_pool_pool',0.003921,-0.5),
 
@@ -179,14 +179,19 @@ def put_data_into_model(data,solver,b=0):
 		Play = 1.0
 	if data['labels']['furtive']:
 		Furtive = 1.0
+
+	current = {}	
+	current['steer'] = data['steer'][7:10].mean()
+	current['motor'] = data['motor'][7:10].mean()
+
 	solver.net.blobs['metadata'].data[b,0,:,:] = Racing
 	solver.net.blobs['metadata'].data[b,1,:,:] = Caf
 	solver.net.blobs['metadata'].data[b,2,:,:] = Follow
 	solver.net.blobs['metadata'].data[b,3,:,:] = Direct
 	solver.net.blobs['metadata'].data[b,4,:,:] = Play
 	solver.net.blobs['metadata'].data[b,5,:,:] = Furtive
-	solver.net.blobs['metadata'].data[b,6,:,:] = data['steer'][7:10].mean()/100.
-	solver.net.blobs['metadata'].data[b,7,:,:] = data['motor'][7:10].mean()/100.	
+	solver.net.blobs['metadata'].data[b,6,:,:] = current['steer']/100.
+	solver.net.blobs['metadata'].data[b,7,:,:] = current['motor']/100.	
 	#solver.net.blobs['metadata'].data[b,8,:,:] = x_gradient
 	#solver.net.blobs['metadata'].data[b,9,:,:] = y_gradient
 	
@@ -201,7 +206,7 @@ def put_data_into_model(data,solver,b=0):
 	for m in ['steer','motor']:
 		ctr = 0
 		for i in range(10,40,3):
-			d = (data[m][i:i+3].mean()-49)/49.0
+			d = (data[m][i:i+3].mean()-current[m])/100.0
 			if d > 0:
 				SM[m]['pos'][ctr] = d
 			else:

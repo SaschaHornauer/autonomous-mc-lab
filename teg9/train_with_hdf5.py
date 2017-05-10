@@ -121,14 +121,15 @@ def array_to_int_list(a):
 
 
 
-batch_size = 1
+
 
 while True:
 
-	data = get_data_considering_high_low_steer()
-	if data == None:
-		continue
-	Solver.put_data_into_model(data,Solver.solver)
+	for b in range(Solver.batch_size):
+		data = None
+		while data == None:
+			data = get_data_considering_high_low_steer()
+		Solver.put_data_into_model(data,Solver.solver,b)
 
 	Solver.solver.step(1)
 
@@ -140,7 +141,7 @@ while True:
 		rate_ctr = 0
 	a = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
 	loss.append(np.sqrt(a * a).mean())
-	if len(loss) >= 10000:
+	if len(loss) >= 10000/Solver.batch_size:
 		loss10000.append(array(loss[-10000:]).mean())
 		loss = []
 		figure('loss');clf()
@@ -153,12 +154,16 @@ while True:
 		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[0,:][:]),'red','on_green')
 		figure('steer')
 		clf()
-		xlen = len(Solver.solver.net.blobs['ip2'].data[0,:][:])/2-1
-		ylim(-5,105);xlim(0,xlen)
-		t = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:]*100.
-		print Solver.solver.net.blobs['steer_motor_target_data'].data[0,:]
-		o = Solver.solver.net.blobs['ip2'].data[0,:]*100.
-		plot(zeros(xlen+1)+49,'k');plot(o,'g'); plot(t,'r'); plt.title(data['name']);pause(0.001)
+		ylim(-1.05,1.05);xlim(0,10)
+		t = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:]
+		print(shape(Solver.solver.net.blobs['steer_motor_target_data'].data))
+		print Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
+		print Solver.solver.net.blobs['ip2'].data[-1,:]
+		o = Solver.solver.net.blobs['ip2'].data[-1,:]
+		steer_ip2 = o[0:10]-o[10:20]
+		steer_tar = t[0:10]-t[10:20]
+		#plot(zeros(xlen+1)+49,'k');
+		plot(steer_ip2,'g'); plot(steer_tar,'r'); plt.title(data['name']);pause(0.001)
 		mi_or_cv2_animate(data['left'],delay=33)
 		print_timer.reset()
 

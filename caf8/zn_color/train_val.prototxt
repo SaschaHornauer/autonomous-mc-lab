@@ -1,7 +1,7 @@
 # /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 06:30:00 PM
+# Tuesday, 09 May 2017, 07:58:08 PM
 # /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 06:30:00 PM
+# Tuesday, 09 May 2017, 07:58:08 PM
 
 layer {
 	name: "steer_motor_target_data"
@@ -9,7 +9,7 @@ layer {
 	top: "steer_motor_target_data"
 	dummy_data_param {
 		shape {
-			dim: 1
+			dim: 256
 			dim: 40
 		}
 	}
@@ -22,7 +22,7 @@ layer {
 	top: "metadata"
 	dummy_data_param {
 		shape {
-			dim: 1
+			dim: 256
 			dim: 10
 			dim: 14
 			dim: 26
@@ -37,7 +37,7 @@ layer {
 	top: "color_data_pool_pool"
 	dummy_data_param {
 		shape {
-			dim: 1
+			dim: 256
 			dim: 12
 			dim: 94
 			dim: 168
@@ -52,7 +52,7 @@ layer {
 	top: "motion_data_pool_pool"
 	dummy_data_param {
 		shape {
-			dim: 1
+			dim: 256
 			dim: 10
 			dim: 94
 			dim: 168
