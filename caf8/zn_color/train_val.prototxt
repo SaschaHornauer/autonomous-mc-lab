@@ -1,7 +1,7 @@
 # /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 11:51:08 AM
+# Tuesday, 09 May 2017, 06:30:00 PM
 # /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 11:51:08 AM
+# Tuesday, 09 May 2017, 06:30:00 PM
 
 layer {
 	name: "steer_motor_target_data"
@@ -10,7 +10,7 @@ layer {
 	dummy_data_param {
 		shape {
 			dim: 1
-			dim: 20
+			dim: 40
 		}
 	}
 }
@@ -23,7 +23,7 @@ layer {
 	dummy_data_param {
 		shape {
 			dim: 1
-			dim: 6
+			dim: 10
 			dim: 14
 			dim: 26
 		}
@@ -32,100 +32,88 @@ layer {
 	
 
 layer {
-	name: "color_data"
+	name: "color_data_pool_pool"
 	type: "DummyData"
-	top: "color_data"
+	top: "color_data_pool_pool"
 	dummy_data_param {
 		shape {
 			dim: 1
 			dim: 12
-			dim: 376
-			dim: 672
+			dim: 94
+			dim: 168
 		}
-	}
-}
-	
-
-layer {
-	name: "motion_data"
-	type: "DummyData"
-	top: "motion_data"
-	dummy_data_param {
-		shape {
-			dim: 1
-			dim: 10
-			dim: 376
-			dim: 672
-		}
-	}
-}
-	
-
-layer {
-	name: "color_data_pool"
-	type: "Pooling"
-	bottom: "color_data"
-	top: "color_data_pool"
-	pooling_param {
-		pool: AVE
-		kernel_size: 3
-		stride: 2
-		pad_h: 0
-		pad_w: 0
-	}
-}
-	
-
-layer {
-	name: "color_data_pool_pool"
-	type: "Pooling"
-	bottom: "color_data_pool"
-	top: "color_data_pool_pool"
-	pooling_param {
-		pool: AVE
-		kernel_size: 3
-		stride: 2
-		pad_h: 0
-		pad_w: 0
-	}
-}
-	
-
-layer {
-	name: "motion_data_pool"
-	type: "Pooling"
-	bottom: "motion_data"
-	top: "motion_data_pool"
-	pooling_param {
-		pool: AVE
-		kernel_size: 3
-		stride: 2
-		pad_h: 0
-		pad_w: 0
 	}
 }
 	
 
 layer {
 	name: "motion_data_pool_pool"
-	type: "Pooling"
-	bottom: "motion_data_pool"
+	type: "DummyData"
 	top: "motion_data_pool_pool"
-	pooling_param {
-		pool: AVE
-		kernel_size: 3
-		stride: 2
-		pad_h: 0
-		pad_w: 0
+	dummy_data_param {
+		shape {
+			dim: 1
+			dim: 10
+			dim: 94
+			dim: 168
+		}
 	}
 }
 	
 
 layer {
-	name: "motion_data_pool_pool_pool"
+  name: "color_data_pool_pool_scale"
+  type: "Scale"
+  bottom: "color_data_pool_pool"
+  top: "color_data_pool_pool_scale"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  scale_param {
+    filler {
+      value: 0.003921    }
+    bias_term: true
+    bias_filler {
+      value: -0.5
+    }
+  }
+}
+	
+
+layer {
+  name: "motion_data_pool_pool_scale"
+  type: "Scale"
+  bottom: "motion_data_pool_pool"
+  top: "motion_data_pool_pool_scale"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  scale_param {
+    filler {
+      value: 0.003921    }
+    bias_term: true
+    bias_filler {
+      value: -0.5
+    }
+  }
+}
+	
+
+layer {
+	name: "motion_data_pool_pool_scale_pool"
 	type: "Pooling"
-	bottom: "motion_data_pool_pool"
-	top: "motion_data_pool_pool_pool"
+	bottom: "motion_data_pool_pool_scale"
+	top: "motion_data_pool_pool_scale_pool"
 	pooling_param {
 		pool: AVE
 		kernel_size: 3
@@ -139,7 +127,7 @@ layer {
 layer {
 	name: "conv1m"
 	type: "Convolution"
-	bottom: "motion_data_pool_pool_pool"
+	bottom: "motion_data_pool_pool_scale_pool"
 	top: "conv1m"
 	convolution_param {
 		num_output: 96
@@ -167,7 +155,7 @@ layer {
 layer {
 	name: "conv1"
 	type: "Convolution"
-	bottom: "color_data_pool_pool"
+	bottom: "color_data_pool_pool_scale"
 	top: "conv1"
 	convolution_param {
 		num_output: 96
@@ -302,7 +290,7 @@ layer {
 	bottom: "ip1"
 	top: "ip2"
 	inner_product_param {
-		num_output: 20
+		num_output: 40
 		weight_filler {
 			type: "xavier" 
 		}
