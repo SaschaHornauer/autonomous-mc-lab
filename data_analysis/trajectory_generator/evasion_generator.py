@@ -40,27 +40,34 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     
     init_xy_own, heading_own, velocity_own = get_state(own_xy,timestep_start,3) # smooth heading over 3 timesteps in the future
     init_xy_other, heading_other, velocity_init_other = get_state(other_xy,timestep_start,3)
+    
       
-    goal_xy = own_xy[timestep_start+d_timestep_goal] # The goal is our future position in the
-    # dataset 
+    goal_xy = own_xy[timestep_start+d_timestep_goal] # The goal is our future position in the dataset
+    # Now take the last three timesteps near the goal to calculate the final heading
+    goal_heading = get_heading(own_xy[timestep_start+d_timestep_goal-3:timestep_start+d_timestep_goal]) 
       
     # make and set-up vehicle
-    vehicle = Holonomic(shapes=Circle(0.25))
-      
+    vehicle = Bicycle(length=0.4, options={'plot_type': 'car', 'substitution': False})# Holonomic(shapes=Circle(0.25))
+    vehicle.define_knots(knot_intervals=5)
+    
+    velocity_abs = np.hypot(velocity_own[0][0],velocity_own[0][1])
+    
     # plan from the last known position
-    vehicle.set_initial_conditions(init_xy_own,velocity_own)
+    vehicle.set_initial_conditions(state=[init_xy_own[0],init_xy_own[1], heading_own, 0.0],input=[velocity_abs]) # the assumption is that 
+    # for the time being that the steering angle is 0. This can be changed in the future, based on existing data.
+    
+    #vehicle.set_terminal_conditions([3., 3., 0.])  # x, y, theta
      
     # plan as if the current movement should be continued
-     
-    vehicle.set_terminal_conditions(goal_xy)
+    
+    vehicle.set_terminal_conditions([goal_xy[0],goal_xy[1],goal_heading])
     vehicle.set_options({'safety_distance': 0.5})
-    vehicle.set_options({'ideal_prediction': False})
       
     # make and set-up environment #TODO
     environment = Environment(room={'shape': Square(10.)})
    
     # create a point-to-point problem
-    problem = Point2point(vehicle, environment, freeT=False)
+    problem = Point2point(vehicle, environment, freeT=True)
     problem.init()
      
     # get velocities of other vehicles
@@ -80,8 +87,18 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     # simulate, plot some signals and save a movie
     simulator = Simulator(problem, sample_time=0.33, update_time=0.33)
     
-    vehicle.plot('input', labels=['v_x (m/s)', 'v_y (m/s)'])
+    #vehicle.plot('input', labels=['v_x (m/s)', 'v_y (m/s)'])
+    #problem.plot('scene')
     problem.plot('scene')
+    vehicle.plot('input', knots=True, labels=['v (m/s)', 'ddelta (rad/s)'])
+    vehicle.plot('state', knots=True, labels=[
+                 'x (m)', 'y (m)', 'theta (rad)', 'delta (rad)'])
+    if vehicle.options['substitution']:
+        vehicle.plot('err_pos', knots=True)
+        vehicle.plot('err_dpos', knots=True)
+
+    # run it!
+
     trajectories, signals = simulator.run()
 
 
