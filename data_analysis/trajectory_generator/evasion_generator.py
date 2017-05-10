@@ -13,20 +13,20 @@ import matplotlib.pyplot as plt
 framerate = 1./30.
 # This framerate should be at one point for the whole module
 
-def get_state(own_xy, timestep_start):
+def get_state(own_xy, timestep_start,timestep_end):
      
     # Init our own position
     init_xy = own_xy[timestep_start]
          
     # Get our intended heading based on three timesteps in the future
     # which add as slight smoothing
-    heading = get_heading(own_xy[timestep_start:timestep_start+3])
+    heading = get_heading(own_xy[timestep_start:timestep_start+timestep_end])
     # Get the velocity over the first two timesteps
     velocity = get_velocities([own_xy[timestep_start],own_xy[timestep_start+1]], framerate)
     return init_xy,heading,velocity
     
 def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_timestep_goal):
-    import time
+    
     
     '''
     Returns a short term evasion trajectory, in steering commands for 
@@ -38,8 +38,8 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     '''
 
     
-    init_xy_own, heading_own, velocity_own = get_state(own_xy,timestep_start)
-    init_xy_other, heading_other, velocity_init_other = get_state(other_xy,timestep_start)
+    init_xy_own, heading_own, velocity_own = get_state(own_xy,timestep_start,3) # smooth heading over 3 timesteps in the future
+    init_xy_other, heading_other, velocity_init_other = get_state(other_xy,timestep_start,3)
       
     goal_xy = own_xy[timestep_start+d_timestep_goal] # The goal is our future position in the
     # dataset 
@@ -50,7 +50,8 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     # plan from the last known position
     vehicle.set_initial_conditions(init_xy_own,velocity_own)
      
-    # plan as if the current movement should be continued 
+    # plan as if the current movement should be continued
+     
     vehicle.set_terminal_conditions(goal_xy)
     vehicle.set_options({'safety_distance': 0.5})
     vehicle.set_options({'ideal_prediction': False})
