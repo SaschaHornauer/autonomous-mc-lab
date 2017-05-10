@@ -206,7 +206,7 @@ def put_data_into_model(data,solver,b=0):
 	for m in ['steer','motor']:
 		ctr = 0
 		for i in range(10,40,3):
-			d = (data[m][i:i+3].mean()-current[m])/100.0
+			d = (data[m][i:i+3].mean()-49)/100.# current[m])/100.0
 			if d > 0:
 				SM[m]['pos'][ctr] = d
 			else:
