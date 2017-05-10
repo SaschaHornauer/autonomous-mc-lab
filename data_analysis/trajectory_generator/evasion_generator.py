@@ -66,10 +66,6 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     # make and set-up environment #TODO
     environment = Environment(room={'shape': Square(10.)})
    
-    # create a point-to-point problem
-    problem = Point2point(vehicle, environment, freeT=True)
-    problem.init()
-     
     # get velocities of other vehicles
     other_positions = other_xy[timestep_start:timestep_start+process_timesteps]
     other_velocities = get_velocities(other_positions, 1./30.)
@@ -80,10 +76,14 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     environment.add_obstacle(Obstacle({'position': init_xy_other}, shape=Circle(0.25),
         simulation={'trajectories': traj}))
        
-    # give problem settings and create problem
-    problem = Point2point(vehicle, environment)
+    # create a point-to-point problem
+    problem = Point2point(vehicle, environment, freeT=True)
+    
+    problem.set_options({'solver_options':
+    {'ipopt': {'ipopt.hessian_approximation': 'limited-memory'}}})
+    
     problem.init()
-       
+     
     # simulate, plot some signals and save a movie
     simulator = Simulator(problem, sample_time=0.33, update_time=0.33)
     
