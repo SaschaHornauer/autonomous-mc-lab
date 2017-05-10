@@ -55,9 +55,8 @@ def get_velocities(xy_positions,framerate):
         sx = x_t1 - x
         sy = y_t1 - y
         
-        vx = sx / framerate
-        vy = sy / framerate
-
+        vx = sx 
+        vy = sy 
         velocities.append([vx,vy])
         
     
