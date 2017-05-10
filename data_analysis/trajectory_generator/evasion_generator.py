@@ -53,12 +53,7 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     # plan as if the current movement should be continued 
     vehicle.set_terminal_conditions(goal_xy)
     vehicle.set_options({'safety_distance': 0.5})
-     
-     
     vehicle.set_options({'ideal_prediction': False})
-    #vehicle.set_initial_conditions([0., 0.]) # dummy: required for problem.init()
-    #vehicle.set_terminal_conditions([0., 0.]) # dummy: required for problem.init()
-     
       
     # make and set-up environment #TODO
     environment = Environment(room={'shape': Square(10.)})
@@ -70,17 +65,9 @@ def get_evasive_trajectory(own_xy,other_xy,timestep_start, process_timesteps, d_
     # get velocities of other vehicles
     other_positions = other_xy[timestep_start:timestep_start+process_timesteps]
     other_velocities = get_velocities(other_positions, 1./30.)
-    
-    # The way in which a trajectory can be entered into the system is unfortunately only
-    # in added velocities. That mean it would be necessary to recalculate the position
-    # changes to added velocities in each timestep. Since this is complicated, a shorter
-    # intermediate solution is to calculate the average heading and velocity in between 
-    # the start and goal over the course of the short evasive behaviour
 
     traj = {'position': {'time': np.linspace(0.,process_timesteps*(1./30.),process_timesteps-1),
                          'values': other_velocities}}
-    # TODO check if the values here are in the correct form [x,y],[x+1,y+1],...
-    # TODO chekf it more than 1 value is possible
  
     environment.add_obstacle(Obstacle({'position': init_xy_other}, shape=Circle(0.25),
         simulation={'trajectories': traj}))
