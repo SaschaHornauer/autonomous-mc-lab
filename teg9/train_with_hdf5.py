@@ -5,6 +5,7 @@ import caffe
 REPO = 'kzpy3'
 TEG = 'teg9'
 CAF = 'caf8'
+DISPLAY = True
 
 ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
 require_one = [] # at least one of this type of run lable is required
@@ -20,7 +21,7 @@ if False:
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
 
-if True:
+if False:
 	MODEL = 'z3_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 	#weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
@@ -30,10 +31,10 @@ if True:
 	gpu = 1
 
 
-if False:
+if True:
 	MODEL = 'z1_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	weights_file_path = None
+	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 1 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -132,7 +133,7 @@ def array_to_int_list(a):
 
 
 
-if False:
+if DISPLAY:
 	figure('steer',figsize=(3,2))
 	figure('loss',figsize=(3,2))
 	figure('high low steer histograms',figsize=(2,1))
@@ -150,13 +151,14 @@ while True:
 		Solver.put_data_into_model(data,Solver.solver,b)
 
 	Solver.solver.step(1)
-	if print_timer.check():
-		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
-		print(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]))
-		print(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]))
-		print_timer.reset()
+	if not DISPLAY:
+		if print_timer.check():
+			print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
+			print(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]))
+			print(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]))
+			print_timer.reset()
 
-	if False:
+	if DISPLAY:
 		# The training step. Everything below is for display.
 		rate_ctr += 1
 		if rate_timer.check():
