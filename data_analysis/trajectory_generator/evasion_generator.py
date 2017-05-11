@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 
 framerate = 1. / 30.
+show_situation = True
 # This framerate should be at one point for the whole module
 
 def get_state(own_xy, timestep_start, timestep_end):
@@ -54,22 +55,22 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
     
     init_xy_own, heading_own, velocity_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
 
-    goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep_start + plan_horizon, 4) 
-     
+    goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep_start + d_timestep_goal, 4) 
+    
       
     # make and set-up vehicle
     vehicle = Bicycle(length=0.4, options={'plot_type': 'car', 'substitution': False})  # Holonomic(shapes=Circle(0.25))
-    vehicle.define_knots(knot_intervals=5)
+    vehicle.define_knots(knot_intervals=2)
     
     velocity_abs = np.hypot(velocity_own[0][0], velocity_own[0][1])
     
     # plan from the last known position
-    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own, 0.0], input=[velocity_abs])  # the assumption is that 
+    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own, 0.0])  # the assumption is that 
     # for the time being that the steering angle is 0. This can be changed in the future, based on existing data.
 
     # plan as if the current movement should be continued
-    
-    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], goal_heading])
+    # little tweak, heading_own = terminal heading
+    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], heading_own])
     vehicle.set_options({'safety_distance': 0.2})
     
     print goal_xy
@@ -77,7 +78,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
     print init_xy_own 
     print heading_own
     # make and set-up environment #TODO
-    environment = Environment(room={'shape': Square(30.)})
+    environment = Environment(room={'shape': Square(15.)})
     
     # get velocities of other vehicles
     # other_positions = other_xy[timestep_start:timestep_start+process_timesteps]
@@ -109,9 +110,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
     simulator = Simulator(problem, sample_time=1. / 30., update_time=1. / 30.)
     
     # vehicle.plot('input', labels=['v_x (m/s)', 'v_y (m/s)'])
-    #problem.plot('scene')
-    ######plt.close("all")
-    ######problem.plot('scene')
+    # problem.plot('scene')
+    if show_situation:
+    #    plt.close("all")
+        problem.plot('scene')
 #     vehicle.plot('input', knots=True, labels=['v (m/s)', 'ddelta (rad/s)'])
 #    vehicle.plot('state', knots=True, labels=[
 #                  'x (m)', 'y (m)', 'theta (rad)', 'delta (rad)'])

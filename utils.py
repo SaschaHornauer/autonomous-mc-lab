@@ -634,3 +634,10 @@ try:
         return isinstance(n,numbers.Number)
 except:
     print("Don't have numbers module")
+
+
+
+def str_replace(input_str,replace_dic):
+    for r in replace_dic:
+        input_str = input_str.replace(r,replace_dic[r])
+    return input_str

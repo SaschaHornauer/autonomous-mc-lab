@@ -5,6 +5,7 @@ Created on May 8, 2017
 '''
 
 import numpy as np
+from operator import mul, div
 import cv2
 
 def get_heading(seq_xy):
@@ -63,60 +64,16 @@ def get_velocities(xy_positions,framerate):
     return velocities
 
 
-def get_steering_motor_cmd(value_steer,value_motor,max_range_steer,min_range_steer,max_motor,min_motor):
-
-    max_left_steering_angle = np.deg2rad(-90)
-    max_right_steering_angle = np.deg2rad(90)
+def convert_delta_to_steer(delta_values):
     
     max_left_command = 100
     max_right_command = 0
     
-    left_range = 50
-    right_range = 50
-
-    max_motor = 60
-    min_motor = 49  # Full stop. Backwards is not considered
-
-    front_left_limit_deg = -90
-    front_right_limit_deg = 90
-
-    if(average_angle != None):   
-        print("average angle " + str(np.rad2deg(average_angle)))
-        opposite_angle = ((average_angle + np.pi) + np.pi) % (2 * np.pi) - np.pi 
-        
-        mid_steering_command = np.abs(max_right_command - max_left_command) / 2.0
-        
-        if opposite_angle < 0:
-            steering_command = (opposite_angle / np.pi) * left_range                               
-        else:
-            steering_command = (opposite_angle / np.pi) * right_range 
-        
-        # Finally change the mapping from -50,50 to 0,100
-        try:
-            steering_command = (steering_command + mid_steering_command)[0]
-        except:
-            steering_command = (steering_command + mid_steering_command)
-        
-        
-        # A special behaviour is investigated. This is a test
-        # There is a list of steering commands. When this 
-        # list is still empty, resp. the index is 0
-        
-        #print(steering_command)
-        #print(incoming_steering_cmd)
-        # Now interpolate the intermediate values from the current steering towards that command
-        # in as many steps as the list is long
-        increment = np.abs(incoming_steering_cmd-steering_command)/self.steering_command_length
-        # Finally fill the list with those values. 
-        self.steering_command_list = self.steering_command_list*increment
-            
-    if not 'motor_command' in vars():
-        motor_command = incoming_motor_cmd
-    if not 'steering_command' in vars():
-        steering_command = incoming_steering_cmd
     
-
-    return motor_command, steering_command
+    steering_values = max_left_command*(0.5 + (np.array(delta_values)/(np.pi/2.)/2.))
+    
+    
+    return steering_values
 
 ### Approach by Martin Thoma https://martin-thoma.com/author/martin-thoma/
 class Point:
@@ -172,3 +129,11 @@ class Triangle:
         newArea = pab.getArea()+pac.getArea()+pbc.getArea()
         return (abs(currentArea - newArea) < Triangle.epsilon)
 
+if __name__ == '__main__':
+    convert_delta_to_steer([ np.pi,  -1.41117611e-02,  -4.86447727e-02,
+        -1.15039945e-01,  -1.91160306e-01,  -2.64138424e-01,
+        -3.10457172e-01,  -3.1,  -4.04860318e-01,
+        -3.88877490e-01,  -3.39034880e-01,  -2.62556928e-01,
+        -1.86203485e-01,  -1.17426627e-01,  -8.51071829e-02,
+        -5.16039439e-02,  -2.17969835e-02,   3.32755536e-15,
+         5.53455382e-15,   1.62135104e-14])
