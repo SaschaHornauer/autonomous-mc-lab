@@ -1,7 +1,7 @@
-# /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 09:21:37 PM
-# /home/karlzipser/kzpy3/caf8/zn_color
-# Tuesday, 09 May 2017, 09:21:37 PM
+# /home/karlzipser/kzpy3/caf8/z1_color
+# Wednesday, 10 May 2017, 04:09:04 PM
+# /home/karlzipser/kzpy3/caf8/z1_color
+# Wednesday, 10 May 2017, 04:09:04 PM
 
 layer {
 	name: "steer_motor_target_data"
@@ -9,8 +9,8 @@ layer {
 	top: "steer_motor_target_data"
 	dummy_data_param {
 		shape {
-			dim: 256
-			dim: 40
+			dim: 1
+			dim: 20
 		}
 	}
 }
@@ -22,8 +22,8 @@ layer {
 	top: "metadata"
 	dummy_data_param {
 		shape {
-			dim: 256
-			dim: 10
+			dim: 1
+			dim: 6
 			dim: 14
 			dim: 26
 		}
@@ -32,13 +32,13 @@ layer {
 	
 
 layer {
-	name: "color_data_pool_pool"
+	name: "ZED_data_pool2"
 	type: "DummyData"
-	top: "color_data_pool_pool"
+	top: "ZED_data_pool2"
 	dummy_data_param {
 		shape {
-			dim: 256
-			dim: 12
+			dim: 1
+			dim: 3
 			dim: 94
 			dim: 168
 		}
@@ -47,25 +47,10 @@ layer {
 	
 
 layer {
-	name: "motion_data_pool_pool"
-	type: "DummyData"
-	top: "motion_data_pool_pool"
-	dummy_data_param {
-		shape {
-			dim: 256
-			dim: 10
-			dim: 94
-			dim: 168
-		}
-	}
-}
-	
-
-layer {
-  name: "color_data_pool_pool_scale"
+  name: "ZED_data_pool2_scale"
   type: "Scale"
-  bottom: "color_data_pool_pool"
-  top: "color_data_pool_pool_scale"
+  bottom: "ZED_data_pool2"
+  top: "ZED_data_pool2_scale"
   param {
     lr_mult: 0
     decay_mult: 0
@@ -82,80 +67,13 @@ layer {
       value: -0.5
     }
   }
-}
-	
-
-layer {
-  name: "motion_data_pool_pool_scale"
-  type: "Scale"
-  bottom: "motion_data_pool_pool"
-  top: "motion_data_pool_pool_scale"
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  param {
-    lr_mult: 0
-    decay_mult: 0
-  }
-  scale_param {
-    filler {
-      value: 0.003921    }
-    bias_term: true
-    bias_filler {
-      value: -0.5
-    }
-  }
-}
-	
-
-layer {
-	name: "motion_data_pool_pool_scale_pool"
-	type: "Pooling"
-	bottom: "motion_data_pool_pool_scale"
-	top: "motion_data_pool_pool_scale_pool"
-	pooling_param {
-		pool: AVE
-		kernel_size: 3
-		stride: 2
-		pad_h: 0
-		pad_w: 0
-	}
-}
-	
-
-layer {
-	name: "conv1m"
-	type: "Convolution"
-	bottom: "motion_data_pool_pool_scale_pool"
-	top: "conv1m"
-	convolution_param {
-		num_output: 96
-		group: 1
-		kernel_size: 11
-		stride: 3
-		pad_h: 2
-		pad_w: 1
-		weight_filler {
-			type: "gaussian" 
-			std: 0.00001
-		}
-	}
-}
-	
-
-layer {
-	name: "conv1m_relu"
-	type: "ReLU"
-	bottom: "conv1m"
-	top: "conv1m"
 }
 	
 
 layer {
 	name: "conv1"
 	type: "Convolution"
-	bottom: "color_data_pool_pool_scale"
+	bottom: "ZED_data_pool2_scale"
 	top: "conv1"
 	convolution_param {
 		num_output: 96
@@ -198,7 +116,6 @@ layer {
 layer {
 	type: 'Concat'
 	name: 'conv1_metadata_concat'
-	bottom: "conv1m"
 	bottom: "conv1_pool"
 	bottom: "metadata"
 	top: 'conv1_metadata_concat'
@@ -290,7 +207,7 @@ layer {
 	bottom: "ip1"
 	top: "ip2"
 	inner_product_param {
-		num_output: 40
+		num_output: 20
 		weight_filler {
 			type: "xavier" 
 		}

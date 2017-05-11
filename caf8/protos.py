@@ -2,11 +2,8 @@
 Create prototxt strings
 """
 
-REPO = 'kzpy3'
-CAF = 'caf8'
-MODEL = 'zn_color'
-exec('from '+REPO+'.utils import *')
-
+from kzpy3.utils import *
+os.environ['GLOG_minloglevel'] = '2'
 import caffe
 
 def conv(top,bottom,num_output,group,kernel_size,stride,pad,weight_filler_type,std=0):
