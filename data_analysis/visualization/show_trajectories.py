@@ -29,7 +29,7 @@ for t in timestamps:
 
 #own_xy,other_xy,timestep_start, timesteps_ahead
 #get_evasive_trajectory(own_xy,other_xys,1929, 200,1.5)
-get_evasive_trajectory(own_xy,other_xys,1925, 400, 100)
+get_evasive_trajectory(own_xy,other_xys,1925, 5, 5)
 
 
 

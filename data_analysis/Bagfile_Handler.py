@@ -28,7 +28,10 @@ class Bagfile_Handler(object):
         self.bag_access = self.bag.read_messages(topics=['/bair_car/zed/left/image_rect_color']).__iter__()
         
     def __del__(self):
-        self.bag.close()
+        try:
+            self.bag.close()
+        except:
+            pass
        # self.pickle_file.close()
 
     def get_image(self):
@@ -40,7 +43,10 @@ class Bagfile_Handler(object):
         except:
            # pickle.dump(self.data_for_pickle_file, self.pickle_file, pickle.HIGHEST_PROTOCOL) 
            # self.pickle_file.close()
-            self.bag.close()
+           try:
+               self.bag.close()
+           except:
+               pass
                     
         return cv_image
 
