@@ -10,7 +10,7 @@ import kzpy3.caf8.protos as protos
 #
 model_path = opjh(REPO,CAF,MODEL)
 
-batch_size = 1
+batch_size = 100
 
 
 
@@ -19,10 +19,20 @@ train_val_lst = [d2s('#',model_path),d2s('#',time_str('Pretty'))]
 train_val_lst += [
 	d2s('#',model_path),
 	d2s('#',time_str('Pretty')),
-
-	protos.dummy('steer_motor_target_data',(batch_size,20)),
+"""
+layer {
+	name: 'ZED_data_pool2'
+	type: 'Input'
+	top: 'ZED_data_pool2'
+	top: 'steer_motor_target_data'
+	input_param {
+		shape: {dim: """+str(batch_size)+""" dim: 12 dim: 94 dim: 168}
+		shape: {dim: """+str(batch_size)+""" dim: 20}
+	}
+}""",
+	#protos.dummy('steer_motor_target_data',(batch_size,20)),
 	protos.dummy('metadata',(batch_size,6,14,26)),
-	protos.dummy('ZED_data_pool2',(batch_size,12,94,168)),
+	#protos.dummy('ZED_data_pool2',(batch_size,12,94,168)),
 	protos.scale('ZED_data_pool2_scale','ZED_data_pool2',0.003921,-0.5),
 
 	protos.conv("conv1",'ZED_data_pool2_scale',96,1,11,3,0,"gaussian",std='0.00001'),
