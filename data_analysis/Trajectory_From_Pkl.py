@@ -17,7 +17,7 @@ class Trajectory_From_Pkl:
     
     calculation_horizon = 20 # timesteps
     goal_lookahead = 60
-    timestep_offset = 0
+    timestep_offset = 1935
     #timestep_offset = 0
     
     def __init__(self,pkl_filename=None,framerate = 1./30.):
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    plot_video = False
+    plot_video = True
     
     # Enter here the carnames which should be considered
     for car in ['Mr_Black','Mr_Blue']:

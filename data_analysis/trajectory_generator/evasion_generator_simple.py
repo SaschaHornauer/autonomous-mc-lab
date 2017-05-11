@@ -79,12 +79,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
         vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], goal_heading])
         vehicle.set_options({'safety_distance': safety_distance})
         
-        environment = Environment(room={'shape': Square(15.)})
+        environment = Environment(room={'shape': RegularPolyhedron(4.28, 24), 'draw': False})
         
         # get velocities of other vehicles
         # other_positions = other_xy[timestep_start:timestep_start+process_timesteps]
-        
-        
         
         obstacle_start_time = 0.
         obstacle_end_time = plan_horizon * (1. / 30.)
@@ -96,6 +94,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
             simulation={'trajectories': traj}))
         
         # create a point-to-point problem
+        # FreeEndPoint2point(veh, environment.copy(), options, {veh: free_ind}))
         problem = Point2point(vehicle, environment, freeT=False)
         
         problem.set_options({'solver_options':
@@ -110,7 +109,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
         
             plt.savefig("scene" + "_" + str(framenumber) + ".png")
             problem.plot('scene')
-            plt.close("all")
+            #plt.close("all")
             #vehicle.plot('input', knots=True, labels=['v_x (m/s)', 'v_y (m/s)', 'w (rad/s)'])
             #vehicle.plot('state', knots=True, labels=['x (m)', 'y (m)', 'theta (rad)'])
     #     vehicle.plot('input', knots=True, labels=['v (m/s)', 'ddelta (rad/s)'])
