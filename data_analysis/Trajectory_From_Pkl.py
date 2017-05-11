@@ -23,7 +23,7 @@ class Trajectory_From_Pkl:
     def __init__(self,pkl_filename=None,framerate = 1./30.):
         pass
 
-    def get_trajectory(self,actual_trajectories):
+    def get_trajectory(self,actual_trajectories, plot_video):
         
         evasion_trajectory_data = {}
         
@@ -63,7 +63,7 @@ class Trajectory_From_Pkl:
                 for other_position in other_positions:
                     other_xy = other_position[i:i+self.calculation_horizon]
 
-                evasion_trajectories[own_trajectories['timestamps'][i]] = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, 0, self.calculation_horizon,self.goal_lookahead,i))
+                evasion_trajectories[own_trajectories['timestamps'][i]] = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, 0, self.calculation_horizon,self.goal_lookahead,i,plot_video))
             
             evasion_trajectory_data[car] = evasion_trajectories
             
@@ -92,10 +92,9 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    color = 'black'
+    plot_video = False
+    
     # Enter here the carnames which should be considered
-    
-    
     for car in ['Mr_Black','Mr_Blue']:
             
         car_left_x = [pickle_file[car]['left'][0](timestamps)]
@@ -106,8 +105,8 @@ if __name__ == '__main__':
     
         actual_trajectories[car] = {'timestamps':timestamps,'position': (car_x,car_y)}
         
-    evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories)
-    # evasion trajectories is now a dictionary with carname as key, then  
+    evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video)
+    
     
     
     
