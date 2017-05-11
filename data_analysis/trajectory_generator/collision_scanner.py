@@ -65,7 +65,7 @@ def get_fov_one_camera(xy, heading, fov_angle, distance):
 if __name__ == '__main__':
     home = os.path.expanduser("~")
     pickle_file = pickle.load(open(home + '/kzpy3/teg9/trajectories.pkl', "rb"))
-    #28th april 
+
     t1 = 1493425694.71+5
     t2 = 1493425899.676476 - 100
     timestamps = np.arange(t1,t2,1/30.)

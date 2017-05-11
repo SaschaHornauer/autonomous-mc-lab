@@ -27,7 +27,7 @@ Play = 0.
 Furtive = 0.
 Caf = 0.0
 Racing = 0.0
-Location =  'Fern_lead_follow' # 'local' #'Smyth_tape'
+Location =  'local' # 'local' #'Smyth_tape'
 
 solver_file_path = opjh("kzpy3/caf5/z2_color/solver_live.prototxt")
 #weights_file_path = opjh("caffe_current/z2_color.caffemodel")
