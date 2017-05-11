@@ -55,23 +55,23 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, plan_horizon, d_tim
     
     init_xy_own, heading_own, velocity_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
 
-    goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep_start + plan_horizon, 4) 
+    goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep_start + d_timestep_goal, 4) 
     
       
     # make and set-up vehicle
     vehicle = Bicycle(length=0.4, options={'plot_type': 'car', 'substitution': False})  # Holonomic(shapes=Circle(0.25))
-    vehicle.define_knots(knot_intervals=5)
+    vehicle.define_knots(knot_intervals=2)
     
     velocity_abs = np.hypot(velocity_own[0][0], velocity_own[0][1])
     
     # plan from the last known position
-    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own, 0.0], input=[velocity_abs])  # the assumption is that 
+    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own, 0.0])  # the assumption is that 
     # for the time being that the steering angle is 0. This can be changed in the future, based on existing data.
 
     # plan as if the current movement should be continued
-    
-    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], goal_heading])
-    vehicle.set_options({'safety_distance': 0.3})
+    # little tweak, heading_own = terminal heading
+    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], heading_own])
+    vehicle.set_options({'safety_distance': 0.2})
     
     print goal_xy
     print goal_heading

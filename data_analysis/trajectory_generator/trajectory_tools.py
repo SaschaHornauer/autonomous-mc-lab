@@ -70,7 +70,7 @@ def convert_delta_to_steer(delta_values):
     max_right_command = 0
     
     print delta_values
-    steering_values = np.array(delta_values)/(np.pi/2.)*((max_left_command+max_right_command)/2.)
+    steering_values = max_left_command*(0.5 + (np.array(delta_values)/(np.pi/2.)/2.))
     print steering_values
     
     return steering_values
