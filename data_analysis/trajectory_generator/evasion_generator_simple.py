@@ -10,10 +10,21 @@ import sys
 import matplotlib.pyplot as plt
 from omgtools.problems.point2point import FreeEndPoint2point
 from operator import add
+import copy
 
 framerate = 1. / 30.
 
-# This framerate should be at one point for the whole module
+
+################
+################
+### ISSUES: 
+#
+# Need to remove the debug input emulating mr yellow
+# Need to find why there are some strange angle values in the end of the trajectory, probably with linear interpolation instead of sampling
+# 
+#
+#
+## This framerate should be at one point for the whole module
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -43,6 +54,22 @@ def sample_values(values, no_of_samples):
         return np.array(values)[index]
     
 
+def convert_path_to_steeering_angles(resulting_trajectories):
+    
+    trajectories = []
+    
+    for trajectory in resulting_trajectories:
+        
+        trajectory_angles = []
+        pos_diffs = get_pos_diff(np.transpose(trajectory))
+        
+        for pos_diff in pos_diffs:
+            trajectory_angles.append(np.arctan2(pos_diff[1],pos_diff[0]))
+        
+        trajectories.append(trajectory_angles)
+        
+    return trajectories
+
 def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video):
     '''
     Returns a short term evasion trajectory, in steering commands for 
@@ -58,6 +85,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     diameter_arena = 4.28
+    
+    resulting_trajectories = []
     
     # For each obstacle in the obstacle trajectory list we create segments from
     # the trajectories to improve computability.
@@ -122,14 +151,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     problem.plot('scene')
     
     for timestep in range(timestep_start,len(own_xy)):
+    #for timestep in range(timestep_start,timestep_start+30):
                 
+               
         #if plot_video:
         
             #plt.savefig("scene" + "_" + str(framenumber) + ".png")
         
         problem.update_plot('scene',0)
         
-        if timestep > 1:
+        if timestep > timestep_start+1:
             
             current_xy_own = own_xy[timestep] 
             goal_xy = own_xy[timestep + d_timestep_goal]
@@ -148,9 +179,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 # TODO. Handle end of trajectory here
                 d_timestep_goal += 10
                 goal_xy = own_xy[timestep + d_timestep_goal]
-                
-            
-            
+                        
             # Check if goal is too close to the boundary or rather if the distance to
             # the center is too large
             while (distance_2d(goal_xy,[0.0,0.0]) > (diameter_arena - emergency_distance)):
@@ -170,8 +199,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         for vehicle in simulator.problem.vehicles:
             trajectories[str(vehicle)] = vehicle.traj_storage
             signals[str(vehicle)] = vehicle.signals
+            
+            # Calculate the resulting trajectory and sample it to 30 values
+            trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
+            trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
+            
+            trajectory_30_x = sample_values(trajectory_xs,30)
+            trajectory_30_y = sample_values(trajectory_ys,30)
         
-
+            resulting_trajectories.append((trajectory_30_x,trajectory_30_y))
+        
         
         #sampled_theta = sample_result_to_trajectory(vehicle.traj_storage['pose'][0][2], plan_horizon+2)
         #sampled_theta_leftshift = sampled_theta.copy()[2:len(sampled_theta)]
@@ -185,6 +222,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
 #                 return np.ones(20)*-np.pi/2.
 #             else:
 #                 return np.ones(20)*np.pi/2.
+
+    return convert_path_to_steeering_angles(resulting_trajectories)
+
+    
 if __name__ == '__main__':
 
     pass

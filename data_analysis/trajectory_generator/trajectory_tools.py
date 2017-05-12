@@ -75,9 +75,9 @@ def get_pos_diff(xy_positions):
     positions is exactly that framerate
     '''
     
-    velocities = []
+    diffs = []
     # First add 0 as a start
-    velocities.append([0.0,0.0])
+    diffs.append([0.0,0.0])
     
     for i in range(1,len(xy_positions)):
         x = xy_positions[i-1][0]
@@ -90,10 +90,10 @@ def get_pos_diff(xy_positions):
         
         vx = sx 
         vy = sy
-        velocities.append([vx,vy])
+        diffs.append([vx,vy])
         
     
-    return velocities
+    return diffs
 
 
 def convert_delta_to_steer(delta_values):
@@ -101,7 +101,7 @@ def convert_delta_to_steer(delta_values):
     max_left_command = 100
     max_right_command = 0
     
-    steering_values = max_left_command*(0.5 + (np.array(delta_values)/(np.pi/2.)/2.))
+    steering_values = max_left_command*(((np.array(delta_values)/(np.pi))+1.)/2.)
        
     return steering_values
 

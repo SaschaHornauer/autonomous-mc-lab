@@ -68,8 +68,8 @@ class Trajectory_From_Pkl:
 
             
             evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead,plot_video))
-            sys.exit(0)
-            #evasion_trajectory_data[car] = 
+            
+            evasion_trajectory_data[car] = evasion_trajectories 
             
         return evasion_trajectory_data
         
