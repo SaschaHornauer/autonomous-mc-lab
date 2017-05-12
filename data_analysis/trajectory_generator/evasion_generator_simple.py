@@ -92,7 +92,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     FOR NOW, OTHER_XY IS ONLY ONE OTHER VEHICLE    
     '''
     safety_distance = 0.2
-    allowed_goal_distance = 0.4
+    allowed_goal_distance = 0.2
     allowed_own_distance = 1.0
     obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
@@ -101,6 +101,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     sample_time = 1. / 30
     update_time = 1. / 30.
     goal_offset_limit = 150
+    goal_ideal_distance = 50
     
     resulting_trajectories = []
     
@@ -163,8 +164,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         for i in range(0,len(simulator.problem.environment.obstacles)):
             obstacle = simulator.problem.environment.obstacles[i]
             obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0.,0.], 'acceleration':[0.,0.]})
-
-               
+              
         if plot_video:
             #plt.savefig("scene" + "_" + str(timestep) + ".png")
             problem.update_plot('scene', 0)
@@ -179,8 +179,13 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 d_timestep_goal = goal_offset_limit            
             
             # If the end of the trajectory is reached, the endpoint will 'wait' at the last timestamp 
-            if timestep+d_timestep_goal > no_datapoints:
+            if timestep+d_timestep_goal > no_datapoints-1:
                 d_timestep_goal = no_datapoints - timestep
+            
+            # Every time we try to get the goal distance towards the ideal goal distance
+            # when it quite far in front without reasons
+            if d_timestep_goal > goal_ideal_distance:
+                d_timestep_goal -= 1
             
             goal_xy = own_xy[timestep + d_timestep_goal]
             
@@ -203,7 +208,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 if goal_near_obstacle:
                     # Look for a new goal along the trajectory
                     # TODO. Handle end of trajectory here
-                    d_timestep_goal += 10
+                    d_timestep_goal += 10 
                     goal_xy = own_xy[timestep + d_timestep_goal]
                     
                 if vehicle_near_obstacle:
@@ -211,6 +216,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                     # trajectories and check again
                     resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, 10))
                     timestep += 1
+                    simulator.deployer.reset()
                     #self.current_time, self.update_time, self.sample_time)
                     #simulation_time, sample_tim
                     #print simulator.current_time
@@ -238,6 +244,22 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                     break;
                 else:
                     goal_xy = own_xy[timestep + d_timestep_goal]                
+                
+                # todo change allowed_goal distance to allowed vehicle distance
+            
+            continue_outer_loop = False
+            if (distance_2d(current_xy_own,[0.0,0.0]) > (diameter_arena - allowed_goal_distance)):
+                # Skip a number of simulation runs, create emergency
+                # trajectories and check again
+                # TODO FIX
+                resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, 10))
+                timestep += 1
+                simulator.deployer.reset()
+                print timestep
+                continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
+            
+            if continue_outer_loop:
+                continue
                 
             simulator.problem.vehicles[0].overrule_state(current_xy_own)
             vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
