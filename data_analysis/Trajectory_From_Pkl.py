@@ -13,6 +13,7 @@ from trajectory_generator.trajectory_tools import *
 import matplotlib.pyplot as plt
 import sys
 import copy
+from timeit import default_timer as timer
 
 class Trajectory_From_Pkl:
     
@@ -48,9 +49,8 @@ class Trajectory_From_Pkl:
             own_trajectories = actual_trajectories[car]
             
             evasion_trajectories = {}
-            number_of_timesteps = len(own_trajectories['timestamps'])
             
-            #print "Processing timestamp " + str(own_trajectories['timestamps'][i]) + " for " + str(car) + " and " + str((number_of_timesteps-(self.goal_lookahead+4))-i) + " to go." 
+             
             # Get the short term trajectory
             own_trajectory = own_trajectories['position']
 
@@ -67,9 +67,9 @@ class Trajectory_From_Pkl:
             own_xy = zip(own_x,own_y)
             
             evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead,plot_video))
+            timestamps = actual_trajectories[car]['timestamps']
+            evasion_trajectory_data[car] = {'timestamps':timestamps,'trajectories':evasion_trajectories}
             
-            evasion_trajectory_data[car] = evasion_trajectories 
-            sys.exit(0)
         return evasion_trajectory_data
         
     
@@ -108,8 +108,11 @@ if __name__ == '__main__':
     
         actual_trajectories[car] = {'timestamps':timestamps,'position': (car_x,car_y)}
         
+    start = timer()
     evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video)
-    
+    end = timer()
+    print ("##################################")
+    print (end-start)
     
     
     

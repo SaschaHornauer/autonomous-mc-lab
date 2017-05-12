@@ -60,15 +60,17 @@ def convert_path_to_steeering_angles(resulting_trajectories):
     trajectories = []
     
     for trajectory in resulting_trajectories:
-        
-        trajectory_angles = []
-        pos_diffs = get_pos_diff(np.transpose(trajectory))
-        
-        for pos_diff in pos_diffs:
-            trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
-        
-        trajectories.append(trajectory_angles)
-        
+        if len(trajectory) == 2:
+            trajectory_angles = []
+            pos_diffs = get_pos_diff(np.transpose(trajectory))
+            
+            for pos_diff in pos_diffs:
+                trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
+            
+            trajectories.append(trajectory_angles)
+        else:
+            # If the trajectory contains angles, add it as it is
+            trajectories.append(trajectory)
     return trajectories
 
 
@@ -80,6 +82,10 @@ def get_emergency_trajectories(obstacle_pos, current_xy_own, number):
         return np.ones(number) * -np.pi / 2.
     else:
         return np.ones(number) * np.pi / 2.
+
+
+def get_center_trajectory(current_xy_own, trajectory_length):
+    pass
 
 
 def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video):
@@ -102,7 +108,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     update_time = 1. / 30.
     goal_offset_limit = 150
     goal_ideal_distance = 50
-    
+    trajectory_length = 30
     resulting_trajectories = []
     
     # For each obstacle in the obstacle trajectory list we create segments from
@@ -129,7 +135,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
 
         # add it to the environment
-        #environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
+        # environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
         #    simulation={'trajectories': traj}))
         environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25)))
     
@@ -157,16 +163,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
     problem.plot('scene')
     
-    for timestep in range(timestep_start, len(own_xy)):
-    # for timestep in range(timestep_start,timestep_start+30):
+    # for timestep in range(timestep_start, len(own_xy)):
+    for timestep in range(timestep_start, timestep_start + 10):
                
 
-        for i in range(0,len(simulator.problem.environment.obstacles)):
+        for i in range(0, len(simulator.problem.environment.obstacles)):
             obstacle = simulator.problem.environment.obstacles[i]
-            obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0.,0.], 'acceleration':[0.,0.]})
+            obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
               
         if plot_video:
-            #plt.savefig("scene" + "_" + str(timestep) + ".png")
+            # plt.savefig("scene" + "_" + str(timestep) + ".png")
             problem.update_plot('scene', 0)
         
         if timestep > timestep_start + 1:
@@ -179,16 +185,19 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 d_timestep_goal = goal_offset_limit            
             
             # If the end of the trajectory is reached, the endpoint will 'wait' at the last timestamp 
-            if timestep+d_timestep_goal > no_datapoints-1:
-                d_timestep_goal = no_datapoints - timestep
+            if timestep + d_timestep_goal >= len(own_xy):
+                d_timestep_goal = len(own_xy) - timestep 
             
             # Every time we try to get the goal distance towards the ideal goal distance
             # when it quite far in front without reasons
             if d_timestep_goal > goal_ideal_distance:
                 d_timestep_goal -= 1
-            
-            goal_xy = own_xy[timestep + d_timestep_goal]
-            
+            try:
+                goal_xy = own_xy[timestep + d_timestep_goal]
+            except IndexError:
+                goal_xy = own_xy[len(own_xy) - 1]
+                print "IndexError: " + str(timestep + d_timestep_goal)
+                
             continue_outer_loop = False
             # Check if obstacle is too close to the goal or to the vehicle
             while True:
@@ -214,15 +223,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 if vehicle_near_obstacle:
                     # Skip a number of simulation runs, create emergency
                     # trajectories and check again
-                    resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, 10))
+                    resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, trajectory_length))
+                    
                     timestep += 1
                     simulator.deployer.reset()
-                    #self.current_time, self.update_time, self.sample_time)
-                    #simulation_time, sample_tim
-                    #print simulator.current_time
+                    # self.current_time, self.update_time, self.sample_time)
+                    # simulation_time, sample_tim
+                    # print simulator.current_time
                     
-                    #simulator.problem.environment.simulate(update_time,sample_time)
-                    print timestep
+                    # simulator.problem.environment.simulate(update_time,sample_time)
+                    print "Skipping timestamp " + str(timestep)
                     continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
                 
                 if goal_near_obstacle or vehicle_near_obstacle:
@@ -239,7 +249,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 if timestep + d_timestep_goal > no_datapoints:
                     # The goal at the end of the trajectory is outside the boundary. 
                     # This can not be avoided by looking further in the future
-                    goal_xy = own_xy[no_datapoints-1]
+                    goal_xy = own_xy[no_datapoints - 1]
                     print "Goal at end of trajectory"
                     break;
                 else:
@@ -248,14 +258,15 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 # todo change allowed_goal distance to allowed vehicle distance
             
             continue_outer_loop = False
-            if (distance_2d(current_xy_own,[0.0,0.0]) > (diameter_arena - allowed_goal_distance)):
+            if (distance_2d(current_xy_own, [0.0, 0.0]) > (diameter_arena - allowed_goal_distance)):
                 # Skip a number of simulation runs, create emergency
                 # trajectories and check again
                 # TODO FIX
-                resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, 10))
+                resulting_trajectories.append(get_center_trajectory(current_xy_own, trajectory_length))
+                
                 timestep += 1
                 simulator.deployer.reset()
-                print timestep
+                print "Skipping timestamp " + str(timestep)
                 continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
             
             if continue_outer_loop:
@@ -280,12 +291,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
             trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
             
-            trajectory_30_x = sample_values(trajectory_xs, 30)
-            trajectory_30_y = sample_values(trajectory_ys, 30)
+            trajectory_30_x = sample_values(trajectory_xs, trajectory_length)
+            trajectory_30_y = sample_values(trajectory_ys, trajectory_length)
         
             resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
-
-
+            
     return convert_path_to_steeering_angles(resulting_trajectories)
 
     
