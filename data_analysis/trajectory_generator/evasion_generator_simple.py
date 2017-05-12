@@ -17,14 +17,14 @@ framerate = 1. / 30.
 
 ################
 ################
-### ISSUES: 
+# ## ISSUES: 
 #
 # Need to remove the debug input emulating mr yellow
 # Need to find why there are some strange angle values in the end of the trajectory, probably with linear interpolation instead of sampling
-# 
+# Detect when own position os too close to obstacle or boundary, choose emergency trajectory and skip over those moments in the simulator
 #
 #
-## This framerate should be at one point for the whole module
+# # This framerate should be at one point for the whole module
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -64,11 +64,22 @@ def convert_path_to_steeering_angles(resulting_trajectories):
         pos_diffs = get_pos_diff(np.transpose(trajectory))
         
         for pos_diff in pos_diffs:
-            trajectory_angles.append(np.arctan2(pos_diff[1],pos_diff[0]))
+            trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
         
         trajectories.append(trajectory_angles)
         
     return trajectories
+
+
+def get_emergency_trajectories(obstacle_pos, current_xy_own, number):
+    
+    angle_of_obstacle = np.arctan2(obstacle_pos[1] - current_xy_own[1], obstacle_pos[0] - current_xy_own[0])
+      
+    if angle_of_obstacle > 0:
+        return np.ones(number) * -np.pi / 2.
+    else:
+        return np.ones(number) * np.pi / 2.
+
 
 def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video):
     '''
@@ -81,7 +92,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     '''
     safety_distance = 0.2
     emergency_distance = 0.4
-    obstacle_segment_factor = int(2999/10) # This factor should be made dependent on the length of the dataset
+    obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     diameter_arena = 4.28
@@ -93,101 +104,100 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
 
     environment = Environment(room={'shape': RegularPolyhedron(diameter_arena, 24), 'draw': False})
     
-    for i in range(0,len(other_xy)):
+    for i in range(0, len(other_xy)):
         obstacle_xy = other_xy[i]
         # For each obstacle, get its segments
-        samplepoints = np.linspace(timestep_start, no_datapoints-1, num=obstacle_segment_factor,dtype=np.int32)
+        samplepoints = np.linspace(timestep_start, no_datapoints - 1, num=obstacle_segment_factor, dtype=np.int32)
         
         segments_trajectory = np.array(obstacle_xy)[samplepoints]
 
         # Calculate start and end time of the segment 
-        obstacle_start_times = np.linspace(timestep_start, framerate*no_datapoints, num=obstacle_segment_factor)
-        #obstacle_end_times = obstacle_start_times[1:]
-        #obstacle_start_times = obstacle_start_times[:len(obstacle_start_times)-1]
+        obstacle_start_times = np.linspace(timestep_start, framerate * no_datapoints, num=obstacle_segment_factor)
+        # obstacle_end_times = obstacle_start_times[1:]
+        # obstacle_start_times = obstacle_start_times[:len(obstacle_start_times)-1]
 
         offset_diffs = get_pos_diff(segments_trajectory)
 
         # Create a trajectory for that obstacle
-        traj = ({'position': {'time':obstacle_start_times,
-                     'values': offset_diffs},
-                 })
+        traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
 
         # add it to the environment
         environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
             simulation={'trajectories': traj}))
-         
     
     vehicle = Holonomic(options={'plot_type': 'car'}) 
-    #vehicle.define_knots(knot_intervals=5)
     
-    init_xy_own, heading_own, velocity_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
-    goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep_start + d_timestep_goal, 4) 
-    
-    #angle_of_obstacle = np.arctan2(init_xy_other[1]-init_xy_own[1],init_xy_other[0]-init_xy_own[0])
-    #distance_own_obstacle = np.hypot(init_xy_other[0]-init_xy_own[0],init_xy_other[1]-init_xy_own[1])
-    
-    #if not distance_own_obstacle < safety_distance + 0.7:
-            
-    # make and set-up vehicle
+    init_xy_own = own_xy[timestep_start] 
+    goal_xy = own_xy[timestep_start + d_timestep_goal] 
 
-    # plan from the last known position
+    # Plan from the initial position
     vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1]])  
-    # SIMPLIFICATION: The desired goal heading is our current heading. The goal is going straight
     vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
     vehicle.set_options({'safety_distance': safety_distance})
     
-    # create a point-to-point problem
-    # FreeEndPoint2point(veh, environment.copy(), options, {veh: free_ind}))
+    # Create a point-to-point problem
     problem = Point2point(vehicle, environment, freeT=False)
     
     problem.set_options({'solver_options':
     {'ipopt': {'ipopt.hessian_approximation': 'limited-memory'}}})
     
-    problem.init()
+    if plot_video:
+        problem.init()
      
     # simulate, plot some signals and save a movie
     simulator = Simulator(problem, sample_time=1. / 30., update_time=1. / 30.)
         
     problem.plot('scene')
     
-    for timestep in range(timestep_start,len(own_xy)):
-    #for timestep in range(timestep_start,timestep_start+30):
-                
+    for timestep in range(timestep_start, len(own_xy)):
+    # for timestep in range(timestep_start,timestep_start+30):
                
-        #if plot_video:
+        if plot_video:
+            plt.savefig("scene" + "_" + str(timestep) + ".png")
+            problem.update_plot('scene', 0)
         
-            #plt.savefig("scene" + "_" + str(framenumber) + ".png")
-        
-        problem.update_plot('scene',0)
-        
-        if timestep > timestep_start+1:
+        if timestep > timestep_start + 1:
             
             current_xy_own = own_xy[timestep] 
             goal_xy = own_xy[timestep + d_timestep_goal]
-            
-            # Check if goal is too close to an obstacle
+            continue_outer_loop = False
+            # Check if obstacle is too close to the goal or to the vehicle
             while True:
-                obstacle_too_near = False 
+                goal_near_obstacle = False 
+                vehicle_near_obstacle = False
                 for obstacle in simulator.problem.environment.obstacles:
-                    obstacle_pos = (obstacle.signals['position'][0][-1],obstacle.signals['position'][1][-1])
-                    obstacle_too_near = obstacle_too_near or distance_2d(obstacle_pos,goal_xy) < emergency_distance
+                    obstacle_pos = (obstacle.signals['position'][0][-1], obstacle.signals['position'][1][-1])
+                    goal_near_obstacle = goal_near_obstacle or distance_2d(obstacle_pos, goal_xy) < emergency_distance
+                    vehicle_near_obstacle = vehicle_near_obstacle or distance_2d(current_xy_own, obstacle_pos) < emergency_distance
+                    
                 # If we are far away from an obstacle, continue
-                if not obstacle_too_near:
+                if not goal_near_obstacle and not vehicle_near_obstacle:
                     break
                 
-                # Otherwise, look for a new goal along the trajectory
-                # TODO. Handle end of trajectory here
-                d_timestep_goal += 10
-                goal_xy = own_xy[timestep + d_timestep_goal]
+                if goal_near_obstacle:
+                    # Look for a new goal along the trajectory
+                    # TODO. Handle end of trajectory here
+                    d_timestep_goal += 10
+                    goal_xy = own_xy[timestep + d_timestep_goal]
+                    
+                if vehicle_near_obstacle:
+                    # Skip a number of simulation runs, create emergency
+                    # trajectories and check again
+                    resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, 10))
+                    timestep += 10
+                    continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
+            
+            if continue_outer_loop:
+                continue
                         
             # Check if goal is too close to the boundary or rather if the distance to
             # the center is too large
-            while (distance_2d(goal_xy,[0.0,0.0]) > (diameter_arena - emergency_distance)):
+            while (distance_2d(goal_xy, [0.0, 0.0]) > (diameter_arena - emergency_distance)):
                 # Otherwise, look for a new goal along the trajectory
                 # TODO. Handle end of trajectory here
                 d_timestep_goal += 10
                 goal_xy = own_xy[timestep + d_timestep_goal]                
-                                            
+                
             simulator.problem.vehicles[0].overrule_state(current_xy_own)
             vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
             
@@ -204,24 +214,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
             trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
             
-            trajectory_30_x = sample_values(trajectory_xs,30)
-            trajectory_30_y = sample_values(trajectory_ys,30)
+            trajectory_30_x = sample_values(trajectory_xs, 30)
+            trajectory_30_y = sample_values(trajectory_ys, 30)
         
-            resulting_trajectories.append((trajectory_30_x,trajectory_30_y))
-        
-        
-        #sampled_theta = sample_result_to_trajectory(vehicle.traj_storage['pose'][0][2], plan_horizon+2)
-        #sampled_theta_leftshift = sampled_theta.copy()[2:len(sampled_theta)]
-        #rel_theta = (sampled_theta[0:len(sampled_theta)-2] -  sampled_theta_leftshift) 
-        
-        #return distance_based_correction*-rel_theta
-#         else:
-#             # emergency situation. Steer away from obstacle       
-#             
-#             if angle_of_obstacle > 0:
-#                 return np.ones(20)*-np.pi/2.
-#             else:
-#                 return np.ones(20)*np.pi/2.
+            resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
+
 
     return convert_path_to_steeering_angles(resulting_trajectories)
 
