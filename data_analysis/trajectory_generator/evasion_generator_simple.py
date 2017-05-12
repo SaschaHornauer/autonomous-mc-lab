@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from omgtools.problems.point2point import FreeEndPoint2point
 from operator import add
 import copy
+import time
 
 framerate = 1. / 30.
 
@@ -99,7 +100,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     diameter_arena = 4.28
     sample_time = 1. / 30
     update_time = 1. / 30.
-    goal_offset_limit = 50
+    goal_offset_limit = 150
     
     resulting_trajectories = []
     
@@ -127,8 +128,9 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
 
         # add it to the environment
-        environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
-            simulation={'trajectories': traj}))
+        #environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
+        #    simulation={'trajectories': traj}))
+        environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25)))
     
     vehicle = Holonomic(options={'plot_type': 'car'}) 
     
@@ -157,14 +159,14 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     for timestep in range(timestep_start, len(own_xy)):
     # for timestep in range(timestep_start,timestep_start+30):
                
-        #########TEST
+
         for i in range(0,len(simulator.problem.environment.obstacles)):
             obstacle = simulator.problem.environment.obstacles[i]
             obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0.,0.], 'acceleration':[0.,0.]})
-        #########TEST    
+
                
         if plot_video:
-            plt.savefig("scene" + "_" + str(timestep) + ".png")
+            #plt.savefig("scene" + "_" + str(timestep) + ".png")
             problem.update_plot('scene', 0)
         
         if timestep > timestep_start + 1:
