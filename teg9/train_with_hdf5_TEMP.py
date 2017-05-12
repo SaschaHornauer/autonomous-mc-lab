@@ -5,7 +5,7 @@ import caffe
 REPO = 'kzpy3'
 TEG = 'teg9'
 CAF = 'caf8'
-DISPLAY = True
+DISPLAY = False
 
 ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
 require_one = [] # at least one of this type of run lable is required
@@ -24,8 +24,8 @@ if False:
 if True:
 	MODEL = 'z3_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
-	#weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
+	#weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
+	weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
 	N_FRAMES = 3 # how many timesteps with images.
 	N_STEPS = 30 # how many timestamps with non-image data
 	gpu = 1
@@ -34,7 +34,7 @@ if True:
 if False:
 	MODEL = 'z1_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	weights_file_path = opj('caffe_models/z1_color_iter_7700000.caffemodel') #most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
+	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 1 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -66,17 +66,17 @@ else:
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
 hdf5_segment_metadata_path = opj(bair_car_data_path,'hdf5/segment_metadata')
 
-print_timer = Timer(15)
+print_timer = Timer(5)
 loss10000 = []
 loss = []
-rate_timer_interval = 10.
+rate_timer_interval = 5.
 rate_timer = Timer(rate_timer_interval)
 rate_ctr = 0
 
 get_data_with_hdf5.load_Segment_Data(hdf5_segment_metadata_path,hdf5_runs_path)
 
 
-
+"""
 print('\nloading low_steer... (takes awhile)')
 low_steer = load_obj(opj(hdf5_segment_metadata_path,'low_steer'))
 print('\nloading high_steer... (takes awhile)')
@@ -87,7 +87,7 @@ len_low_steer = len(low_steer)
 ctr_low = -1 # These counter keep track of position in segment lists, and when to reshuffle.
 ctr_high = -1
 
-
+"""
 
 
 
@@ -142,12 +142,44 @@ if DISPLAY:
 	plt.hist(array(high_steer)[:,2],bins=range(0,100))
 	figure(1)
 
+high_steer_data_pkl_hdf5 = h5py.File('/media/karlzipser/SSD_2TB_Ext4/z3_color_high_steer_data.hdf5')
+low_steer_data_pkl_hdf5 = h5py.File('/media/karlzipser/SSD_2TB_Ext4/z3_color_low_steer_data.hdf5')
+high_steer_data_pkl = lo('/media/karlzipser/SSD_2TB_Ext4/z3_color_high_steer_data.pkl')
+low_steer_data_pkl = lo('/media/karlzipser/SSD_2TB_Ext4/z3_color_low_steer_data.pkl')
+
+low_keys = low_steer_data_pkl.keys()
+high_keys = high_steer_data_pkl.keys()
+random.shuffle(low_keys)
+random.shuffle(high_keys)
+low_key_indx = 0
+high_key_indx = 0
 while True:
 
 	for b in range(Solver.batch_size):
-		data = None
-		while data == None:
-			data = get_data_considering_high_low_steer()
+		data = {}
+		if random.random() < 0.5:
+			HDF5 = high_steer_data_pkl_hdf5
+			PKL = high_steer_data_pkl
+			KEY = high_keys[high_key_indx]
+			high_key_indx += 1
+			if high_key_indx >= len(high_keys):
+				random.shuffle(high_keys)
+		else:
+			HDF5 = low_steer_data_pkl_hdf5
+			PKL = low_steer_data_pkl
+			KEY = low_keys[low_key_indx]
+			low_key_indx += 1
+			if low_key_indx >= len(low_keys):
+				random.shuffle(low_keys)
+
+		data['left'] = HDF5[str(KEY)]['left']
+		data['right'] = HDF5[str(KEY)]['right']
+		data['name'] = PKL[KEY]['name']
+		data['steer'] = PKL[KEY]['steer']
+		data['motor']  = PKL[KEY]['motor']
+		data['states'] = PKL[KEY]['states']
+		data['labels'] = PKL[KEY]['labels']
+
 		Solver.put_data_into_model(data,Solver.solver,b)
 
 	Solver.solver.step(1)
@@ -193,7 +225,7 @@ while True:
 			#print Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
 			#print Solver.solver.net.blobs['ip2'].data[-1,:]
 
-			mi_or_cv2_animate(data['left'],delay=33)
+			mcia(data['left'],delay=33)
 			pause(0.001)
 			print_timer.reset()
 

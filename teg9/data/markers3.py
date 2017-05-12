@@ -4,8 +4,11 @@ import operator
 import kzpy3.teg9.data.multi_preprocess_pkl_files_1 as multi_preprocess_pkl_files_1
 import kzpy3.teg9.data.get_new_A as get_new_A
 
-out_img = zeros((1000,1000,3),np.uint8)
+O = 300
+M = 50
+E = 10
 
+out_img = zeros((O*2,O*2,3),np.uint8)
 
 
 marker_ids_all = []
@@ -204,12 +207,16 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 		else:
 			img = A['data'] ['left'] [i] #[A['data']['t_to_indx']] [ts[i]]
 			if quadrant == 0:
+				out_img[:shape(img)[0]+E,:E+shape(img)[1],:] = [0,0,255]
 				out_img[:shape(img)[0],:shape(img)[1]] = img
 			elif quadrant == 1:
+				out_img[-E-shape(img)[0]:,:E+shape(img)[1],:] = [100,100,100]
 				out_img[-shape(img)[0]:,:shape(img)[1]] = img
 			elif quadrant == 2:
+				out_img[:shape(img)[0]+E,-E-shape(img)[1]:,:] = [255,255,0]
 				out_img[:shape(img)[0]:,-shape(img)[1]:] = img
 			elif quadrant == 3:
+				out_img[-E-shape(img)[0]:,-E-shape(img)[1]:,:] = [255,255,255]
 				out_img[-shape(img)[0]:,-shape(img)[1]:] = img
 
 		angles_to_center = A['marker_data_pkl'][ts[i]]['angles_to_center']
@@ -257,7 +264,7 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 				#cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,new_dot_color,-1)
 				if SHOW_GRAPHICS:
 					if np.mod(i,1) == 0:
-						cv2.line(out_img,(int(-100*x)+500,int(100*y)+500),(int(-100*x2)+500,int(100*y2)+500),new_dot_color)
+						cv2.line(out_img,(int(-M*x)+O,int(M*y)+O),(int(-M*x2)+O,int(M*y2)+O),new_dot_color)
 
 
 			if SHOW_GRAPHICS:
@@ -268,9 +275,10 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 					c = (255,0,0)
 					if m in marker_ids:
 						c = (0,255,0)
-						cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
+						cv2.circle(out_img,(int(-M*xy[0])+O,int(M*xy[1])+O),4,c,-1)
+
 		if SHOW_GRAPHICS:
-			if quadrant == 0:
+			if True: #quadrant == 0:
 				k = mci(out_img,delay=1,title='out_img')
 				if k == ord('q'):
 					return;	
@@ -286,10 +294,14 @@ def show_timepoint(A,timestamp,out_img,dot_color,max_dt=60/1000.,start_index=0,h
 
 
 
+SAVE_GRAPHICS = True
+frame_ctr = 0
 out_img *= 0
 iprev = 0
 tprev = 0
 for i in range(7750,20000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
+	if np.mod(i,10*30) == 0:
+		out_img *= 0
 	print i
 #	out_img -= 1
 	if np.mod(i,20*30000) == 0:
@@ -302,18 +314,21 @@ for i in range(7750,20000): #len(Bul['ts'])): #range(len(Bul['ts'])): #
 		xy = marker_xys[j]
 		markers_xy_dic[m] = xy
 		c = (255,0,0)
-		cv2.circle(out_img,(int(-100*xy[0])+500,int(100*xy[1])+500),4,c,-1)
+		cv2.circle(out_img,(int(-M*xy[0])+O,int(M*xy[1])+O),4,c,-1)
 	#img2 = Bul[]
-	show_timepoint(Bul,t,out_img,(  0,  0,255),100000.,0,0,0,10,True)
-	show_timepoint(Bkl,t,out_img,(100,100,100),100000.,0,0,1,10,True)
+	#show_timepoint(Bul,t,out_img,(  0,  0,255),100000.,0,0,0,10,True)
+	#show_timepoint(Bkl,t,out_img,(100,100,100),100000.,0,0,1,10,True)
 	show_timepoint(Yl,t,out_img,(255,255,0),100000.,   0,0,2,10,True)
-	show_timepoint(Sl,t,out_img,(255,255,255),100000. ,0,0,3,10,True)
+	#show_timepoint(Sl,t,out_img,(255,255,255),100000. ,0,0,3,10,True)
 
-	show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0,None,10,True)
-	show_timepoint(Bkr,t,out_img,(80,80,80 ),100000.,0,0,None,10,True)
+	#show_timepoint(Bur,t,out_img,(0,100,255),100000.,0,0,None,10,True)
+	#show_timepoint(Bkr,t,out_img,(80,80,80 ),100000.,0,0,None,10,True)
 	show_timepoint(Yr,t,out_img,(150,150,0),100000.,0,0,None,10,True)
-	show_timepoint(Sr,t,out_img,(150,150,150),100000.,0,0,None,10,True)
-
+	#show_timepoint(Sr,t,out_img,(150,150,150),100000.,0,0,None,10,True)
+		
+	if SAVE_GRAPHICS:
+		imsave(opjD('markers3',str(frame_ctr)+'.png'),out_img)
+		frame_ctr += 1
 
 	tprev = t
 	iprev = i
@@ -413,8 +428,8 @@ brcy = Bur['cs_y'](T)
 for i in range(len(T)):
 	x,y = bcx[i],bcy[i]
 	xr,yr = brcx[i],brcy[i]
-	cv2.circle(out_img,(int(-100*x)+500,int(100*y)+500),4,(90,100,110),-1)
-	cv2.circle(out_img,(int(-100*xr)+500,int(100*yr)+500),4,(90,100,110),-1)
+	cv2.circle(out_img,(int(-M*x)+O,int(M*y)+O),4,(90,100,110),-1)
+	cv2.circle(out_img,(int(-M*xr)+O,int(M*yr)+O),4,(90,100,110),-1)
 
 
 
