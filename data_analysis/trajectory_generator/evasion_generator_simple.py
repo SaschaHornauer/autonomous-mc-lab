@@ -185,8 +185,14 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
               
         if plot_video:
-            plt.savefig("scene" + "_" + str(timestep) + ".png")
             problem.update_plot('scene', 0)
+            circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
+            axis = plt.gca()
+            axis.set_xlim((-5, 5))
+            axis.set_ylim((-5, 5))
+            axis.add_artist(circle2)
+            plt.savefig("scene" + "_" + str(timestep) + ".png")
+            
         
         if timestep > timestep_start + 1:
             

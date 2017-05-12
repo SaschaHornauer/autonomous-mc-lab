@@ -60,7 +60,7 @@ class Trajectory_From_Pkl:
             # TODO: Create a sensible way to include the other cars
             other_xy = []
             other_xy.append(other_positions[0])
-            #other_xy.append(fake_positions)
+            other_xy.append(fake_positions)
     
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    plot_video = False
+    plot_video = True
     
     # Enter here the carnames which should be considered
     for car in ['Mr_Black','Mr_Blue']:
