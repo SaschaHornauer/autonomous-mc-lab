@@ -86,7 +86,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             simulation={'trajectories': traj}))
          
     
-    vehicle = Dubins(bounds={'wmax': np.pi/6., 'wmin': -np.pi/6.},options={'plot_type': 'car'}) 
+    vehicle = Holonomic(options={'plot_type': 'car'}) 
     vehicle.define_knots(knot_intervals=5)
     
     init_xy_own, heading_own, velocity_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
@@ -100,9 +100,9 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     # make and set-up vehicle
 
     # plan from the last known position
-    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own])  
+    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1]])  
     # SIMPLIFICATION: The desired goal heading is our current heading. The goal is going straight
-    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], goal_heading])
+    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
     vehicle.set_options({'safety_distance': safety_distance})
     
     # create a point-to-point problem
@@ -118,7 +118,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     simulator = Simulator(problem, sample_time=1. / 30., update_time=1. / 30.)
         
     problem.plot('scene')
-    print len(own_xy)
+    
     for timestep in range(timestep_start,len(own_xy)):
                 
         #if plot_video:
@@ -130,8 +130,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             #vehicle.plot('state', knots=True, labels=['x (m)', 'y (m)', 'theta (rad)'])
         
         if timestep % 5 == 0 and timestep > 1:
+            current_xy_own, current_heading_own, current_velocity_own = get_state(own_xy, timestep, 4) 
             goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep + d_timestep_goal, 4) 
-            vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1], goal_heading])
+            
+            simulator.problem.vehicles[0].overrule_state(current_xy_own)
+            vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
         simulator.update()
         simulator.update_timing()
         
