@@ -65,6 +65,9 @@ def get_velocities(xy_positions,framerate):
     
     return velocities
 
+def distance_2d(point_a,point_b):
+    return np.hypot(point_a[0]-point_b[0],point_a[1]-point_b[1])
+
 def get_pos_diff(xy_positions):
     '''
     Returns the diffs in between two x,y positions divided by the

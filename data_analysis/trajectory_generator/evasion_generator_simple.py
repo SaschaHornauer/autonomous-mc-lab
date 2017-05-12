@@ -53,16 +53,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     FOR NOW, OTHER_XY IS ONLY ONE OTHER VEHICLE    
     '''
     safety_distance = 0.2
-    emergency_distance = 4.0
+    emergency_distance = 0.4
     obstacle_segment_factor = int(2999/10) # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
-    diameter = 4.28
+    diameter_arena = 4.28
     
     # For each obstacle in the obstacle trajectory list we create segments from
     # the trajectories to improve computability.
 
-    environment = Environment(room={'shape': RegularPolyhedron(diameter, 24), 'draw': False})
+    environment = Environment(room={'shape': RegularPolyhedron(diameter_arena, 24), 'draw': False})
     
     for i in range(0,len(other_xy)):
         obstacle_xy = other_xy[i]
@@ -131,21 +131,34 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
         if timestep > 1:
             
-            current_xy_own, current_heading_own, current_velocity_own = get_state(own_xy, timestep, 4) 
-            goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep + d_timestep_goal, 4)
-            
-            # Check if goal is too close to the boundary
+            current_xy_own = own_xy[timestep] 
+            goal_xy = own_xy[timestep + d_timestep_goal]
             
             # Check if goal is too close to an obstacle
             while True:
                 obstacle_too_near = False 
                 for obstacle in simulator.problem.environment.obstacles:
-                    obstacle_pos = obstacle.signals['position'][0][-1]
-                    obstacle_too_near = np.hypot(obstacle_pos[0]-goal_xy[0],obstacle_pos[1]-goal_xy[1]) < emergency_distance
-                
+                    obstacle_pos = (obstacle.signals['position'][0][-1],obstacle.signals['position'][1][-1])
+                    obstacle_too_near = obstacle_too_near or distance_2d(obstacle_pos,goal_xy) < emergency_distance
+                # If we are far away from an obstacle, continue
                 if not obstacle_too_near:
                     break
                 
+                # Otherwise, look for a new goal along the trajectory
+                # TODO. Handle end of trajectory here
+                d_timestep_goal += 10
+                goal_xy = own_xy[timestep + d_timestep_goal]
+                
+            
+            
+            # Check if goal is too close to the boundary or rather if the distance to
+            # the center is too large
+            while (distance_2d(goal_xy,[0.0,0.0]) > (diameter_arena - emergency_distance)):
+                # Otherwise, look for a new goal along the trajectory
+                # TODO. Handle end of trajectory here
+                d_timestep_goal += 10
+                goal_xy = own_xy[timestep + d_timestep_goal]                
+                                            
             simulator.problem.vehicles[0].overrule_state(current_xy_own)
             vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
             
