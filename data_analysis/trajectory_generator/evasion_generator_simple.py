@@ -92,14 +92,14 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     '''
     safety_distance = 0.2
     allowed_goal_distance = 0.4
-    allowed_own_distance = 1.5
+    allowed_own_distance = 1.0
     obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     diameter_arena = 4.28
     sample_time = 1. / 30
     update_time = 1. / 30.
-    goal_offset_limit = 300
+    goal_offset_limit = 50
     
     resulting_trajectories = []
     
@@ -107,7 +107,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     # the trajectories to improve computability.
 
     environment = Environment(room={'shape': RegularPolyhedron(diameter_arena, 24), 'draw': False})
-    
+    test_obstacle_pos = []
     for i in range(0, len(other_xy)):
         obstacle_xy = other_xy[i]
         # For each obstacle, get its segments
@@ -119,7 +119,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         obstacle_start_times = np.linspace(timestep_start, framerate * no_datapoints, num=obstacle_segment_factor)
         # obstacle_end_times = obstacle_start_times[1:]
         # obstacle_start_times = obstacle_start_times[:len(obstacle_start_times)-1]
-
+        
+        test_obstacle_pos.append(np.array(obstacle_xy))
         offset_diffs = get_pos_diff(segments_trajectory)
 
         # Create a trajectory for that obstacle
@@ -156,6 +157,12 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     for timestep in range(timestep_start, len(own_xy)):
     # for timestep in range(timestep_start,timestep_start+30):
                
+        #########TEST
+        for i in range(0,len(simulator.problem.environment.obstacles)):
+            obstacle = simulator.problem.environment.obstacles[i]
+            obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0.,0.], 'acceleration':[0.,0.]})
+        #########TEST    
+               
         if plot_video:
             plt.savefig("scene" + "_" + str(timestep) + ".png")
             problem.update_plot('scene', 0)
@@ -180,8 +187,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             while True:
                 goal_near_obstacle = False 
                 vehicle_near_obstacle = False
+                
                 for obstacle in simulator.problem.environment.obstacles:
                     obstacle_pos = (obstacle.signals['position'][0][-1], obstacle.signals['position'][1][-1])
+                
                     goal_near_obstacle = goal_near_obstacle or distance_2d(obstacle_pos, goal_xy) < allowed_goal_distance
                     vehicle_near_obstacle = vehicle_near_obstacle or distance_2d(current_xy_own, obstacle_pos) < allowed_own_distance
                     
@@ -204,7 +213,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                     #simulation_time, sample_tim
                     #print simulator.current_time
                     
-                    simulator.problem.environment.simulate(update_time,sample_time)
+                    #simulator.problem.environment.simulate(update_time,sample_time)
                     print timestep
                     continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
                 
@@ -232,6 +241,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
             
         simulator.update()
+
         simulator.update_timing()
         
         
