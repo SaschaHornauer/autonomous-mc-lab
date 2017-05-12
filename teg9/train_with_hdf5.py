@@ -21,17 +21,17 @@ if False:
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
 
-if False:
+if True:
 	MODEL = 'z3_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	#weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
-	weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
+	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
+	#weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
 	N_FRAMES = 3 # how many timesteps with images.
 	N_STEPS = 30 # how many timestamps with non-image data
-	gpu = 0
+	gpu = 1
 
 
-if True:
+if False:
 	MODEL = 'z1_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 	weights_file_path = opj('caffe_models/z1_color_iter_7700000.caffemodel') #most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
