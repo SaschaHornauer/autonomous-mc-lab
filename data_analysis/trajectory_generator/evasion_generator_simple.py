@@ -117,7 +117,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     diameter_arena = 4.28
-    sample_time = 1. / 30
+    sample_time = 1. / 30.
     update_time = 1. / 30.
     goal_offset_limit = 150
     goal_ideal_distance = 50
@@ -137,22 +137,22 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         segments_trajectory = np.array(obstacle_xy)[samplepoints]
 
         # Calculate start and end time of the segment 
-        obstacle_start_times = np.linspace(timestep_start, framerate * no_datapoints, num=obstacle_segment_factor)
+        #obstacle_start_times = np.linspace(timestep_start, framerate * no_datapoints, num=obstacle_segment_factor)
         # obstacle_end_times = obstacle_start_times[1:]
         # obstacle_start_times = obstacle_start_times[:len(obstacle_start_times)-1]
         
         test_obstacle_pos.append(np.array(obstacle_xy))
-        offset_diffs = get_pos_diff(segments_trajectory)
+        #offset_diffs = get_pos_diff(segments_trajectory)
 
         # Create a trajectory for that obstacle
-        traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
+        #traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
 
         # add it to the environment
         # environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
         #    simulation={'trajectories': traj}))
-        environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25)))
+        environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.2)))
     
-    vehicle = Holonomic(options={'plot_type': 'car'}) 
+    vehicle = Holonomic(shapes=Circle(0.2),options={'plot_type': 'car'}) 
     
     init_xy_own = own_xy[timestep_start] 
     goal_xy = own_xy[timestep_start + d_timestep_goal] 
@@ -168,13 +168,13 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     problem.set_options({'solver_options':
     {'ipopt': {'ipopt.hessian_approximation': 'limited-memory'}}})
     
-    if plot_video:
-        problem.init()
+    
+    problem.init()
      
     # simulate, plot some signals and save a movie
     simulator = Simulator(problem, sample_time=sample_time, update_time=update_time)
-        
-    problem.plot('scene')
+    if plot_video:
+        problem.plot('scene')
     
     for timestep in range(timestep_start, len(own_xy)):
     #for timestep in range(timestep_start, timestep_start + 10):
@@ -185,7 +185,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
               
         if plot_video:
-            # plt.savefig("scene" + "_" + str(timestep) + ".png")
+            plt.savefig("scene" + "_" + str(timestep) + ".png")
             problem.update_plot('scene', 0)
         
         if timestep > timestep_start + 1:
