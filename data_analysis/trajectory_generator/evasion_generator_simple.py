@@ -83,9 +83,22 @@ def get_emergency_trajectories(obstacle_pos, current_xy_own, number):
     else:
         return np.ones(number) * np.pi / 2.
 
+    
 
-def get_center_trajectory(current_xy_own, trajectory_length):
-    pass
+
+def get_center_trajectory(heading,current_xy_own, trajectory_length):
+    
+    x,y =  cv2.polarToCart(1.0,heading)
+    
+    angle_towards_center =  np.arctan2(-current_xy_own[1]-y[0],-current_xy_own[0]-x[0])
+    
+    if angle_towards_center < 0:
+        return np.ones(trajectory_length) * -np.pi / 2.
+    else:
+        return np.ones(trajectory_length) * np.pi / 2.
+
+    
+
 
 
 def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video):
@@ -261,8 +274,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             if (distance_2d(current_xy_own, [0.0, 0.0]) > (diameter_arena - allowed_goal_distance)):
                 # Skip a number of simulation runs, create emergency
                 # trajectories and check again
-                # TODO FIX
-                resulting_trajectories.append(get_center_trajectory(current_xy_own, trajectory_length))
+                # Try to get the heading. Use try and except for the beginning and end of own_Xy
+                try:
+                    heading = get_heading(own_xy[timestep:timestep+3])
+                except:
+                    try:
+                        heading = get_heading(own_xy[timestep-3:timestep])
+                    except:
+                        heading = 0.0 
+                        
+                resulting_trajectories.append(get_center_trajectory(heading, current_xy_own,trajectory_length))
                 
                 timestep += 1
                 simulator.deployer.reset()
@@ -298,8 +319,4 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             
     return convert_path_to_steeering_angles(resulting_trajectories)
 
-    
-if __name__ == '__main__':
-
-    pass
     
