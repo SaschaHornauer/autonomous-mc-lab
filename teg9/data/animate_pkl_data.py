@@ -99,6 +99,8 @@ def preprocess_bagfiles(A,path):
                     A['steer'].append(0)
                     A['state'].append(0)
                     A['motor'].append(0)
+            figure("left_deltas")
+            hist(A['left_deltas'])
     #except Exception as e:
     #    print e.message, e.args
     print(d2s('Done in',timer.time(),'seconds'))
@@ -125,6 +127,9 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path):
         o = load_obj(b)
         ts = sorted(o['left'].keys())
         for t in ts:
+            if A['t_previous'] > 0:            
+                    A['left_deltas'].append([t,t-A['t_previous']])
+            A['t_previous'] = t
             A['images'].append(o['left'][t])
             try:
                 if A['SMOOTHING']:
@@ -168,6 +173,14 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path):
     A['acc_xz_dst'] = sqrt(array(A['acc_x'])**2 + array(A['acc_z'])**2)
     A['collisions'] = 0*array(A['steer'])
 
+    figure(66)
+    print len(A['left_deltas'])
+    A['left_deltas'] = array(A['left_deltas'])
+    print np.median(A['left_deltas'][:,1])
+    print np.mean(A['left_deltas'][:,1])
+    hist(A['left_deltas'][:,1])
+    plt.pause(0.01)
+
 
 
 
@@ -182,8 +195,8 @@ def get_new_A(_=None):
     A['current_img_index'] = -A['d_indx']
     A['t_previous'] = 0
     A['left_deltas'] = []
-    A['scale'] = 1#4.0
-    A['delay'] = None
+    A['scale'] = 1.0
+    A['delay'] = 33
     A['steer'] = []
     A['state'] = []
     A['SMOOTHING'] = True

@@ -195,7 +195,11 @@ def graph(A):
             A_len = len(A['images'])
             clf()       
             steer = array(A['steer'])
+            encoder = array(A['encoder'])
             plot(steer,'r.-')
+            plot(10*encoder,'k.-')
+            deltas = array(A['left_deltas'])[:,1]
+            plot(deltas*100,'g')
             plot([0,len(steer)],[49,49],'k')
             t = indx#A['images'][indx][0]
             xlim(t-30*5,t)
