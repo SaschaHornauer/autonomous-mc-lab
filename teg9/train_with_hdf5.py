@@ -25,10 +25,10 @@ if False:
 	MODEL = 'z3_color'
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 	#weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
-	weights_file_path = opj('caffe_models/z3_color_iter_700000.caffemodel')
+	weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
 	N_FRAMES = 3 # how many timesteps with images.
 	N_STEPS = 30 # how many timestamps with non-image data
-	gpu = 1
+	gpu = 0
 
 
 if True:
@@ -109,7 +109,7 @@ def get_data_considering_high_low_steer():
 		random.shuffle(high_steer)
 		ctr_high = 0
 		
-	if random.random() < len_high_steer/(len_low_steer+len_high_steer+0.0): # with some probability choose a low_steer element
+	if random.random() < 0.5: # len_high_steer/(len_low_steer+len_high_steer+0.0): # with some probability choose a low_steer element
 		choice = low_steer[ctr_low]
 		ctr_low += 1
 	else:
