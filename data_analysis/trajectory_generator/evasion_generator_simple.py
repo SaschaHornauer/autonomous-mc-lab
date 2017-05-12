@@ -53,14 +53,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     FOR NOW, OTHER_XY IS ONLY ONE OTHER VEHICLE    
     '''
     safety_distance = 0.2
+    emergency_distance = 4.0
     obstacle_segment_factor = int(2999/10) # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
+    diameter = 4.28
     
     # For each obstacle in the obstacle trajectory list we create segments from
     # the trajectories to improve computability.
 
-    environment = Environment(room={'shape': RegularPolyhedron(4.28, 24), 'draw': False})
+    environment = Environment(room={'shape': RegularPolyhedron(diameter, 24), 'draw': False})
     
     for i in range(0,len(other_xy)):
         obstacle_xy = other_xy[i]
@@ -87,7 +89,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
          
     
     vehicle = Holonomic(options={'plot_type': 'car'}) 
-    vehicle.define_knots(knot_intervals=5)
+    #vehicle.define_knots(knot_intervals=5)
     
     init_xy_own, heading_own, velocity_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
     goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep_start + d_timestep_goal, 4) 
@@ -126,15 +128,27 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             #plt.savefig("scene" + "_" + str(framenumber) + ".png")
         
         problem.update_plot('scene',0)
-            #vehicle.plot('input', knots=True, labels=['v_x (m/s)', 'v_y (m/s)', 'w (rad/s)'])
-            #vehicle.plot('state', knots=True, labels=['x (m)', 'y (m)', 'theta (rad)'])
         
-        if timestep % 5 == 0 and timestep > 1:
-            current_xy_own, current_heading_own, current_velocity_own = get_state(own_xy, timestep, 4) 
-            goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep + d_timestep_goal, 4) 
+        if timestep > 1:
             
+            current_xy_own, current_heading_own, current_velocity_own = get_state(own_xy, timestep, 4) 
+            goal_xy, goal_heading, goal_velocity = get_state(own_xy, timestep + d_timestep_goal, 4)
+            
+            # Check if goal is too close to the boundary
+            
+            # Check if goal is too close to an obstacle
+            while True:
+                obstacle_too_near = False 
+                for obstacle in simulator.problem.environment.obstacles:
+                    obstacle_pos = obstacle.signals['position'][0][-1]
+                    obstacle_too_near = np.hypot(obstacle_pos[0]-goal_xy[0],obstacle_pos[1]-goal_xy[1]) < emergency_distance
+                
+                if not obstacle_too_near:
+                    break
+                
             simulator.problem.vehicles[0].overrule_state(current_xy_own)
             vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
+            
         simulator.update()
         simulator.update_timing()
         
@@ -144,10 +158,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             trajectories[str(vehicle)] = vehicle.traj_storage
             signals[str(vehicle)] = vehicle.signals
         
-        #if distance_own_obstacle < safety_distance+2.0 and angle_of_obstacle < np.pi/3. and angle_of_obstacle > -np.pi/3.:
-        #    distance_based_correction = (distance_own_obstacle * np.linspace(4.0,0.0,num=20))/distance_own_obstacle
-        #else:
-        #    distance_based_correction = np.linspace(1.0,1.0,num=20)
+
         
         #sampled_theta = sample_result_to_trajectory(vehicle.traj_storage['pose'][0][2], plan_horizon+2)
         #sampled_theta_leftshift = sampled_theta.copy()[2:len(sampled_theta)]

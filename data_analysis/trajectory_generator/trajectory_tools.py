@@ -19,7 +19,6 @@ def get_heading(seq_xy):
     
     # calculate the angle:
     for i in range(0,len(seq_xy)-1):
-        print seq_xy[i][0]
         diffsX.append(seq_xy[i+1][0]-seq_xy[i][0])
         diffsY.append(seq_xy[i+1][1]-seq_xy[i][1])
     
