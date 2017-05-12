@@ -163,8 +163,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
     problem.plot('scene')
     
-    # for timestep in range(timestep_start, len(own_xy)):
-    for timestep in range(timestep_start, timestep_start + 10):
+    for timestep in range(timestep_start, len(own_xy)):
+    #for timestep in range(timestep_start, timestep_start + 10):
                
 
         for i in range(0, len(simulator.problem.environment.obstacles)):
