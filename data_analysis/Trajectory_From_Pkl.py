@@ -12,12 +12,13 @@ from trajectory_generator import evasion_generator_simple as evasion_generator
 from trajectory_generator.trajectory_tools import *
 import matplotlib.pyplot as plt
 import sys
+import copy
 
 class Trajectory_From_Pkl:
     
     calculation_horizon = 20 # timesteps
     goal_lookahead = 60
-    timestep_offset = 1935
+    timestep_offset = 0
     #timestep_offset = 0
     
     def __init__(self,pkl_filename=None,framerate = 1./30.):
@@ -36,36 +37,39 @@ class Trajectory_From_Pkl:
             
             # Create a list containing all other trajectories
             other_positions = []
+            # As long as there is only one other car we fake second one
+            fake_positions = []
+            
             for other_cars in other_trajectories:
                 other_positions.append(zip(other_trajectories[other_cars]['position'][0][0],other_trajectories[other_cars]['position'][1][0]))
+                fake_positions.append(zip(other_trajectories[other_cars]['position'][0][0],other_trajectories[other_cars]['position'][1][0]))
             
-
             # Now calculate the evasive trajectory for the car
             own_trajectories = actual_trajectories[car]
             
             evasion_trajectories = {}
-            
             number_of_timesteps = len(own_trajectories['timestamps'])
             
-            for i in range(self.timestep_offset,number_of_timesteps-(self.goal_lookahead+4)):
-                print "Processing timestamp " + str(own_trajectories['timestamps'][i]) + " for " + str(car) + " and " + str((number_of_timesteps-(self.goal_lookahead+4))-i) + " to go." 
-                # Get the short term trajectory
-                own_trajectory = own_trajectories['position']
-                # 4 is for the final heading calculation
-                own_x = (own_trajectory[0][0][i:i+self.goal_lookahead+4])
-                own_y = (own_trajectory[1][0][i:i+self.goal_lookahead+4])
-                own_xy = zip(own_x,own_y)
+            #print "Processing timestamp " + str(own_trajectories['timestamps'][i]) + " for " + str(car) + " and " + str((number_of_timesteps-(self.goal_lookahead+4))-i) + " to go." 
+            # Get the short term trajectory
+            own_trajectory = own_trajectories['position']
 
-                # The own trajectory, sent to the algorithm, must be longer to select
-                # a long term goal. The trajectory of other vehicles can be short
-                # since only within the planning horizon, which is as long as the trajectory
-                # length, their movement is considered
-                for other_position in other_positions:
-                    other_xy = other_position[i:i+self.calculation_horizon]
+            # Reverse all the positions to get fake positions
+            fake_positions = fake_positions[0][::-1]
+    
+            # TODO: Create a sensible way to include the other cars
+            other_xy = []
+            other_xy.append(other_positions[0])
+            other_xy.append(fake_positions)
+    
+            own_x = (own_trajectory[0][0])
+            own_y = (own_trajectory[1][0])
+            own_xy = zip(own_x,own_y)
 
-                evasion_trajectories[own_trajectories['timestamps'][i]] = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, 0, self.calculation_horizon,self.goal_lookahead,i,plot_video))
             
-            evasion_trajectory_data[car] = evasion_trajectories
+            evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead,plot_video))
+            sys.exit(0)
+            #evasion_trajectory_data[car] = 
             
         return evasion_trajectory_data
         

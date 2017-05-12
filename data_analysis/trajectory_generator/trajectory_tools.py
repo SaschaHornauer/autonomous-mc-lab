@@ -1,11 +1,11 @@
 '''
 Created on May 8, 2017
 
-@author: picard
+@author: Sascha Hornauer
 '''
 
 import numpy as np
-from operator import mul, div
+from operator import mul, div, sub
 import cv2
 
 def get_heading(seq_xy):
@@ -19,6 +19,7 @@ def get_heading(seq_xy):
     
     # calculate the angle:
     for i in range(0,len(seq_xy)-1):
+        print seq_xy[i][0]
         diffsX.append(seq_xy[i+1][0]-seq_xy[i][0])
         diffsY.append(seq_xy[i+1][1]-seq_xy[i][1])
     
@@ -46,6 +47,8 @@ def get_velocities(xy_positions,framerate):
     '''
     
     velocities = []
+    # First add 0 as a start
+    velocities.append([0.0,0.0])
     
     for i in range(1,len(xy_positions)):
         x = xy_positions[i-1][0]
@@ -63,16 +66,41 @@ def get_velocities(xy_positions,framerate):
     
     return velocities
 
+def get_pos_diff(xy_positions):
+    '''
+    Returns the diffs in between two x,y positions divided by the
+    framerate aka velocity in m/s since the distance in time between two
+    positions is exactly that framerate
+    '''
+    
+    velocities = []
+    # First add 0 as a start
+    velocities.append([0.0,0.0])
+    
+    for i in range(1,len(xy_positions)):
+        x = xy_positions[i-1][0]
+        y = xy_positions[i-1][1]
+        x_t1 = xy_positions[i][0]
+        y_t1 = xy_positions[i][1]
+    
+        sx = x_t1 - x
+        sy = y_t1 - y
+        
+        vx = sx 
+        vy = sy
+        velocities.append([vx,vy])
+        
+    
+    return velocities
+
 
 def convert_delta_to_steer(delta_values):
     
     max_left_command = 100
     max_right_command = 0
     
-    
     steering_values = max_left_command*(0.5 + (np.array(delta_values)/(np.pi/2.)/2.))
-    
-    
+       
     return steering_values
 
 ### Approach by Martin Thoma https://martin-thoma.com/author/martin-thoma/
