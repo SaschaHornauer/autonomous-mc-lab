@@ -91,11 +91,15 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     FOR NOW, OTHER_XY IS ONLY ONE OTHER VEHICLE    
     '''
     safety_distance = 0.2
-    emergency_distance = 0.4
+    allowed_goal_distance = 0.4
+    allowed_own_distance = 1.5
     obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     diameter_arena = 4.28
+    sample_time = 1. / 30
+    update_time = 1. / 30.
+    goal_offset_limit = 300
     
     resulting_trajectories = []
     
@@ -145,7 +149,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         problem.init()
      
     # simulate, plot some signals and save a movie
-    simulator = Simulator(problem, sample_time=1. / 30., update_time=1. / 30.)
+    simulator = Simulator(problem, sample_time=sample_time, update_time=update_time)
         
     problem.plot('scene')
     
@@ -158,8 +162,19 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
         if timestep > timestep_start + 1:
             
-            current_xy_own = own_xy[timestep] 
+            current_xy_own = own_xy[timestep]
+            
+            # The goal is in front on the observed trajectory, further in time.
+            # If it is to far than a certain value, keep it at that value
+            if d_timestep_goal > goal_offset_limit:
+                d_timestep_goal = goal_offset_limit            
+            
+            # If the end of the trajectory is reached, the endpoint will 'wait' at the last timestamp 
+            if timestep+d_timestep_goal > no_datapoints:
+                d_timestep_goal = no_datapoints - timestep
+            
             goal_xy = own_xy[timestep + d_timestep_goal]
+            
             continue_outer_loop = False
             # Check if obstacle is too close to the goal or to the vehicle
             while True:
@@ -167,8 +182,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 vehicle_near_obstacle = False
                 for obstacle in simulator.problem.environment.obstacles:
                     obstacle_pos = (obstacle.signals['position'][0][-1], obstacle.signals['position'][1][-1])
-                    goal_near_obstacle = goal_near_obstacle or distance_2d(obstacle_pos, goal_xy) < emergency_distance
-                    vehicle_near_obstacle = vehicle_near_obstacle or distance_2d(current_xy_own, obstacle_pos) < emergency_distance
+                    goal_near_obstacle = goal_near_obstacle or distance_2d(obstacle_pos, goal_xy) < allowed_goal_distance
+                    vehicle_near_obstacle = vehicle_near_obstacle or distance_2d(current_xy_own, obstacle_pos) < allowed_own_distance
                     
                 # If we are far away from an obstacle, continue
                 if not goal_near_obstacle and not vehicle_near_obstacle:
@@ -184,25 +199,42 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                     # Skip a number of simulation runs, create emergency
                     # trajectories and check again
                     resulting_trajectories.append(get_emergency_trajectories(obstacle_pos, current_xy_own, 10))
-                    timestep += 10
+                    timestep += 1
+                    #self.current_time, self.update_time, self.sample_time)
+                    #simulation_time, sample_tim
+                    #print simulator.current_time
+                    
+                    simulator.problem.environment.simulate(update_time,sample_time)
+                    print timestep
                     continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
-            
+                
+                if goal_near_obstacle or vehicle_near_obstacle:
+                    break
+                
             if continue_outer_loop:
                 continue
                         
             # Check if goal is too close to the boundary or rather if the distance to
             # the center is too large
-            while (distance_2d(goal_xy, [0.0, 0.0]) > (diameter_arena - emergency_distance)):
+            while (distance_2d(goal_xy, [0.0, 0.0]) > (diameter_arena - allowed_goal_distance)):
                 # Otherwise, look for a new goal along the trajectory
-                # TODO. Handle end of trajectory here
                 d_timestep_goal += 10
-                goal_xy = own_xy[timestep + d_timestep_goal]                
+                if timestep + d_timestep_goal > no_datapoints:
+                    # The goal at the end of the trajectory is outside the boundary. 
+                    # This can not be avoided by looking further in the future
+                    goal_xy = own_xy[no_datapoints-1]
+                    print "Goal at end of trajectory"
+                    break;
+                else:
+                    goal_xy = own_xy[timestep + d_timestep_goal]                
                 
             simulator.problem.vehicles[0].overrule_state(current_xy_own)
             vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
             
         simulator.update()
         simulator.update_timing()
+        
+        
         
         # return trajectories and signals
         trajectories, signals = {}, {}
