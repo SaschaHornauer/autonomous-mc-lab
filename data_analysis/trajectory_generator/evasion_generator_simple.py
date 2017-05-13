@@ -138,6 +138,20 @@ def get_straight_line(current_xy_own, goal_xy):
     
     traj_x = np.linspace(own_x, goal_x, 30)
     traj_y = np.linspace(own_y, goal_y, 30)
+#     t = np.linspace(np.pi/2.,3*np.pi/2.,30)
+#     print np.sin(t)
+#     
+#     center_x = traj_x[len(traj_x)/2]
+#     center_y = traj_y[len(traj_y)/2]
+#     
+#     diff_x = traj_x-center_x
+#     diff_y = traj_y-center_y
+#     
+#     corr_x =  np.sin(t)*diff_y
+#     corr_y =  np.sin(t)*diff_x
+# 
+#     traj_x = traj_x+corr_x
+#     traj_y = traj_y+corr_y
     return [traj_x,traj_y]
     
 
@@ -163,7 +177,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     goal_ideal_distance = 50
     trajectory_length = 30
     resulting_trajectories = []
-    
+    simulate = True
     goal_xys = get_center_circle_points(own_xy)
     
     
@@ -232,7 +246,9 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         if plot_video:
             problem.update_plot('scene', 0)
             #circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
-            plt.scatter(goal_xy[0],goal_xy[1])
+            #plt.scatter(goal_xy[0],goal_xy[1])
+            #straight_line = get_straight_line(own_xy[timestep],goal_xy)
+            #plt.scatter(straight_line[0],straight_line[1])
             #print goal_xy
             #axis = plt.gca()
             #axis.set_xlim((-5, 5))
@@ -351,7 +367,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             except AttributeError:
                 pass
             
-        simulate = False
+        
         if simulate:
             simulator.update()
     
