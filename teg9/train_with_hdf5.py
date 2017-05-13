@@ -5,7 +5,7 @@ import caffe
 REPO = 'kzpy3'
 TEG = 'teg9'
 CAF = 'caf8'
-DISPLAY = True
+DISPLAY = False
 
 ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
 require_one = [] # at least one of this type of run lable is required
@@ -13,16 +13,18 @@ use_states = [1]
 
 if False:
 	MODEL = 'z2_color'
-	bair_car_data_path = opjD('bair_car_data_new') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
+	print(MODEL)
+	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
 	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	weights_file_path = None
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
 
-if True:
+if False:
 	MODEL = 'z3_color'
+	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	#weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
@@ -31,10 +33,11 @@ if True:
 	gpu = 1
 
 
-if False:
+if True:
 	MODEL = 'z1_color'
+	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	weights_file_path = opj('caffe_models/z1_color_iter_7700000.caffemodel') #most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
+	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 1 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -61,7 +64,7 @@ if weights_file_path:
 	Solver.solver.net.copy_from(weights_file_path)
 else:
 	print(d2s("No weights loaded to",Solver.solver))
-
+time.sleep(5)
 
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
 hdf5_segment_metadata_path = opj(bair_car_data_path,'hdf5/segment_metadata')

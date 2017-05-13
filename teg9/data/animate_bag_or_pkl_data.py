@@ -1,11 +1,14 @@
+replace_dic = {"REPO":'kzpy3',"TEG":'teg9'}; rd = replace_dic; sr = str_replace
 
-from kzpy3.vis import *
+exec(sr("""
+from REPO.vis import *
 import rospy
 import rosbag
 import cv2
 from cv_bridge import CvBridge,CvBridgeError
 import threading
-import kzpy3.teg9.data.animate as animate
+import REPO.TEG.data.animate as animate
+    """,rd))
 
 bridge = CvBridge()
 
@@ -18,17 +21,12 @@ camera_sides = ['left','right']
 
 
 def multi_preprocess_bagfiles(A,meta_path,bag_folder_path,bagfile_range=[]):
-
     A['meta'] = load_obj(meta_path)
-
     bag_files = sorted(gg(opj(bag_folder_path,'*.bag')))
     if len(bagfile_range) > 0:
         bag_files = bag_files[bagfile_range[0]:bagfile_range[1]]
     A['images'] = []
     threading.Thread(target=multi_preprocess_bagfiles_thread,args=[A,bag_files]).start()
-
-
-
 
 def multi_preprocess_bagfiles_thread(A,bag_files):
     A['steer_previous'] = 49
@@ -39,12 +37,8 @@ def multi_preprocess_bagfiles_thread(A,bag_files):
             break
         preprocess_bagfiles(A,b)
 
-
-
-
 def preprocess_bagfiles(A,path):
     timer = Timer(0)
-    
     for topic in image_topics + single_value_topics:
         if topic not in A:
             A[topic] = []
@@ -53,18 +47,6 @@ def preprocess_bagfiles(A,path):
             A[topic+'_x'] = []
             A[topic+'_y'] = []
             A[topic+'_z'] = []
-
-    """
-    -2<acc_z<3,0.5
-    -2.5<acc_x<3,0.5
-    6<acc_y<13,9.8
-
-    -50 gyro_x 50
-    -40, gyro_y 40
-    -30, gyro_z 30
-    """
-
-
     if True:#try:
         cprint('Loading bagfile '+path,'yellow')
 
@@ -103,6 +85,11 @@ def preprocess_bagfiles(A,path):
             hist(A['left_deltas'])
     #except Exception as e:
     #    print e.message, e.args
+    figure('left_deltas')
+    clf()
+    A['left_deltas'] = array(A['left_deltas'])
+    hist(A['left_deltas'][:,1])
+    plt.pause(0.01)
     print(d2s('Done in',timer.time(),'seconds'))
 
 
@@ -172,12 +159,9 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path):
 
     A['acc_xz_dst'] = sqrt(array(A['acc_x'])**2 + array(A['acc_z'])**2)
     A['collisions'] = 0*array(A['steer'])
-
-    figure(66)
-    print len(A['left_deltas'])
+    figure('left_deltas')
+    clf()
     A['left_deltas'] = array(A['left_deltas'])
-    print np.median(A['left_deltas'][:,1])
-    print np.mean(A['left_deltas'][:,1])
     hist(A['left_deltas'][:,1])
     plt.pause(0.01)
 
@@ -211,15 +195,11 @@ def get_new_A(_=None):
     return A
 
 
-#A = {}
-#bag_or_pkl = "pkl"  
-#data_path = opjD('bair_car_data_new')
-run_name = "direct_rewrite_test_25Apr17_12h40m27s_Mr_Black"
 
 def main():
-    A = {}
-    
     bag_or_pkl = sys.argv[1]
+    data_path = sys.argv[2]
+    run_name = sys.argv[3]
     if bag_or_pkl == 'bag':
         print('Working with bag files')
     elif bag_or_pkl == 'pkl':
@@ -227,12 +207,9 @@ def main():
     else:
         print("sys.argv[1] must be 'bag' or 'pkl'.")
         return
-    data_path = sys.argv[2]
     if len(gg(data_path)) != 1:
         print("if len(gg(meta_path)) != 1:")
         return
-    run_name = sys.argv[3]
-
     if len(sys.argv) > 4:
         alt_bagfolder_path = sys.argv[4]
     if len(sys.argv) > 5:
@@ -240,40 +217,29 @@ def main():
     if len(sys.argv) > 6:
         print("Too many arguments")
         return
-    
-    
-
-    hist_timer = Timer(10)
-    
+    A = {}
     A = get_new_A(A)
-
     A['run_name'] = run_name
     A['loaded_collisions'] = None
-    collision_files = gg(opjD('collisions','*'))
-    for c in collision_files:
-        if run_name in c:
-            A['loaded_collisions'] = lo(c)
-            print 'loaded '+c
-            break
-
+    if False:
+        collision_files = gg(opjD('collisions','*'))
+        for c in collision_files:
+            if run_name in c:
+                A['loaded_collisions'] = lo(c)
+                print 'loaded '+c
+                break
     if bag_or_pkl == 'pkl':
         meta_path = opj(data_path,'meta',run_name)
         rgb_1to4_path = opj(data_path,'rgb_1to4',run_name)
         multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path)
-
     elif bag_or_pkl == 'bag':
-        #meta_path = '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017/processed/caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow/.preprocessed2/left_image_bound_to_data.pkl'
-        #path2 = '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017/processed/caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow'
         meta_path = opj(data_path,run_name,'.preprocessed2/left_image_bound_to_data.pkl')
         bags_path = opj(data_path,run_name)
         multi_preprocess_bagfiles(A,meta_path,bags_path,bagfile_range=[])
-
-
-
+    else:
+        assert(False)
     threading.Thread(target=animate.animate_with_key_control,args=[A]).start()
-    #threading.Thread(target=animate.graph,args=[A]).start()
     animate.graph(A)
-    #raw_input()
 
 
 
