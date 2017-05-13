@@ -1,7 +1,7 @@
 from kzpy3.vis import *
-import kzpy3.teg9.data.preprocess_bag_data as preprocess_bag_data
-import kzpy3.teg9.data.preprocess_Bag_Folders as preprocess_Bag_Folders
-import kzpy3.teg9.data.Bag_File as Bag_File
+import kzpy3.teg9.data.utils.preprocess_bag_data as preprocess_bag_data
+import kzpy3.teg9.data.utils.preprocess_Bag_Folders as preprocess_Bag_Folders
+import kzpy3.teg9.data.utils.Bag_File as Bag_File
 #import shutil
 
 
