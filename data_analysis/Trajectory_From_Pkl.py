@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import sys
 import copy
 from timeit import default_timer as timer
+import threading 
+
 
 class Trajectory_From_Pkl:
     
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    plot_video = True
+    plot_video = False
     
     # Enter here the carnames which should be considered
     for car in ['Mr_Black', 'Mr_Blue']:
@@ -112,13 +114,19 @@ if __name__ == '__main__':
     start_timestep = 1200
     end_timestep = 1250
     
-    array_a = trajectory_getter.get_trajectory(actual_trajectories, plot_video, 0, len(actual_trajectories['Mr_Blue']['timestamps']))
+    #array_a = trajectory_getter.get_trajectory(actual_trajectories, plot_video, 0, len(actual_trajectories['Mr_Blue']['timestamps']))
     #array_b = trajectory_getter.get_trajectory(actual_trajectories, plot_video, 1250, 1255)
     
     #print array_a['Mr_Black']['trajectories'][4:7]
     #print "---"
     #print array_b['Mr_Black']['trajectories'][0]
     
+    threads = []
+    
+    start = timer()
+    t1 = threading.Thread(target=trajectory_getter.get_trajectory, args=(actual_trajectories, plot_video, 0, len(actual_trajectories['Mr_Blue']['timestamps'])))
+    threads.append(t1)
+    t1.start()
     end = timer()
     print evasion_trajectories
     print ("##################################")

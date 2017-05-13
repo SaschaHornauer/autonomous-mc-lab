@@ -17,16 +17,6 @@ from timeit import default_timer as timer
 framerate = 1. / 30.
 
 
-################
-################
-# ## ISSUES: 
-#
-# Need to remove the debug input emulating mr yellow
-# Need to find why there are some strange angle values in the end of the trajectory, probably with linear interpolation instead of sampling
-# Detect when own position os too close to obstacle or boundary, choose emergency trajectory and skip over those moments in the simulator
-#
-#
-# # This framerate should be at one point for the whole module
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -102,6 +92,41 @@ def get_center_trajectory(heading,current_xy_own, trajectory_length):
 
 
 
+def get_center_circle_points(own_xys):
+    
+    goalxys = []
+    goal_offset = -(np.pi/8.0)
+    circle_radius = 3 # m
+    
+    # calculate positions on a circle near the center
+    for pos in own_xys:
+        own_x = pos[0]
+        own_y = pos[1]
+            
+        # Get a point on the circle
+        distance_goalpoint = circle_radius
+        
+        # Now take the distance to the goalpoint in combination with the angle to the 
+        # goalpoint to make out the intersection of the straight line in between the
+        # car and that circle
+        angle_center = np.arctan2(own_y,own_x)
+        
+        # Change the angle to be in front of the vehicle like the carrot on a stick
+        angle_goalpoint = angle_center + goal_offset
+        
+        # Next calculate that new point
+        goal_xy = cv2.polarToCart(distance_goalpoint,angle_goalpoint)
+        goal_xy = [goal_xy[0][0][0],goal_xy[1][0][0]]
+        
+        # If the distance of that new goalpoint is too far from our position
+        
+        goalxys.append(goal_xy)
+        
+    return goalxys
+    
+    
+
+
 def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video, end_timestep):
     '''
     Returns a short term evasion trajectory, in steering commands for 
@@ -125,6 +150,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     trajectory_length = 30
     resulting_trajectories = []
     
+    goal_xys = get_center_circle_points(own_xy)
     
     
     # For each obstacle in the obstacle trajectory list we create segments from
@@ -159,7 +185,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     vehicle = Holonomic(shapes=Circle(0.2),options={'plot_type': 'car'}) 
     
     init_xy_own = own_xy[timestep_start] 
-    goal_xy = own_xy[timestep_start + d_timestep_goal] 
+    #goal_xy = own_xy[timestep_start + d_timestep_goal] 
+    goal_xy = goal_xys[timestep_start + d_timestep_goal]
 
     # Plan from the initial position
     vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1]])  
@@ -191,6 +218,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         if plot_video:
             problem.update_plot('scene', 0)
             #circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
+            plt.scatter(goal_xy[0],goal_xy[1])
+            #print goal_xy
             #axis = plt.gca()
             #axis.set_xlim((-5, 5))
             #axis.set_ylim((-5, 5))
@@ -216,9 +245,9 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             if d_timestep_goal > goal_ideal_distance:
                 d_timestep_goal -= 1
             try:
-                goal_xy = own_xy[timestep + d_timestep_goal]
+                goal_xy = goal_xys[timestep + d_timestep_goal]
             except IndexError:
-                goal_xy = own_xy[len(own_xy) - 1]
+                goal_xy = goal_xys[len(own_xy) - 1]
                 print "IndexError: " + str(timestep + d_timestep_goal)
                 
             continue_outer_loop = False
@@ -241,7 +270,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                     # Look for a new goal along the trajectory
                     # TODO. Handle end of trajectory here
                     d_timestep_goal += 10 
-                    goal_xy = own_xy[timestep + d_timestep_goal]
+                    goal_xy = goal_xys[timestep + d_timestep_goal]
                     
                 if vehicle_near_obstacle:
                     # Skip a number of simulation runs, create emergency
@@ -272,11 +301,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 if timestep + d_timestep_goal > no_datapoints:
                     # The goal at the end of the trajectory is outside the boundary. 
                     # This can not be avoided by looking further in the future
-                    goal_xy = own_xy[no_datapoints - 1]
+                    goal_xy = goal_xys[no_datapoints - 1]
                     print "Goal at end of trajectory"
                     break;
                 else:
-                    goal_xy = own_xy[timestep + d_timestep_goal]                
+                    goal_xy = goal_xys[timestep + d_timestep_goal]                
                 
                 # todo change allowed_goal distance to allowed vehicle distance
             
