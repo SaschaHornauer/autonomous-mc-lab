@@ -177,7 +177,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     goal_ideal_distance = 50
     trajectory_length = 30
     resulting_trajectories = []
-    simulate = False
+    simulate = True
     goal_xys = get_center_circle_points(own_xy)
     
     
@@ -247,8 +247,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             problem.update_plot('scene', 0)
             #circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
             #plt.scatter(goal_xy[0],goal_xy[1])
-            straight_line = get_straight_line(own_xy[timestep],goal_xy)
-            plt.scatter(straight_line[0],straight_line[1])
+            #straight_line = get_straight_line(own_xy[timestep],goal_xy)
+            #plt.scatter(straight_line[0],straight_line[1])
             #print goal_xy
             #axis = plt.gca()
             #axis.set_xlim((-5, 5))
