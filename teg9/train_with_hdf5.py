@@ -64,7 +64,7 @@ if weights_file_path:
 	Solver.solver.net.copy_from(weights_file_path)
 else:
 	print(d2s("No weights loaded to",Solver.solver))
-
+time.sleep(5)
 
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
 hdf5_segment_metadata_path = opj(bair_car_data_path,'hdf5/segment_metadata')
