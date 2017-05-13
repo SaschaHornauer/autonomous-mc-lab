@@ -722,7 +722,7 @@ if False:
 			S5(i,flip=False)
 			S5(flip=True)
 
-if False
+if False:
 	for i in range(len(I[runs])):
 		if I[run_labels][I[runs][i]][reject_run] == False:
 			print i

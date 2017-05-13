@@ -1,16 +1,13 @@
-replace_dic = {"REPO":'kzpy3',"TEG":'teg9'}; rd = replace_dic; sr = str_replace
+from kzpy3.vis import *
+import kzpy3.teg9.data.preprocess_bag_data as preprocess_bag_data
+import kzpy3.teg9.data.preprocess_Bag_Folders as preprocess_Bag_Folders
+import kzpy3.teg9.data.Bag_File as Bag_File
+#import shutil
 
-exec(sr("""
-from REPO.vis import *
-from REPO.TEG.data.preprocess_bag_data import *
-from REPO.TEG.data.preprocess_Bag_Folders import *
-from REPO.teg7.data.Bag_File import *
-import shutil
-	"""),rd)
 
 bag_folders_src_location = sys.argv[1]
 bag_folders_dst = sys.argv[2]
-NUM_STATE_ONE_STEPS = sys.argv[3]
+NUM_STATE_ONE_STEPS = int(sys.argv[3])
 
 assert(is_number(NUM_STATE_ONE_STEPS))
 
@@ -43,18 +40,20 @@ for r in runs:
 	cprint(d2s(r,'is okay'))
 
 for r in runs:
-	preprocess_bag_data(r)
+	preprocess_bag_data.preprocess_bag_data(r)
 
-bag_folders_transfer_meta(bag_folders_src,bag_folders_dst_meta_path)
+Bag_File.bag_folders_transfer_meta(bag_folders_src,bag_folders_dst_meta_path)
+Bag_File.bag_folders_save_images(bag_folders_src,bag_folders_dst_rgb1to4_path)
 
-bag_folders_save_images(bag_folders_src,bag_folders_dst_rgb1to4_path)
+graphics=False
+accepted_states=[1,3,5,6,7]
+pkl_name='Bag_Folder.pkl' # if different from 'Bag_Folder.pkl', (e.g., 'Bag_Folder_90_state_one_steps.pkl') files will be reprocessed.
 
-if True:
-	preprocess_Bag_Folders(bag_folders_dst_meta_path,bag_folders_dst_rgb1to4_path,NUM_STATE_ONE_STEPS=NUM_STATE_ONE_STEPS,graphics=False,accepted_states=[1,3,5,6,7])#,pkl_name='Bag_Folder_90_state_one_steps.pkl')
-if False:
-	preprocess_Bag_Folders(bag_folders_dst_meta_path,bag_folders_dst_rgb1to4_path,NUM_STATE_ONE_STEPS=NUM_STATE_ONE_STEPS,graphics=False,accepted_states=[1,3,5,6,7])
-if False:
-	preprocess_Bag_Folders(bag_folders_dst_meta_path,bag_folders_dst_rgb1to4_path,NUM_STATE_ONE_STEPS=NUM_STATE_ONE_STEPS,graphics=False,accepted_states=[1,3,5,6,7],pkl_name='Bag_Folder_60_state_one_steps.pkl')
+preprocess_Bag_Folders.preprocess_Bag_Folders(bag_folders_dst_meta_path,
+	bag_folders_dst_rgb1to4_path
+	,NUM_STATE_ONE_STEPS=NUM_STATE_ONE_STEPS,
+	graphics=graphics,accepted_states=accepted_states.
+	pkl_name)
 
 os.rename(bag_folders_src,opj(bag_folders_src_location,'processed'))
 
