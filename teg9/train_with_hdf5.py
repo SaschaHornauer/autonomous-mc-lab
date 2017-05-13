@@ -1,11 +1,11 @@
 from kzpy3.vis import *
-import kzpy3.teg9.get_data_with_hdf5 as get_data_with_hdf5
+import kzpy3.teg9.data.utils.get_data_with_hdf5 as get_data_with_hdf5
 import caffe
 
 REPO = 'kzpy3'
 TEG = 'teg9'
 CAF = 'caf8'
-DISPLAY = False
+DISPLAY = True
 
 ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
 require_one = [] # at least one of this type of run lable is required
@@ -22,6 +22,17 @@ if False:
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
 
+if True:
+	MODEL = 'z2_color_small_ip1'
+	print(MODEL)
+	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
+	weights_file_path = None
+	N_FRAMES = 2 # how many timesteps with images.
+	N_STEPS = 10 # how many timestamps with non-image data
+	gpu = 0
+
+
 if False:
 	MODEL = 'z3_color'
 	print(MODEL)
@@ -33,7 +44,7 @@ if False:
 	gpu = 1
 
 
-if True:
+if False:
 	MODEL = 'z1_color'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')

@@ -1,5 +1,5 @@
 from kzpy3.vis import *
-import kzpy3.teg9.get_data_with_hdf5 as get_data_with_hdf5
+import kzpy3.teg9.working.get_data_with_hdf5 as get_data_with_hdf5
 import caffe
 
 REPO = 'kzpy3'
