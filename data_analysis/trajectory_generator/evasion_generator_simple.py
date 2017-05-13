@@ -143,8 +143,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     diameter_arena = 4.28
-    sample_time = 1. / 30.
-    update_time = 1. / 30.
+    sample_time = 1. / 4.
+    update_time = 1. / 4.
     goal_offset_limit = 150
     goal_ideal_distance = 50
     trajectory_length = 30
