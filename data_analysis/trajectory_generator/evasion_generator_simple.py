@@ -12,6 +12,7 @@ from omgtools.problems.point2point import FreeEndPoint2point
 from operator import add
 import copy
 import time
+from timeit import default_timer as timer
 
 framerate = 1. / 30.
 
@@ -101,7 +102,7 @@ def get_center_trajectory(heading,current_xy_own, trajectory_length):
 
 
 
-def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video):
+def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video, end_timestep):
     '''
     Returns a short term evasion trajectory, in steering commands for 
     as many timesteps ahead as given in between timestep_start and timestep_ahead.
@@ -124,12 +125,15 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     trajectory_length = 30
     resulting_trajectories = []
     
+    
+    
     # For each obstacle in the obstacle trajectory list we create segments from
     # the trajectories to improve computability.
 
     environment = Environment(room={'shape': RegularPolyhedron(diameter_arena, 24), 'draw': False})
     test_obstacle_pos = []
     for i in range(0, len(other_xy)):
+        
         obstacle_xy = other_xy[i]
         # For each obstacle, get its segments
         samplepoints = np.linspace(timestep_start, no_datapoints - 1, num=obstacle_segment_factor, dtype=np.int32)
@@ -170,15 +174,15 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     
     
     problem.init()
-     
+    
     # simulate, plot some signals and save a movie
     simulator = Simulator(problem, sample_time=sample_time, update_time=update_time)
     if plot_video:
         problem.plot('scene')
     
-    for timestep in range(timestep_start, len(own_xy)):
+    for timestep in range(timestep_start, end_timestep):
     #for timestep in range(timestep_start, timestep_start + 10):
-               
+                   
 
         for i in range(0, len(simulator.problem.environment.obstacles)):
             obstacle = simulator.problem.environment.obstacles[i]
@@ -186,12 +190,12 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
               
         if plot_video:
             problem.update_plot('scene', 0)
-            circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
-            axis = plt.gca()
-            axis.set_xlim((-5, 5))
-            axis.set_ylim((-5, 5))
-            axis.add_artist(circle2)
-            plt.savefig("scene" + "_" + str(timestep) + ".png")
+            #circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
+            #axis = plt.gca()
+            #axis.set_xlim((-5, 5))
+            #axis.set_ylim((-5, 5))
+            #axis.add_artist(circle2)
+            #plt.savefig("scene" + "_" + str(timestep) + ".png")
             
         
         if timestep > timestep_start + 1:
@@ -298,9 +302,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             
             if continue_outer_loop:
                 continue
-                
-            simulator.problem.vehicles[0].overrule_state(current_xy_own)
-            vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
+            try:    
+                simulator.problem.vehicles[0].overrule_state(current_xy_own)
+                vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
+            except AttributeError:
+                pass
             
         simulator.update()
 
@@ -323,6 +329,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
             resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
             
+        
+        
+    
     return convert_path_to_steeering_angles(resulting_trajectories)
+
 
     

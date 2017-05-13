@@ -17,16 +17,16 @@ from timeit import default_timer as timer
 
 class Trajectory_From_Pkl:
     
-    calculation_horizon = 20 # timesteps
+    calculation_horizon = 20  # timesteps
     goal_lookahead = 60
     timestep_offset = 0
-    #timestep_offset = 0
+    # timestep_offset = 0
     
-    def __init__(self,pkl_filename=None,framerate = 1./30.):
+    def __init__(self, pkl_filename=None, framerate=1. / 30.):
         pass
 
-    def get_trajectory(self,actual_trajectories, plot_video):
-        
+    def get_trajectory(self, actual_trajectories, plot_video, start_timestep, end_timestep):
+        self.timestep_offset = start_timestep
         evasion_trajectory_data = {}
         
         # For all cars in actual trajectories
@@ -42,8 +42,8 @@ class Trajectory_From_Pkl:
             fake_positions = []
             
             for other_cars in other_trajectories:
-                other_positions.append(zip(other_trajectories[other_cars]['position'][0][0],other_trajectories[other_cars]['position'][1][0]))
-                fake_positions.append(zip(other_trajectories[other_cars]['position'][0][0],other_trajectories[other_cars]['position'][1][0]))
+                other_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
+                fake_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
             
             # Now calculate the evasive trajectory for the car
             own_trajectories = actual_trajectories[car]
@@ -64,21 +64,21 @@ class Trajectory_From_Pkl:
     
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
-            own_xy = zip(own_x,own_y)
+            own_xy = zip(own_x, own_y)
             
-            evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead,plot_video))
+            evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep))
             timestamps = actual_trajectories[car]['timestamps']
-            evasion_trajectory_data[car] = {'timestamps':timestamps,'trajectories':evasion_trajectories}
+            evasion_trajectory_data[car] = {'timestamps':timestamps, 'trajectories':evasion_trajectories}
             
         return evasion_trajectory_data
         
     
     
-    def get_average_position(self,left_x,left_y,right_x,right_y):
+    def get_average_position(self, left_x, left_y, right_x, right_y):
         '''
         Returns 
         '''
-        return np.array(map(add,left_x,right_x))/2.,np.array(map(add,left_y,right_y))/2.
+        return np.array(map(add, left_x, right_x)) / 2., np.array(map(add, left_y, right_y)) / 2.
     
     
 if __name__ == '__main__':
@@ -88,9 +88,9 @@ if __name__ == '__main__':
     home = os.path.expanduser("~")
     pickle_file = pickle.load(open(home + '/kzpy3/teg9/trajectories.pkl', "rb"))
 
-    t1 = 1493425694.71+5
+    t1 = 1493425694.71 + 5
     t2 = 1493425899.676476 - 100
-    timestamps = np.arange(t1,t2,1/30.)
+    timestamps = np.arange(t1, t2, 1 / 30.)
     
     evasion_trajectories = {}
     actual_trajectories = {}
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     plot_video = True
     
     # Enter here the carnames which should be considered
-    for car in ['Mr_Black','Mr_Blue']:
+    for car in ['Mr_Black', 'Mr_Blue']:
             
         car_left_x = [pickle_file[car]['left'][0](timestamps)]
         car_right_x = [pickle_file[car]['right'][0](timestamps)]
@@ -106,13 +106,23 @@ if __name__ == '__main__':
         car_right_y = [pickle_file[car]['right'][1](timestamps)]
         car_x, car_y = trajectory_getter.get_average_position(car_left_x, car_left_y, car_right_x, car_right_y)
     
-        actual_trajectories[car] = {'timestamps':timestamps,'position': (car_x,car_y)}
+        actual_trajectories[car] = {'timestamps':timestamps, 'position': (car_x, car_y)}
         
     start = timer()
-    evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video)
+    start_timestep = 1200
+    end_timestep = 1250
+    
+    array_a = trajectory_getter.get_trajectory(actual_trajectories, plot_video, 0, len(actual_trajectories['Mr_Blue']['timestamps']))
+    #array_b = trajectory_getter.get_trajectory(actual_trajectories, plot_video, 1250, 1255)
+    
+    #print array_a['Mr_Black']['trajectories'][4:7]
+    #print "---"
+    #print array_b['Mr_Black']['trajectories'][0]
+    
     end = timer()
+    print evasion_trajectories
     print ("##################################")
-    print (end-start)
+    print (end - start)
     
     
     
