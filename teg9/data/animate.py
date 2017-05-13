@@ -1,9 +1,11 @@
-from kzpy3.vis import *
+replace_dic = {"REPO":'kzpy3'}; rd = replace_dic; sr = str_replace
 
+exec(sr("""
+from REPO.vis import *
+    """,rd)
 
 
 def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode): #,collision):
-    
     bar_color = [0,0,0]
     if state == 1:
         bar_color = [0,0,255]
@@ -23,7 +25,6 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
         apply_rect_to_img(img,motor,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=False)
     #if collision == 1:
     #    img[:10,:,:] = [255,0,0] 
-     
     if delay == None:
         scale_img = cv2.resize(img, (0,0), fx=scale, fy=scale)
         return scale_img
@@ -34,7 +35,6 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
 
 
 def animate_with_key_control(A):
-   
     timer = Timer(1)
     ctr = 0
     while True:
@@ -53,13 +53,10 @@ def animate_with_key_control(A):
             elif A['current_img_index'] < 0:
                 A['current_img_index'] = 0
             indx = int(A['current_img_index'])
-
             img = A['images'][indx].copy() #.copy() # Copy if need to change image.
             steer = A['steer'][indx]
             state = A['state'][indx]
             motor = A['motor'][indx]
-            #print state
-
             if A['delay'] == None:
                 print('Writing to file instead of display!')
                 if len(A['images']) > A['save_stop_index']:
@@ -70,14 +67,12 @@ def animate_with_key_control(A):
                     return
                 if A['current_img_index'] >= A['save_start_index']:
                     out_img = prepare_and_show_or_return_frame(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])#,A['collisions'][int(A['current_img_index'])])
-                    #mi(out_img);pause(0.001)
                     imsave(opjD('temp2',d2n(ctr,'.png')),out_img)
                     print ctr
                     ctr += 1
                 continue
             else:
                 k = prepare_and_show_or_return_frame(img,steer,None,state,A['delay'],A['scale'],A['color_mode'])#,A['collisions'][int(A['current_img_index'])])
-
             if k == ord('q'):
                 print('Exiting animate_with_key_control')
                 A['STOP_GRAPH_THREAD'] = True
@@ -129,7 +124,6 @@ def animate_with_key_control(A):
                 print("car left")
             if k == ord('d'):
                 print("car right")
-
             if k == ord('z'):
                 A['current_img_index'] = 0
             if k == ord('x'):
@@ -144,39 +138,25 @@ def animate_with_key_control(A):
                 A['current_img_index'] = 5*len(A['images'])/6
             if k == ord('m'):
                 A['current_img_index'] = 6*len(A['images'])/6-1
-
             if k == ord('k'):
                 A['current_img_index'] -= 2*30
             if k == ord('l'):
                 A['current_img_index'] += 2*30
-
             if k == ord('j'):
                 while A['current_img_index'] < len(A['images']):
                     if A['acc_xz_dst'][int(A['current_img_index'])]> 7.5:
                         break
                     A['current_img_index'] += 1
-
             if k == ord('u'):
                 while A['current_img_index'] < len(A['images']):
                     if A['loaded_collisions'][int(A['current_img_index'])]> 0:
                         print('found collision')
-                        #pass
-                        #A['current_img_index'] -= 2*30
                         break
                     A['current_img_index'] += 1
-
             if k == ord('h'):
                 if A['current_img_index'] > 12:
                     A['collisions'][int(A['current_img_index'])-12] = 1 # reaction time
-
         time.sleep(0.2)
-
-
-
-
-
-
-
 
 
 
@@ -201,7 +181,7 @@ def graph(A):
             deltas = array(A['left_deltas'])[:,1]
             plot(deltas*100,'g')
             plot([0,len(steer)],[49,49],'k')
-            t = indx#A['images'][indx][0]
+            t = indx
             xlim(t-30*5,t)
             motor = array(A['motor'])
             plot(motor,'b.-')
@@ -227,8 +207,6 @@ def graph(A):
             plot(acc_y_smooth[:],'g')
             plot(acc_z_smooth[:],'b')
             plot(acc_xyz[:],'k')
-
-
             gyro_x = array(A['gyro_x'])
             gyro_y = array(A['gyro_y'])
             gyro_z = array(A['gyro_z'])
@@ -247,12 +225,9 @@ def graph(A):
             plot(gyro_y_smooth[:]/10.-25,'g')
             plot(gyro_z_smooth[:]/10.-25,'b')
             #plot(gyro_xyz[:],'k')            
-
-
             #multi_d = sqrt( (gyro_x/50.)**2 + (gyro_y/40.)**2 + (gyro_z/30.)**2 + ((acc_x-0.5)/2.5)**2 + ((acc_y-9.8)/5)**2 + ((acc_z-0.5)/2.5)**2 ) 
             #plot(multi_d,'ko-')
             """
-            #plot(A['acc_xz_dst'])
             ylim(-5,105)
             if False: #hist_timer.check():
                 figure('left_deltas')
@@ -260,7 +235,6 @@ def graph(A):
                 hist(left_deltas[:,1])
                 hist_timer.reset()
                 figure('MSE')
-            
             pause(0.001)
             while A_len == len(A['images']):
                 indx = int(A['current_img_index'])
@@ -273,3 +247,8 @@ def graph(A):
         else:
             print('Exiting graph')
             return
+
+
+
+
+
