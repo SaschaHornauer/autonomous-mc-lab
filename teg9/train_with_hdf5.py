@@ -11,8 +11,9 @@ ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these lab
 require_one = [] # at least one of this type of run lable is required
 use_states = [1]
 
-if True:
+if False:
 	MODEL = 'z2_color'
+	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 	weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
 	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
@@ -23,6 +24,7 @@ if True:
 
 if False:
 	MODEL = 'z3_color'
+	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
 	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	#weights_file_path = opj('caffe_models/z3_color_iter_14600000.caffemodel')
@@ -31,10 +33,11 @@ if False:
 	gpu = 1
 
 
-if False:
+if True:
 	MODEL = 'z1_color'
+	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
-	weights_file_path = opj('caffe_models/z1_color_iter_7700000.caffemodel') #most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
+	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 1 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
