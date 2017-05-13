@@ -110,8 +110,8 @@ if __name__ == '__main__':
         actual_trajectories[car] = {'timestamps':timestamps, 'position': (car_x, car_y)}
         
     start = timer()
-    start_timestep = sys.argv[1]
-    end_timestep = sys.argv[2]
+    start_timestep = 0
+    end_timestep = len(actual_trajectories.itervalues().next()['timestamps'])
     
     evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video, int(start_timestep), int(end_timestep))
     
