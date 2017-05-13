@@ -127,6 +127,20 @@ def get_center_circle_points(own_xys):
     
 
 
+def get_straight_line(current_xy_own, goal_xy):
+    
+    own_x = current_xy_own[0]
+    own_y = current_xy_own[1]
+    goal_x = goal_xy[0]
+    goal_y = goal_xy[1]
+    
+    #angle = np.arctan2(goal_y-own_y,goal_x-own_x)
+    
+    traj_x = np.linspace(own_x, goal_x, 30)
+    traj_y = np.linspace(own_y, goal_y, 30)
+    return [traj_x,traj_y]
+    
+
 def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video, end_timestep):
     '''
     Returns a short term evasion trajectory, in steering commands for 
@@ -337,27 +351,34 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             except AttributeError:
                 pass
             
-        simulator.update()
-
-        simulator.update_timing()
-        
-        
-        
-        # return trajectories and signals
-        trajectories, signals = {}, {}
-        for vehicle in simulator.problem.vehicles:
-            trajectories[str(vehicle)] = vehicle.traj_storage
-            signals[str(vehicle)] = vehicle.signals
+        simulate = False
+        if simulate:
+            simulator.update()
+    
+            simulator.update_timing()
+            #output = get_straight_line(own_xy[timestep],goal_xy)
             
+            #plt.scatter(output[0],output[1])
+            
+            
+            # return trajectories and signals
+            trajectories, signals = {}, {}
+            for vehicle in simulator.problem.vehicles:
+                trajectories[str(vehicle)] = vehicle.traj_storage
+                signals[str(vehicle)] = vehicle.signals
+                
+                # Calculate the resulting trajectory and sample it to 30 values
+                trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
+                trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
+                
+                trajectory_30_x = sample_values(trajectory_xs, trajectory_length)
+                trajectory_30_y = sample_values(trajectory_ys, trajectory_length)
+            
+                resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
+        else:
             # Calculate the resulting trajectory and sample it to 30 values
-            trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
-            trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
             
-            trajectory_30_x = sample_values(trajectory_xs, trajectory_length)
-            trajectory_30_y = sample_values(trajectory_ys, trajectory_length)
-        
-            resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
-            
+            resulting_trajectories.append(get_straight_line(own_xy[timestep],goal_xy))
         
         
     
