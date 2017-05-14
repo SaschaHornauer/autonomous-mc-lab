@@ -97,7 +97,7 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    plot_video = False
+    plot_video = True
     
     # Enter here the carnames which should be considered
     for car in ['Mr_Black', 'Mr_Blue']:
