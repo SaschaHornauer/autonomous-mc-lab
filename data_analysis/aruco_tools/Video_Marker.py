@@ -221,7 +221,7 @@ class Video_Marker(object):
         ids = res[1]
         gray = frame
         markers = []
-        
+        safety_distance = 0.2
         evasion_needed = False
         safe_steer = None
         safe_motor = None
