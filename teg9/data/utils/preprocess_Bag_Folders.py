@@ -1,12 +1,7 @@
 from kzpy3.vis import *
-#import kzpy3.teg6.data.access.Bag_Folder as Bag_Folder
-import kzpy3.teg9.data.Bag_Folder as Bag_Folder
+import kzpy3.teg9.data.utils.Bag_Folder as Bag_Folder
 
-"""
-bag_folders_path_meta_path = opjD('bair_car_data/temp_meta_location/Smyth')
-bag_folders_path_rgb1to4_path = opjD('bair_car_data/rgb_1to4')
-preprocess_Bag_Folder(bag_folders_path_meta_path,bag_folders_path_rgb1to4_path,NUM_STATE_ONE_STEPS=30,graphics=False,accepted_states=[1])
-"""
+
 
 
 def preprocess_Bag_Folders(bag_folders_path_meta_path,bag_folders_path_rgb1to4_path,NUM_STATE_ONE_STEPS=30,graphics=False,accepted_states=[1],pkl_name='Bag_Folder.pkl'):

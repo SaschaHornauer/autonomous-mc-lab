@@ -1,5 +1,5 @@
-from kzpy3.teg7.data.preprocess_bag_data import *
-from kzpy3.teg7.data.Bag_File import *
+from kzpy3.teg9.data.utils.preprocess_bag_data import *
+from kzpy3.teg9.data.utils.Bag_File import *
 from kzpy3.misc.progress import *
 from kzpy3.vis import *
 
@@ -722,7 +722,7 @@ if False:
 			S5(i,flip=False)
 			S5(flip=True)
 
-if False
+if False:
 	for i in range(len(I[runs])):
 		if I[run_labels][I[runs][i]][reject_run] == False:
 			print i

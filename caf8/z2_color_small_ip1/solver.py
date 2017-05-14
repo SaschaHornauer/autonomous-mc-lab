@@ -127,9 +127,32 @@ def put_data_into_model(data,solver,b=0):
 	solver.net.blobs['metadata'].data[b,4,:,:] = Play
 	solver.net.blobs['metadata'].data[b,5,:,:] = Furtive
 
-	solver.net.blobs['steer_motor_target_data'].data[b,:10] = data['steer'][-10:]/99.
-	solver.net.blobs['steer_motor_target_data'].data[b,10:] = data['motor'][-10:]/99.
-	#
+
+	steer_cat = int(data['steer'][9]/10)
+	if steer_cat > 9:
+		steer_cat = 9
+	if steer_cat < 0:
+		steer_cat = 0
+	motor_cat = int(data['motor'][9]/10)
+	if motor_cat > 9:
+		motor_cat = 9
+	if motor_cat < 0:
+		motor_cat = 0
+
+	solver.net.blobs['steer_motor_target_data'].data[b,:] = 0
+	if steer_cat > 0:
+		solver.net.blobs['steer_motor_target_data'].data[b,steer_cat-1] = 0.5
+	solver.net.blobs['steer_motor_target_data'].data[b,steer_cat] = 1
+	if steer_cat < 9:
+		solver.net.blobs['steer_motor_target_data'].data[b,steer_cat+1] = 0.5
+
+	if motor_cat > 0:
+		solver.net.blobs['steer_motor_target_data'].data[b,10+motor_cat-1] = 0.5
+	solver.net.blobs['steer_motor_target_data'].data[b,10+motor_cat] = 1
+	if motor_cat < 9:
+		solver.net.blobs['steer_motor_target_data'].data[b,10+motor_cat+1] = 0.5	
+
+		
 	##########################################################
 
 

@@ -1,14 +1,11 @@
-replace_dic = {"REPO":'kzpy3',"TEG":'teg9'}; rd = replace_dic; sr = str_replace
-
-exec(sr("""
-from REPO.vis import *
+from kzpy3.vis import *
+import kzpy3.teg9.data.animate as animate
 import rospy
 import rosbag
 import cv2
 from cv_bridge import CvBridge,CvBridgeError
 import threading
-import REPO.TEG.data.animate as animate
-    """,rd))
+
 
 bridge = CvBridge()
 
@@ -53,42 +50,45 @@ def preprocess_bagfiles(A,path):
         bag = rosbag.Bag(path)
 
         color_mode = "rgb8"
-
-        for s in ['right']:
+        if 'image_ts' not in A:
+            A['image_ts'] = []
+        for s in ['left']:
             for m in bag.read_messages(topics=['/bair_car/zed/'+s+'/image_rect_color']):
                 t = round(m.timestamp.to_time(),3)
                 if A['t_previous'] > 0:            
                     if s == 'left':
                         A['left_deltas'].append([t,t-A['t_previous']])
                 A['t_previous'] = t
-                
+                A['image_ts'].append(t)
                 A['images'].append(bridge.imgmsg_to_cv2(m[1],color_mode))
-
-                if t not in A['meta']:
-                    print(d2s(t,"not in A['meta']"))
-                try:
-                    if A['SMOOTHING']:
-                        A['steer'].append((A['meta'][t]['steer']+A['steer_previous'])/2.0)
-                        A['motor'].append((A['meta'][t]['motor']+A['motor_previous'])/2.0)
-                        A['state'].append(A['meta'][t]['state'])
-                        A['steer_previous'] = A['steer'][-1]
-                        A['motor_previous'] = A['motor'][-1]
-                    else:
-                        A['steer'].append(A['meta'][t]['steer'])
-                        A['state'].append(A['meta'][t]['state'])
-                        A['motor'].append(A['meta'][t]['motor'])
-                except:
-                    A['steer'].append(0)
-                    A['state'].append(0)
-                    A['motor'].append(0)
-            figure("left_deltas")
-            hist(A['left_deltas'])
+                if False:
+                    if t not in A['meta']:
+                        print(d2s(t,"not in A['meta']"))
+                    try:
+                        if A['SMOOTHING']:
+                            A['steer'].append((A['meta'][t]['steer']+A['steer_previous'])/2.0)
+                            A['motor'].append((A['meta'][t]['motor']+A['motor_previous'])/2.0)
+                            A['state'].append(A['meta'][t]['state'])
+                            A['steer_previous'] = A['steer'][-1]
+                            A['motor_previous'] = A['motor'][-1]
+                        else:
+                            A['steer'].append(A['meta'][t]['steer'])
+                            A['state'].append(A['meta'][t]['state'])
+                            A['motor'].append(A['meta'][t]['motor'])
+                    except:
+                        A['steer'].append(0)
+                        A['state'].append(0)
+                        A['motor'].append(0)
+      
+            #figure("left_deltas")
+            #hist(A['left_deltas'])
     #except Exception as e:
     #    print e.message, e.args
     figure('left_deltas')
     clf()
-    A['left_deltas'] = array(A['left_deltas'])
-    hist(A['left_deltas'][:,1])
+    left_deltas = array(A['left_deltas'])
+    print(shape(left_deltas))
+    hist(left_deltas[:,1])
     plt.pause(0.01)
     print(d2s('Done in',timer.time(),'seconds'))
 
@@ -170,7 +170,7 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path):
 
 
 
-def get_new_A(_=None):
+def get_new_A():
     A = {}
     A['STOP_LOADER_THREAD'] = False
     A['STOP_ANIMATOR_THREAD'] = False
@@ -217,8 +217,9 @@ def main():
     if len(sys.argv) > 6:
         print("Too many arguments")
         return
-    A = {}
-    A = get_new_A(A)
+    A = get_new_A()
+    if bag_or_pkl == 'pkl':
+        A['scale'] = 3.0
     A['run_name'] = run_name
     A['loaded_collisions'] = None
     if False:
@@ -239,7 +240,8 @@ def main():
     else:
         assert(False)
     threading.Thread(target=animate.animate_with_key_control,args=[A]).start()
-    animate.graph(A)
+    if bag_or_pkl == 'pkl':
+        animate.graph(A)
 
 
 

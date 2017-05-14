@@ -1,5 +1,5 @@
-from kzpy3.teg7.data.preprocess_bag_data import *
-from kzpy3.teg7.data.Bag_File import *
+from kzpy3.teg9.data.utils.preprocess_bag_data import *
+from kzpy3.teg9.data.utils.Bag_File import *
 from kzpy3.misc.progress import *
 from kzpy3.vis import *
 
