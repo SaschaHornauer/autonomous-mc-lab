@@ -1,4 +1,5 @@
 import collections
+import numpy as np
 '''
 Create datatype for position, speed into heading and heading (x,y,v,psi)
 '''
@@ -10,7 +11,7 @@ lf = 13
 
 
 
-def getXYFor(x_0, y_0, t_0, v, psi, t, a, sigmF):
+def getXYFor(x_0, y_0, t_0, v, psi, t, a, delta):
     """
     Calculates the future position in meter, according to the model.
     Inputs: position at current time x_0, y_0
@@ -18,13 +19,13 @@ def getXYFor(x_0, y_0, t_0, v, psi, t, a, sigmF):
             current speed in direction of movement v
             point in time to calculate t
             applied acceleration a
-            steering angle over the front tire sigmF
+            steering angle over the front tire delta
     Note: The method is written for the model cars as used by Karl Zipser and Sascha Hornauer
     and the position of the center of gravity chosen respectively. Change lr and lf if it is elsewhere.
     """
     dt = t-t_0
 
-    beta = np.arctan((lr/lf+lr)*np.tan(sigmF))
+    beta = np.arctan((lr/lf+lr)*np.tan(delta))
 
     dpsi = (v/lr)*np.sin(beta)
     psi = psi + dpsi*dt

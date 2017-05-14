@@ -128,30 +128,23 @@ def get_center_circle_points(own_xys):
 
 
 def get_straight_line(current_xy_own, goal_xy):
-    
+    # We observe the goal and our own position
     own_x = current_xy_own[0]
     own_y = current_xy_own[1]
     goal_x = goal_xy[0]
     goal_y = goal_xy[1]
     
-    #angle = np.arctan2(goal_y-own_y,goal_x-own_x)
-    
+    # Then we create the straight line path towards our goal
     traj_x = np.linspace(own_x, goal_x, 30)
     traj_y = np.linspace(own_y, goal_y, 30)
-#     t = np.linspace(np.pi/2.,3*np.pi/2.,30)
-#     print np.sin(t)
-#     
-#     center_x = traj_x[len(traj_x)/2]
-#     center_y = traj_y[len(traj_y)/2]
-#     
-#     diff_x = traj_x-center_x
-#     diff_y = traj_y-center_y
-#     
-#     corr_x =  np.sin(t)*diff_y
-#     corr_y =  np.sin(t)*diff_x
-# 
-#     traj_x = traj_x+corr_x
-#     traj_y = traj_y+corr_y
+    
+    
+
+
+
+
+
+
     return [traj_x,traj_y]
     
 

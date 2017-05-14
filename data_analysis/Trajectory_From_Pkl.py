@@ -8,10 +8,11 @@ import pickle
 import numpy as np
 from operator import add, div
 from trajectory_generator import collision_scanner
-from trajectory_generator import evasion_generator_simple as evasion_generator
+from trajectory_generator import evasion_generator_bicycle as evasion_generator
 from trajectory_generator.trajectory_tools import *
 import matplotlib.pyplot as plt
 import sys
+
 import copy
 from timeit import default_timer as timer
 
