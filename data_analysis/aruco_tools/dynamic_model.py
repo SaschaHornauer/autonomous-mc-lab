@@ -41,7 +41,7 @@ def getXYFor(x_0, y_0, t_0, v, psi, t, a, delta):
     dv = a
     v = v + dv*dt
     
-    answer = ModelAnswer(x,y,v,psi)
+    answer = [x,y,v,psi]
     # Model implemented after http://www.me.berkeley.edu/~frborrel/pdfpub/IV_KinematicMPC_jason.pdf
     return answer
 
