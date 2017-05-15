@@ -213,9 +213,23 @@ def graph(A):
             plot(acc_y_smooth[:],'g')
             plot(acc_z_smooth[:],'b')
             plot(acc_xyz[:],'k')
+            """
             gyro_x = array(A['gyro_x'])
             gyro_y = array(A['gyro_y'])
             gyro_z = array(A['gyro_z'])
+            #plot(gyro_x,'r')
+            #plot(gyro_y,'g')
+            #plot(gyro_z,'b')
+            sq_gyro = np.sqrt(gyro_y**2+gyro_z**2)
+            sq_gyro_smooth = []
+            N = 10
+            for i in range(N,len(sq_gyro)):
+                sq_gyro_smooth.append(sq_gyro[i-N:i].max())
+            sq_gyro_smooth = array(sq_gyro_smooth)
+
+            plot(sq_gyro/3.0-50,'g')
+            plot(sq_gyro_smooth/3.0-50,'k')
+            """
             gyro_x_smooth = 1.*gyro_x
             for i in range(N,len(gyro_x)):
                 gyro_x_smooth[i] = gyro_x[i-N:i].mean()
@@ -234,7 +248,7 @@ def graph(A):
             #multi_d = sqrt( (gyro_x/50.)**2 + (gyro_y/40.)**2 + (gyro_z/30.)**2 + ((acc_x-0.5)/2.5)**2 + ((acc_y-9.8)/5)**2 + ((acc_z-0.5)/2.5)**2 ) 
             #plot(multi_d,'ko-')
             """
-            ylim(-5,105)
+            ylim(-105,105)
             if False: #hist_timer.check():
                 figure('left_deltas')
                 left_deltas = array(A['left_deltas'])
