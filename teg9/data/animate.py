@@ -8,6 +8,8 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
         bar_color = [0,0,255]
     elif state == 6:
         bar_color = [255,0,0]
+    elif state == 3:
+        bar_color = [200,55,0]
     elif state == 5:
         bar_color = [255,255,0]
     elif state == 7:
@@ -15,6 +17,7 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
     elif state == 2:
         bar_color = [100,100,100]
     else:
+        print state
         bar_color = [0,0,0]
     if steer != None:
         apply_rect_to_img(img,steer,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=True)

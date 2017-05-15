@@ -10,7 +10,7 @@ layer {
 	dummy_data_param {
 		shape {
 			dim: 1
-			dim: 60
+			dim: 220
 		}
 	}
 }
@@ -207,7 +207,7 @@ layer {
 	bottom: "ip1"
 	top: "ip2"
 	inner_product_param {
-		num_output: 60
+		num_output: 220
 		weight_filler {
 			type: "xavier" 
 		}
