@@ -16,7 +16,6 @@ if __name__ == "__main__":
     my_bagfile = Bagfile_Handler('/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-33-12_20.bag', 
                                  ['/bair_car/zed/left/image_rect_color', '/bair_car/zed/right/image_rect_color'])
     
-
     bridge = CvBridge()
     
     topic, msg, timestamp = my_bagfile.get_bag_content()

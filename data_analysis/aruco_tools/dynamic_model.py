@@ -5,8 +5,8 @@ Create datatype for position, speed into heading and heading (x,y,v,psi)
 '''
 ModelAnswer = collections.namedtuple('ModelAnswer', ['x', 'y', 'v', 'psi'])
 
-lr = 12
-lf = 13
+lr = 0.12
+lf = 0.13
 
 
 
