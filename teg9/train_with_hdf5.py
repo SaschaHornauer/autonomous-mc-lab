@@ -31,7 +31,7 @@ if True:
 	weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
-	gpu = 0
+	gpu = 1
 
 
 if False:
