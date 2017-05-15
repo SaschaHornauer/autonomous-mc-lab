@@ -70,6 +70,9 @@ class Trajectory_From_Pkl:
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
             own_xy = zip(own_x, own_y)
+    
+            # To follow the circle we just set it to None
+            goal_trajectory_data = None
             
             evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_trajectory_data))
             timestamps = actual_trajectories[car]['timestamps']
@@ -100,7 +103,7 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    plot_video = True
+    plot_video = False
     
     # Enter here the carnames which should be considered
     for car in ['Mr_Black', 'Mr_Blue']:
