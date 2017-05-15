@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import aruco_tools.aruco_annotator
 from aruco_tools.Video_Marker import Video_Marker
-from Bagfile_Handler import Bagfile_Handler
+from data_parsing.Bagfile_Handler import Bagfile_Handler
 from aruco_tools.aruco_angle_retriever import get_boundary_angle_min_distance
 
 class Crash_Detector:

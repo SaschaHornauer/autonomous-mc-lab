@@ -16,7 +16,7 @@ import copy
 import time
 import numpy.linalg
 from timeit import default_timer as timer
-from data_analysis.aruco_tools.dynamic_model import getXYFor
+
 
 framerate = 1. / 30.
 
