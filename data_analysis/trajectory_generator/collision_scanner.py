@@ -9,39 +9,78 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
+import sys
 
-def get_close_encounters(own_xys, other_xys, timesteps):
+def get_close_encounters(own_xys, other_xys, list_of_timestamps):
     '''
     own and other xy coordinates are expected in the following format:
     
     own_data = 'pos_xy':[2]
     other_data = 'other_xy':[2] 
-    timesteps = list of timesteps 
+    list_of_timestamps = list of list_of_timestamps 
     '''
     # Get triangle in front of the vehicle ( THIS IS A SIMPLIFICATION ) 
         
     encounter_list = []
     triangle_points = {}
 
-    smooth_over_timesteps = 3
+    smooth_over_list_of_timestamps = 3
     own_xys = np.transpose(own_xys)
     other_xys = np.transpose(other_xys)
     
-    for t in range(smooth_over_timesteps,len(timesteps)):
+    for t in range(smooth_over_list_of_timestamps,len(list_of_timestamps)):
         
-        current_own_xys = own_xys[t-smooth_over_timesteps:t]
+        current_own_xys = own_xys[t-smooth_over_list_of_timestamps:t]
         
         triangle_fov = get_fov_one_camera(current_own_xys,get_heading(current_own_xys),66.,1.5)
                 
         point_xy = Point(other_xys[t][0], other_xys[t][1])
             
         if(triangle_fov.isInside(point_xy)):
-            encounter_list.append(timesteps[t])
-            triangle_points[str(timesteps[t])]=triangle_fov
+            encounter_list.append(list_of_timestamps[t])
+            triangle_points[str(list_of_timestamps[t])]=triangle_fov
             print(t)
         
     return encounter_list, triangle_points
 
+def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep):
+    # Get triangle in front of the vehicle ( THIS IS A SIMPLIFICATION ) 
+        
+    encounter_list = []
+    other_positions = []
+    triangle_points = {}
+    smooth_over_list_of_timestamps = 3
+   
+    for t in range(start_timestep+smooth_over_list_of_timestamps,end_timestep):
+        
+        current_own_xys = own_xys[t-smooth_over_list_of_timestamps:t]
+        
+        # distance chosen is 1.5 m, field of view of one of the stereo cameras is 66
+        triangle_fov = get_fov_one_camera(current_own_xys,get_heading(current_own_xys),66.,1.5)
+        
+        closest_xy = None
+
+        for other_car_id in range(0,len(other_xys)):
+            # For all other car positions at that point in time t
+            # This has to be a Point of a certain datastructure to make easy computation
+            # of the triangle approach possible
+            other_xy = Point(other_xys[other_car_id][t][0], other_xys[other_car_id][t][1])
+            
+            # Get the closest of that positions
+            if closest_xy == None:
+                closest_xy = other_xy
+            else:
+                new_dist = np.hypot(other_xy[0]-current_own_xys[0],other_xy[1]-current_own_xys[1])
+                old_dist = np.hypot(closest_xy[0]-current_own_xys[0],closest_xy[1]-current_own_xys[1])
+                if new_dist < old_dist:
+                    closest_xy = other_xy
+        # If that closest other xy point lies in the FOV add it to the list
+        if(triangle_fov.isInside(closest_xy)):
+            encounter_list.append(t)
+            other_positions.append(closest_xy)
+            triangle_points[str(t)]=triangle_fov
+            
+    return encounter_list, other_positions, triangle_points
 
 def get_fov_one_camera(xy, heading, fov_angle, distance):
     '''
