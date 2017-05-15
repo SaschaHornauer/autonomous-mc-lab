@@ -8,10 +8,11 @@ import pickle
 import numpy as np
 from operator import add, div
 from trajectory_generator import collision_scanner
-from trajectory_generator import evasion_generator_simple as evasion_generator
+from trajectory_generator import evasion_generator_bicycle as evasion_generator
 from trajectory_generator.trajectory_tools import *
-import matplotlib.pyplot as plt
+
 import sys
+
 import copy
 from timeit import default_timer as timer
 
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     evasion_trajectories = {}
     actual_trajectories = {}
     
-    plot_video = True
+    plot_video = False
     
     # Enter here the carnames which should be considered
     for car in ['Mr_Black', 'Mr_Blue']:
@@ -114,7 +115,6 @@ if __name__ == '__main__':
     end_timestep = len(actual_trajectories.itervalues().next()['timestamps'])
     
     evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video, int(start_timestep), int(end_timestep))
-    
     
     end = timer()
     print evasion_trajectories
