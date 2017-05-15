@@ -145,9 +145,9 @@ def get_straight_line(current_xy_own, heading, delta, goal_xy, speed):
     act_pos_y = own_y
     
     #For now a steady speed is assumed, later this can be changed
-    speed = 0.15
+    speed = 0.1
     
-    for i in range(30):
+    for i in range(120):
        
         # Get the straight angle to the goal
         angle_own_goal = np.arctan2(goal_y - act_pos_y, goal_x - act_pos_x)
@@ -179,12 +179,13 @@ def get_straight_line(current_xy_own, heading, delta, goal_xy, speed):
     
         act_pos_x = answer[0]
         act_pos_y = answer[1]
+        
         heading = answer[3]
 
     return [final_traj_x, final_traj_y]
     
 
-def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video, end_timestep):
+def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video, end_timestep,goal_trajectory_data = None):
     '''
     Returns a short term evasion trajectory, in steering commands for 
     as many timesteps ahead as given in between timestep_start and timestep_ahead.
@@ -208,7 +209,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     resulting_trajectories = []
     simulate = False
     
-    goal_xys = get_center_circle_points(own_xy)
+    if goal_trajectory_data != None:
+        goal_xys=goal_trajectory_data
+    else:
+        goal_xys = get_center_circle_points(own_xy)
     
     # For each obstacle in the obstacle trajectory list we create segments from
     # the trajectories to improve computability.
@@ -253,8 +257,13 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     # for the time being that the steering angle is 0. This can be changed in the future, based on existing data.
     
     init_xy_own = own_xy[timestep_start] 
-    # goal_xy = own_xy[timestep_start + d_timestep_goal] 
-    goal_xy = goal_xys[timestep_start + d_timestep_goal]
+    
+    # If there is a circle to follow, the timesteps will be used to avoid planning the goal
+    # in another obstacle. If a car is followed, the goal has to be followed exactly
+    if goal_trajectory_data:
+        goal_xy=goal_xys[timestep_start]
+    else:
+        goal_xy = goal_xys[timestep_start + d_timestep_goal]
 
     # Change this by a tangential angle to the center circle TODO FIX
     vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
@@ -312,7 +321,10 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             if d_timestep_goal > goal_ideal_distance:
                 d_timestep_goal -= 1
             try:
-                goal_xy = goal_xys[timestep + d_timestep_goal]
+                if goal_trajectory_data:
+                    goal_xy= goal_xys[timestep]
+                else:
+                    goal_xy = goal_xys[timestep + d_timestep_goal]
             except IndexError:
                 goal_xy = goal_xys[len(own_xy) - 1]
                 print "IndexError: " + str(timestep + d_timestep_goal)
@@ -334,10 +346,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                     break
                 
                 if goal_near_obstacle:
-                    # Look for a new goal along the trajectory
-                    # TODO. Handle end of trajectory here
+                    # Look for a new goal along the trajectory if there is no explicit trajectory
+                    # to follow for the goal
                     d_timestep_goal += 10 
-                    goal_xy = goal_xys[timestep + d_timestep_goal]
+                    if not goal_trajectory_data:
+                        goal_xy = goal_xys[timestep + d_timestep_goal]
                     
                 if vehicle_near_obstacle:
                     # Skip a number of simulation runs, create emergency
@@ -362,7 +375,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                         
             # Check if goal is too close to the boundary or rather if the distance to
             # the center is too large
-            while (distance_2d(goal_xy, [0.0, 0.0]) > (diameter_arena - allowed_goal_distance)):
+            # The check is not used if the goal has to be on a certain trajectory 
+            while (distance_2d(goal_xy, [0.0, 0.0]) > (diameter_arena - allowed_goal_distance) and goal_trajectory_data == None):
                 # Otherwise, look for a new goal along the trajectory
                 d_timestep_goal += 10
                 if timestep + d_timestep_goal > no_datapoints:
