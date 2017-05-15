@@ -70,8 +70,8 @@ def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep)
             if closest_xy == None:
                 closest_xy = other_xy
             else:
-                new_dist = np.hypot(other_xy.x-current_own_xys[0],other_xy.y-current_own_xys[1])
-                old_dist = np.hypot(closest_xy.x-current_own_xys[0],closest_xy.y-current_own_xys[1])
+                new_dist = np.hypot(other_xy.x-np.mean([i[0] for i in current_own_xys]),other_xy.y-np.mean([i[1] for i in current_own_xys]))
+                old_dist = np.hypot(closest_xy.x-np.mean([i[0] for i in current_own_xys]),closest_xy.y-np.mean([i[1] for i in current_own_xys]))
                 if new_dist < old_dist:
                     closest_xy = other_xy
         # If that closest other xy point lies in the FOV add it to the list

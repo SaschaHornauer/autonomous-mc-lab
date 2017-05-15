@@ -78,7 +78,8 @@ class Trajectory_From_Pkl:
         for i in range(0,len(encounter_situations)):
             
             if i == len(encounter_situations)-1:
-                segments.append(inner_segment_list)
+                if inner_segment_list:
+                    segments.append(inner_segment_list)
                 break
             
             if encounter_situations[i+1]-encounter_situations[i] > allowed_gap:
@@ -87,7 +88,8 @@ class Trajectory_From_Pkl:
                 segment_counter += 1
                 inner_segment_list = []
                 continue
-            else:                
+            else:
+                
                 inner_segment_list.append(encounter_situations[i])
                 
             
@@ -163,7 +165,7 @@ class Trajectory_From_Pkl:
                     
                     time_segments = self.get_continous_segments(encounter_timestep)
                     # Add those points to the goal trajectory. 
-                    
+                    print time_segments
                     goal_xys = [None] * time_segments[-1][-1]
                     
                     evasion_segment_data = []
