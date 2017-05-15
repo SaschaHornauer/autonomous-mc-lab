@@ -27,9 +27,10 @@ class Trajectory_From_Pkl:
     def __init__(self, pkl_filename=None, framerate=1. / 30.):
         pass
 
-    def get_trajectory(self, actual_trajectories, plot_video, start_timestep, end_timestep):
+    def get_trajectory(self, actual_trajectories, plot_video, start_timestep, end_timestep, goal_trajectory):
         self.timestep_offset = start_timestep
         evasion_trajectory_data = {}
+        
         
         # For all cars in actual trajectories
         for car in actual_trajectories:
@@ -42,7 +43,7 @@ class Trajectory_From_Pkl:
             other_positions = []
             # As long as there is only one other car we fake second one
             fake_positions = []
-            
+                        
             for other_cars in other_trajectories:
                 other_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
                 fake_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
@@ -52,7 +53,9 @@ class Trajectory_From_Pkl:
             
             evasion_trajectories = {}
             
-             
+            # Add goal trajectory
+            goal_trajectory_data = zip(goal_trajectory['position'][0][0], goal_trajectory['position'][1][0])
+            
             # Get the short term trajectory
             own_trajectory = own_trajectories['position']
 
@@ -67,8 +70,11 @@ class Trajectory_From_Pkl:
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
             own_xy = zip(own_x, own_y)
+    
+            # To follow the circle we just set it to None
+            goal_trajectory_data = None
             
-            evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep))
+            evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_trajectory_data))
             timestamps = actual_trajectories[car]['timestamps']
             evasion_trajectory_data[car] = {'timestamps':timestamps, 'trajectories':evasion_trajectories}
             
@@ -114,7 +120,11 @@ if __name__ == '__main__':
     start_timestep = 0
     end_timestep = len(actual_trajectories.itervalues().next()['timestamps'])
     
-    evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video, int(start_timestep), int(end_timestep))
+    # As an example take the trajectory from Mr Blue to follow
+    goal_trajectory = actual_trajectories['Mr_Blue']
+    
+    
+    evasion_trajectories = trajectory_getter.get_trajectory(actual_trajectories, plot_video, int(start_timestep), int(end_timestep), goal_trajectory)
     
     end = timer()
     print evasion_trajectories

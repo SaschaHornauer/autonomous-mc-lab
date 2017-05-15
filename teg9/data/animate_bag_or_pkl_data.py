@@ -195,11 +195,15 @@ def get_new_A():
     return A
 
 
-
+#A = get_new_A()
 def main():
+     
+    #bag_or_pkl = 'pkl'#sys.argv[1]
+    #data_path = '/home/karlzipser/Desktop/bair_car_data_Main_Dataset'#sys.argv[2]
+    #run_name = 'follow_26Aug2016_Mr_Orange_Tilden_1'#fname(sys.argv[3])
     bag_or_pkl = sys.argv[1]
     data_path = sys.argv[2]
-    run_name = sys.argv[3]
+    run_name = fname(sys.argv[3])
     if bag_or_pkl == 'bag':
         print('Working with bag files')
     elif bag_or_pkl == 'pkl':

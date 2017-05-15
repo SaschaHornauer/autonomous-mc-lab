@@ -52,8 +52,8 @@ pkl_name='Bag_Folder.pkl' # if different from 'Bag_Folder.pkl', (e.g., 'Bag_Fold
 preprocess_Bag_Folders.preprocess_Bag_Folders(bag_folders_dst_meta_path,
 	bag_folders_dst_rgb1to4_path
 	,NUM_STATE_ONE_STEPS=NUM_STATE_ONE_STEPS,
-	graphics=graphics,accepted_states=accepted_states.
-	pkl_name)
+	graphics=graphics,accepted_states=accepted_states,
+	pkl_name=pkl_name)
 
 os.rename(bag_folders_src,opj(bag_folders_src_location,'processed'))
 

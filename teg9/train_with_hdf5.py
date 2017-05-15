@@ -5,7 +5,7 @@ import caffe
 REPO = 'kzpy3'
 TEG = 'teg9'
 CAF = 'caf8'
-DISPLAY = True
+DISPLAY = False
 
 ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
 require_one = [] # at least one of this type of run lable is required
@@ -31,7 +31,7 @@ if True:
 	weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
-	gpu = 0
+	gpu = 1
 
 
 if False:
