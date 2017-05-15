@@ -46,7 +46,7 @@ def get_close_encounters(own_xys, other_xys, list_of_timestamps):
 def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep):
     # Get triangle in front of the vehicle ( THIS IS A SIMPLIFICATION ) 
         
-    encounter_list = []
+    encounter_timestep = []
     other_positions = []
     triangle_points = {}
     smooth_over_list_of_timestamps = 3
@@ -70,17 +70,17 @@ def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep)
             if closest_xy == None:
                 closest_xy = other_xy
             else:
-                new_dist = np.hypot(other_xy[0]-current_own_xys[0],other_xy[1]-current_own_xys[1])
-                old_dist = np.hypot(closest_xy[0]-current_own_xys[0],closest_xy[1]-current_own_xys[1])
+                new_dist = np.hypot(other_xy.x-current_own_xys[0],other_xy.y-current_own_xys[1])
+                old_dist = np.hypot(closest_xy.x-current_own_xys[0],closest_xy.y-current_own_xys[1])
                 if new_dist < old_dist:
                     closest_xy = other_xy
         # If that closest other xy point lies in the FOV add it to the list
         if(triangle_fov.isInside(closest_xy)):
-            encounter_list.append(t)
+            encounter_timestep.append(t)
             other_positions.append(closest_xy)
             triangle_points[str(t)]=triangle_fov
             
-    return encounter_list, other_positions, triangle_points
+    return encounter_timestep, other_positions, triangle_points
 
 def get_fov_one_camera(xy, heading, fov_angle, distance):
     '''
@@ -102,46 +102,46 @@ def get_fov_one_camera(xy, heading, fov_angle, distance):
     return Triangle(to_point(a), to_point(b), to_point(c))
 
 if __name__ == '__main__':
-    home = os.path.expanduser("~")
-    pickle_file = pickle.load(open(home + '/kzpy3/teg9/trajectories.pkl', "rb"))
-
-    t1 = 1493425694.71+5
-    t2 = 1493425899.676476 - 100
-    timestamps = np.arange(t1,t2,1/30.)
-    
-    show_only_encounters = False
-    
-    xy_black = [pickle_file['Mr_Black']['left'][0](timestamps),pickle_file['Mr_Black']['left'][1](timestamps)]
-    xy_blue  = [pickle_file['Mr_Blue']['left'][0](timestamps),pickle_file['Mr_Blue']['left'][1](timestamps)]
-    
-    encounters, triangle_fov = get_close_encounters(xy_black, xy_blue, timestamps)
-    
-    plt.figure('top',figsize=(6,6)) 
-
-    if show_only_encounters:
-        timestamps = encounters
-    
-    print ("Encounters at " + str(timestamps))
-    color = 'black'
-    for car in ['Mr_Black','Mr_Blue']:
-        for side in ['left','right']:
-            x = pickle_file[car][side][0](timestamps)
-            y = pickle_file[car][side][1](timestamps)
-            plt.plot(x,y,'.',color=color)
-        color = 'blue'
-
-    # Draw triangles 
-    for triangle_key in triangle_fov:
-         
-        triangle = triangle_fov[triangle_key]
-        
-        a = triangle.a
-        b = triangle.b
-        c = triangle.c
-         
-        plt.plot((a.x,b.x,c.x,a.x), (a.y,b.y,c.y,a.y), 'r')
-         
-        plt.axes().set_aspect('equal', 'datalim')
-        
-    plt.show()
-
+#     home = os.path.expanduser("~")
+#     pickle_file = pickle.load(open(home + '/kzpy3/teg9/trajectories.pkl', "rb"))
+# 
+#     t1 = 1493425694.71+5
+#     t2 = 1493425899.676476 - 100
+#     timestamps = np.arange(t1,t2,1/30.)
+#     
+#     show_only_encounters = False
+#     
+#     xy_black = [pickle_file['Mr_Black']['left'][0](timestamps),pickle_file['Mr_Black']['left'][1](timestamps)]
+#     xy_blue  = [pickle_file['Mr_Blue']['left'][0](timestamps),pickle_file['Mr_Blue']['left'][1](timestamps)]
+#     
+#     encounters, triangle_fov = get_close_encounters(xy_black, xy_blue, timestamps)
+#     
+#     plt.figure('top',figsize=(6,6)) 
+# 
+#     if show_only_encounters:
+#         timestamps = encounters
+#     
+#     print ("Encounters at " + str(timestamps))
+#     color = 'black'
+#     for car in ['Mr_Black','Mr_Blue']:
+#         for side in ['left','right']:
+#             x = pickle_file[car][side][0](timestamps)
+#             y = pickle_file[car][side][1](timestamps)
+#             plt.plot(x,y,'.',color=color)
+#         color = 'blue'
+# 
+#     # Draw triangles 
+#     for triangle_key in triangle_fov:
+#          
+#         triangle = triangle_fov[triangle_key]
+#         
+#         a = triangle.a
+#         b = triangle.b
+#         c = triangle.c
+#          
+#         plt.plot((a.x,b.x,c.x,a.x), (a.y,b.y,c.y,a.y), 'r')
+#          
+#         plt.axes().set_aspect('equal', 'datalim')
+#         
+#     plt.show()
+    pass

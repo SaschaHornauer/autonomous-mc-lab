@@ -70,11 +70,11 @@ class Trajectory_From_Pkl:
         # We go through the list of encounter situations and allow
         # for a certain gap where the other car is not visible
         segments = []
-                
+        
         allowed_gap = 3
         segment_counter = 0
         inner_segment_list = []
-        print encounter_situations
+        
         for i in range(0,len(encounter_situations)):
             
             if i == len(encounter_situations)-1:
@@ -108,13 +108,22 @@ class Trajectory_From_Pkl:
             
             # Create a list containing all other trajectories
             other_positions = []
-            # As long as there is only one other car we fake second one
-            fake_positions = []
+            # As long as there is only one other car we fake second one by taking its trajectory 
+            # and turning it aroudn
+            
+            first_trajectory_in_dict = other_trajectories.itervalues().next()
+            fake_timestamps = first_trajectory_in_dict['timestamps']
+            fake_positions = first_trajectory_in_dict['position'][::-1]
+            
+            fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
+            other_trajectories['Mr_Fake']=fake_trajectory
+            
+            
                         
             for other_cars in other_trajectories:
                 other_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
-                fake_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
-            
+                
+                                    
             # Now calculate the evasive trajectory for the car
             own_trajectories = actual_trajectories[car]
             
@@ -124,12 +133,14 @@ class Trajectory_From_Pkl:
             own_trajectory = own_trajectories['position']
 
             # Reverse all the positions to get fake positions
-            fake_positions = fake_positions[0][::-1]
-    
+            #fake_positions = fake_positions[0][::-1]
             # TODO: Create a sensible way to include the other cars
             #other_xy = []
             #other_xy.append(other_positions[0])
             #other_xy.append(fake_positions)
+            
+    
+    
                         
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
@@ -139,30 +150,39 @@ class Trajectory_From_Pkl:
                 
                 if act_mode == behavior.circle:
                     goal_xys = evasion_generator.get_center_circle_points(own_xy)
+                    
+                    trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_positions, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_xys)
+                    resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
+                    timestamps = actual_trajectories[car]['timestamps']
+                    evasion_trajectory_data[car] = {'timestamps':timestamps, 'trajectories':resulting_trajectories}
                 elif act_mode == behavior.follow:
                     
-                    # First find all the points in the dataset where another car is actually visible
+                    # First find all the points in the dataset where another car is actually close
                     
-                    encounter_situations, closest_xys, _ = collision_scanner.get_close_encounters_in_list(own_xy, other_positions, start_timestep, end_timestep)
+                    encounter_timestep, closest_xys, _ = collision_scanner.get_close_encounters_in_list(own_xy, other_positions, start_timestep, end_timestep)
                     
-                    time_segments = self.get_continous_segments(encounter_situations)
+                    time_segments = self.get_continous_segments(encounter_timestep)
                     # Add those points to the goal trajectory. 
-
-                    print closest_xys
-                    print time_segments
-                    sys.exit(0)                    
-                    # Add goal trajectory
-                    goal_trajectory_data = closest_xys[time_segments]
+                    
+                    goal_xys = [None] * time_segments[-1][-1]
+                    
+                    evasion_segment_data = []
+                    for segment in time_segments:
+                        
+                        start_time = segment[0]
+                        end_time = segment[len(segment)-1]
+                        
+                        # Add goal trajectory
+                        goal_xys[start_time:end_time] = points_to_list(closest_xys)
+                        
+                        trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, len(segment), goal_xys)
+                        resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
+                        timestamps = actual_trajectories[car]['timestamps']
+                        evasion_segment_data.append({'timestamps':timestamps, 'trajectories':resulting_trajectories})
+                    
+                    
+                    evasion_trajectory_data[car]=evasion_segment_data
                 
-                
-                # The goal_xys positions will be followed while the underlying trajectory planner
-                # takes care of boundary and obstacle evasion. If it should follow the car in sight
-                # or try to go in a circle is decided here            
-             
-                trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_xys)
-                resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
-                timestamps = actual_trajectories[car]['timestamps']
-                evasion_trajectory_data[car] = {'timestamps':timestamps, 'trajectories':resulting_trajectories}
             
         return evasion_trajectory_data
         

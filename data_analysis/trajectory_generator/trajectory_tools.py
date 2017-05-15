@@ -126,6 +126,17 @@ def to_point(xy):
     # Convenience method to convert an arbitrary tuple/array to a point
     return Point(xy[0],xy[1])
 
+def distance_of_points(point_a, point_b):
+    return distance_2d((point_a.x,point_a.y), (point_b.x,point_b.y))
+
+def points_to_list(points):
+    return_points = []
+    
+    for point in points:
+        return_points.append((point.x,point.y))
+        
+    return return_points
+
 class Triangle:
     """Represents a triangle in R^2."""
 
