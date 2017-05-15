@@ -3,7 +3,7 @@ Created on May 8, 2017
 
 @author: picard
 '''
-from trajectory_tools import *
+from trajectory_generator.trajectory_tools import *
 import cPickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np

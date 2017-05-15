@@ -8,7 +8,7 @@ from kzpy3.data_analysis.trajectory_generator.trajectory_tools import *
 import cv2
 import sys
 import matplotlib.pyplot as plt
-
+from trajectory_generator.collision_scanner import get_close_encounters
 from omgtools.problems.point2point import FreeEndPoint2point
 from aruco_tools.dynamic_model import *
 from operator import add
@@ -92,9 +92,6 @@ def get_center_trajectory(heading, current_xy_own, trajectory_length):
     else:
         return np.ones(trajectory_length) * np.pi / 2.
 
-    
-
-
 
 def get_center_circle_points(own_xys):
     
@@ -128,8 +125,6 @@ def get_center_circle_points(own_xys):
         
     return goalxys
     
-
-
 
 def get_straight_line(current_xy_own, heading, delta, goal_xy, speed):
     # We observe the goal and our own position
@@ -209,11 +204,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     resulting_trajectories = []
     simulate = False
     
-    if goal_trajectory_data != None:
-        goal_xys=goal_trajectory_data
-    else:
-        goal_xys = get_center_circle_points(own_xy)
-    
+    goal_xys=goal_trajectory_data
+        
     # For each obstacle in the obstacle trajectory list we create segments from
     # the trajectories to improve computability.
 
