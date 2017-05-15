@@ -73,6 +73,28 @@ class Trajectory_From_Pkl:
     
             # To follow the circle we just set it to None
             goal_trajectory_data = None
+            # follow: 
+            # follow the car in view, 
+            # the nearest car
+            # adjust speed
+            # evade boundary
+            #
+            # circle EVADE OTHER 
+            # EVADE BOUNDARY
+            # adjust speed 
+            # 
+            # stop if in a car is too close 
+            #             
+            # 0-99,0-99,49
+            #
+            # furtive: 
+            # close edges
+            # 
+            # play: 
+            # close, speed more
+
+            # pkl -> dict
+
             
             evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_trajectory_data))
             timestamps = actual_trajectories[car]['timestamps']
