@@ -145,9 +145,9 @@ def get_straight_line(current_xy_own, heading, delta, goal_xy, speed):
     act_pos_y = own_y
     
     #For now a steady speed is assumed, later this can be changed
-    speed = 0.1
+    speed = 0.2
     
-    for i in range(120):
+    for i in range(30):
        
         # Get the straight angle to the goal
         angle_own_goal = np.arctan2(goal_y - act_pos_y, goal_x - act_pos_x)
