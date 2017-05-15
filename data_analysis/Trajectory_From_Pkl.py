@@ -70,7 +70,7 @@ class Trajectory_From_Pkl:
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
             own_xy = zip(own_x, own_y)
-            goal_trajectory_data = None
+            
             evasion_trajectories = convert_delta_to_steer(evasion_generator.get_evasive_trajectory(own_xy, other_xy, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_trajectory_data))
             timestamps = actual_trajectories[car]['timestamps']
             evasion_trajectory_data[car] = {'timestamps':timestamps, 'trajectories':evasion_trajectories}
