@@ -19,7 +19,7 @@ from timeit import default_timer as timer
 
 
 class Trajectory_From_Pkl:
-    
+    fake_more_entries = False
     calculation_horizon = 20  # timesteps
     goal_lookahead = 60
     timestep_offset = 0
@@ -113,13 +113,14 @@ class Trajectory_From_Pkl:
             # As long as there is only one other car we fake second one by taking its trajectory 
             # and turning it aroudn
             
-            first_trajectory_in_dict = other_trajectories.itervalues().next()
-            fake_timestamps = first_trajectory_in_dict['timestamps']
-            fake_positions = first_trajectory_in_dict['position'][::-1]
-             
-            fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
-            other_trajectories['Mr_Fake']=fake_trajectory
-             
+            if self.fake_more_entries:
+                first_trajectory_in_dict = other_trajectories.itervalues().next()
+                fake_timestamps = first_trajectory_in_dict['timestamps']
+                fake_positions = first_trajectory_in_dict['position'][::-1]
+                 
+                fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
+                other_trajectories['Mr_Fake']=fake_trajectory
+                 
             
                         
             for other_cars in other_trajectories:
