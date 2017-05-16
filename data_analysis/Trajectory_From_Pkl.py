@@ -22,7 +22,7 @@ class Trajectory_From_Pkl:
     fake_more_entries = False
     calculation_horizon = 20  # timesteps
     goal_lookahead = 60
-    timestep_offset = 1930
+    timestep_offset = 0
     # adding furtive and play later TODO FIXIT
     trajectories = {}
     

@@ -19,7 +19,7 @@ if __name__ == '__main__':
     
     modes = [behavior.follow, behavior.circle]
     
-    show_graphics = False
+    show_graphics = True
     
     resulting_trajectories = get_trajectories(pickle_path, t1, t2, modes, show_graphics)
     
