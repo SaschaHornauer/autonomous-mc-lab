@@ -641,3 +641,41 @@ def str_replace(input_str,replace_dic):
     for r in replace_dic:
         input_str = input_str.replace(r,replace_dic[r])
     return input_str
+
+def srtky(d):
+    return sorted(d.keys())
+
+def get_key_sorted_elements_of_dic(d,specific=None):
+
+    ks = srtky(d)
+    els = []
+    for k in ks:
+        if specific == None:
+            els.append(d[k])
+        else:
+            els.append(d[k][specific])
+    return ks,els
+
+
+def mean_of_upper_range(data,min_proportion,max_proportion):
+    return array(sorted(data))[int(len(data)*min_proportion):int(len(data)*max_proportion)].mean()
+
+
+def mean_of_upper_range_apply_to_list(lst,n,min_proportion,max_proportion):
+    """
+    e.g.,
+
+    L=lo('/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta/direct_rewrite_test_11May17_16h16m49s_Mr_Blue/left_image_bound_to_data.pkl' )
+    k,d = get_key_sorted_elements_of_dic(L,'encoder')
+    d2=mean_of_upper_range_apply_to_list(d,30,0.33,0.66)
+    CA();plot(k,d);plot(k,d2)
+    
+    """
+    n2 = int(n/2)
+    lst2 = []
+    for i in range(len(lst)):
+        if i < n2:
+            lst2.append(lst[i])
+        else:
+            lst2.append(mean_of_upper_range(lst[i-n2:i-n2+n],min_proportion,max_proportion))
+    return lst2
