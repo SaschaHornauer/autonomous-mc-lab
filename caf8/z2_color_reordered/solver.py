@@ -10,7 +10,7 @@ import kzpy3.caf8.protos as protos
 #
 model_path = opjh(REPO,CAF,MODEL)
 
-batch_size = 100
+batch_size = 1
 
 
 
@@ -96,9 +96,9 @@ def put_data_into_model(data,solver,b=0):
 	#
 
 	ctr = 0
-	for camera in ['left','right']:
-		for t in range(2):
-			solver.net.blobs['ZED_data_pool2'].data[b,ctr:ctr+3,:,:] = data[camera][t][:,:,:]
+	for t in range(2):
+		for camera in ['left','right']:
+			solver.net.blobs['ZED_data_pool2'].data[b,ctr:ctr+3,:,:] = data[camera][t][:,:,:].transpose(2,0,1)
 			ctr += 3
 
 
