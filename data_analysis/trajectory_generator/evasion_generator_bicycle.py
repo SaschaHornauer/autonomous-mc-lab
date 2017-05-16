@@ -20,7 +20,8 @@ from timeit import default_timer as timer
 
 framerate = 1. / 30.
 
-
+max_v = 4.47 # approximate max speed according to the internet for the axial bomber
+desired_v = 0.2 # meter per second
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -140,7 +141,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, speed):
     act_pos_y = own_y
     
     #For now a steady speed is assumed, later this can be changed
-    speed = 0.2
+    speed = 1
     
     for i in range(30):
        
@@ -168,7 +169,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, speed):
         # Finaly steering is reduced, according to the distance
         delta = delta * distance_cl_norm
         
-        answer = getXYFor(act_pos_x, act_pos_y, i * 0.33, speed, heading, (i + 1) * 0.33, 0.0, delta)
+        answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
         final_traj_x.append(answer[0])
         final_traj_y.append(answer[1])
     
