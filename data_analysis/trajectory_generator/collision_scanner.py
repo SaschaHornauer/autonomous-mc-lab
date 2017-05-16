@@ -47,7 +47,7 @@ def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep)
     # Get triangle in front of the vehicle ( THIS IS A SIMPLIFICATION ) 
         
     encounter_timestep = []
-    other_positions = []
+    other_positions = {}
     triangle_points = {}
     smooth_over_list_of_timestamps = 3
     
@@ -59,7 +59,7 @@ def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep)
         current_own_xys = own_xys[t-smooth_over_list_of_timestamps:t]
         
         # distance chosen is 1.5 m, field of view of one of the stereo cameras is 66
-        triangle_fov = get_fov_one_camera(current_own_xys,get_heading(current_own_xys),66.,1.5)
+        triangle_fov = get_fov_one_camera(current_own_xys,get_heading(current_own_xys),66.,10.)
         
         closest_xy = None
 
@@ -80,7 +80,7 @@ def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep)
         # If that closest other xy point lies in the FOV add it to the list
         if(triangle_fov.isInside(closest_xy)):
             encounter_timestep.append(t)
-            other_positions.append(closest_xy)
+            other_positions[t] = closest_xy
             triangle_points[str(t)]=triangle_fov
             
     return encounter_timestep, other_positions, triangle_points

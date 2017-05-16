@@ -99,7 +99,7 @@ def get_center_circle_points(own_xys):
     
     goalxys = []
     goal_offset = -(np.pi / 8.0)
-    circle_radius = 3  # m
+    circle_radius = 4.28 - 1.5 # meter
     
     # calculate positions on a circle near the center
     for pos in own_xys:
@@ -202,7 +202,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     '''
     safety_distance = 0.2
     allowed_goal_distance = 0.2
-    allowed_own_distance = 0.5
+    allowed_own_distance = 0.8
     ideal_distance = 1.2 # meter in following and to the boundary
     obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)

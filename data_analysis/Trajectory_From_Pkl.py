@@ -83,16 +83,26 @@ class Trajectory_From_Pkl:
                 if inner_segment_list:
                     segments.append(inner_segment_list)
                 break
-            
-            if encounter_situations[i+1]-encounter_situations[i] > allowed_gap:
-                inner_segment_list.append(encounter_situations[i])
-                segments.append(inner_segment_list)
-                segment_counter += 1
-                inner_segment_list = []
-                continue
             else:
-                
-                inner_segment_list.append(encounter_situations[i])
+                # There is a gap in between sightings
+                if encounter_situations[i+1]-encounter_situations[i] > 1: 
+                    if encounter_situations[i+1]-encounter_situations[i] > allowed_gap:
+                        # The gap is too big, we start a new inner segment
+                        # add the last of the old segment
+                        inner_segment_list.append(encounter_situations[i])
+                        # append that list
+                        segments.append(inner_segment_list)
+                        # increase counter
+                        segment_counter += 1
+                        # reset inner list
+                        inner_segment_list = []
+                        continue
+                    else:
+                        # we interpolate the numbers in between
+                        inner_segment_list.extend(range(encounter_situations[i], encounter_situations[i+1]))
+                        segments.append(inner_segment_list)
+                else:
+                    inner_segment_list.append(encounter_situations[i])
                 
             
         
@@ -157,7 +167,7 @@ class Trajectory_From_Pkl:
                     trajectories_in_delta_angles, motor_cmds = evasion_generator.get_evasive_trajectory(own_xy, other_positions, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_xys)
                     resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                     timestamps = actual_trajectories[car]['timestamps']
-                    evasion_trajectory_data[(car,act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds}
+                    evasion_trajectory_data[(car,act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds,'pos':own_xy}
                 elif act_mode == behavior.follow:
                     
                     # First find all the points in the dataset where another car is actually close
@@ -166,21 +176,28 @@ class Trajectory_From_Pkl:
                     
                     time_segments = self.get_continous_segments(encounter_timestep)
                     # Add those points to the goal trajectory. 
-                    
+                    print time_segments
                     goal_xys = [None] * (time_segments[-1][-1]+1)
                     
                     i = 0
                     for time_segment in time_segments:
+                        old_timepoint = time_segments[0]
                         for timepoint in time_segment:
-                            goal_xys[timepoint] = points_to_list(closest_xys[i])
+                            if timepoint not in closest_xys.keys():
+                                # The other vehicle is temporarily not visible. we assume the old position
+                                goal_xys[timepoint] = goal_xys[old_timepoint]
+                            else:
+                                goal_xys[timepoint] = points_to_list(closest_xys[timepoint])
+                                old_timepoint = timepoint
                             i+=1
                     
                     evasion_segment_data = []
                     for segment in time_segments:
-                        
+
                         start_time = segment[0]
                         end_time = segment[len(segment)-1]
-                        
+                        if start_time == end_time:
+                            continue
                         # Add goal trajectory
                         #goal_xys[start_time:end_time] = points_to_list(closest_xys[start_time:end_time])
                         
@@ -189,7 +206,7 @@ class Trajectory_From_Pkl:
                         timestamps = actual_trajectories[car]['timestamps']
                         evasion_segment_data.append({'mode':act_mode,'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds})
                     
-                    
+
                     evasion_trajectory_data[(car,act_mode)]=evasion_segment_data
                 
             
