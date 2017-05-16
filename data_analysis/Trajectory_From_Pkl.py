@@ -26,7 +26,7 @@ class Trajectory_From_Pkl:
     # adding furtive and play later TODO FIXIT
     trajectories = {}
     
-    def __init__(self, pkl_filename, start_timestamp, end_timestep, modes_selected):
+    def __init__(self, pkl_filename, start_timestamp, end_timestep, modes_selected, show_graphics):
         
         print "Calculating trajectories ..."
         actual_trajectories = self.process_pkl_file(pkl_filename, start_timestamp, end_timestep)
@@ -35,8 +35,8 @@ class Trajectory_From_Pkl:
         start_timestep = 0
         end_timestep = len(actual_trajectories.itervalues().next()['timestamps'])
         
-        plot_video = True
-        resulting_trajectories = self.get_trajectory(actual_trajectories, plot_video, int(start_timestep), int(end_timestep), modes_selected)
+        
+        resulting_trajectories = self.get_trajectory(actual_trajectories, show_graphics, int(start_timestep), int(end_timestep), modes_selected)
         
         end = timer()
         print ("Finished in " + str(end - start) + " seconds.")
@@ -113,13 +113,13 @@ class Trajectory_From_Pkl:
             # As long as there is only one other car we fake second one by taking its trajectory 
             # and turning it aroudn
             
-            first_trajectory_in_dict = other_trajectories.itervalues().next()
-            fake_timestamps = first_trajectory_in_dict['timestamps']
-            fake_positions = first_trajectory_in_dict['position'][::-1]
-            
-            fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
-            other_trajectories['Mr_Fake']=fake_trajectory
-            
+#             first_trajectory_in_dict = other_trajectories.itervalues().next()
+#             fake_timestamps = first_trajectory_in_dict['timestamps']
+#             fake_positions = first_trajectory_in_dict['position'][::-1]
+#             
+#             fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
+#             other_trajectories['Mr_Fake']=fake_trajectory
+#             
             
                         
             for other_cars in other_trajectories:
@@ -131,7 +131,7 @@ class Trajectory_From_Pkl:
             
             resulting_trajectories = {}
             
-             # Get the short term trajectory
+            # Get the short term trajectory
             own_trajectory = own_trajectories['position']
 
             # Reverse all the positions to get fake positions
@@ -156,7 +156,7 @@ class Trajectory_From_Pkl:
                     trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_positions, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_xys)
                     resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                     timestamps = actual_trajectories[car]['timestamps']
-                    evasion_trajectory_data[car] = {'timestamps':timestamps, 'trajectories':resulting_trajectories}
+                    evasion_trajectory_data[(car,act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories}
                 elif act_mode == behavior.follow:
                     
                     # First find all the points in the dataset where another car is actually close
@@ -177,13 +177,13 @@ class Trajectory_From_Pkl:
                         # Add goal trajectory
                         goal_xys[start_time:end_time] = points_to_list(closest_xys)
                         
-                        trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, len(segment), goal_xys)
+                        trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, end_time, goal_xys)
                         resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                         timestamps = actual_trajectories[car]['timestamps']
-                        evasion_segment_data.append({'timestamps':timestamps, 'trajectories':resulting_trajectories})
+                        evasion_segment_data.append({'mode':act_mode,'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories})
                     
                     
-                    evasion_trajectory_data[car]=evasion_segment_data
+                    evasion_trajectory_data[(car,act_mode)]=evasion_segment_data
                 
             
         return evasion_trajectory_data
@@ -197,8 +197,8 @@ class Trajectory_From_Pkl:
         return np.array(map(add, left_x, right_x)) / 2., np.array(map(add, left_y, right_y)) / 2.
     
     
-def get_trajectories(pkl_filename, start_timestamp, end_timestep, modes_selected): 
-    trajectory_parser = Trajectory_From_Pkl(pkl_filename, start_timestamp, end_timestep, modes_selected)
+def get_trajectories(pkl_filename, start_timestamp, end_timestep, modes_selected, show_graphics): 
+    trajectory_parser = Trajectory_From_Pkl(pkl_filename, start_timestamp, end_timestep, modes_selected, show_graphics)
     resulting_trajectories = trajectory_parser.trajectories
     return resulting_trajectories
     
