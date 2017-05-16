@@ -1,5 +1,5 @@
 # /home/karlzipser/kzpy3/caf8/z2_color
-# Monday, 15 May 2017, 08:32:34 PM
+# Monday, 15 May 2017, 10:37:36 PM
 
 net: "/home/karlzipser/kzpy3/caf8/z2_color/train_val.prototxt"
 test_iter: 1

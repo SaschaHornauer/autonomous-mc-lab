@@ -5,8 +5,10 @@ import cv2
 from cv_bridge import CvBridge,CvBridgeError
 import threading
 import kzpy3.teg9.data.animate as animate
-from kzpy3.data_analysis.Angle_Dict_Creator import get_angles_and_distance
-from kzpy3.data_analysis.markers_clockwise import markers_clockwise
+import kzpy3.teg9.data.utils.raw_marker_data_to_cubic_splines as raw_marker_data_to_cubic_splines
+if '__file__' not in vars():
+    __file__ = "__file__ NOT DEFINED"
+
 
 bridge = CvBridge()
 
@@ -29,6 +31,9 @@ def multi_process_bag_folders(bag_folders_path_lst,meta_path,visualize=0):
         except Exception as e:
             print("********** Exception ***********************")
             print(e.message, e.args)
+
+
+
 
 
 
@@ -58,8 +63,11 @@ def multi_preprocess_bagfiles(bag_folder_path,meta_path,visualize=0):
 
 
 
-def preprocess_bagfiles(A,path,visualize):
 
+
+
+def preprocess_bagfiles(A,path,visualize):
+    from kzpy3.data_analysis.Angle_Dict_Creator import get_angles_and_distance
     ctr = 0
     timer = Timer(0)
     
@@ -87,6 +95,9 @@ def preprocess_bagfiles(A,path,visualize):
                         break
                 ctr += 1
     print(d2s('Done in',timer.time(),'seconds'))
+
+
+
 
 
 
@@ -123,6 +134,30 @@ Mr_Mixed =['/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2
 '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_11April2017/processed',
 '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_Fern_15April2017/new' 
 ]
-if True:
 
+
+
+
+if False:
+    print "Get raw marker data from bag file images to pkl files."
     multi_process_bag_folders(Mr_Mixed,meta_path,100)
+
+
+
+if True:
+    CS_("Process marker_data.pkl files to get cubic spline trajectories.",fname(__file__))
+    bag_folders_path = opjD('bair_car_data_new')
+    bag_folders_meta_path = opj(bag_folders_path,'meta')
+    aruco_runs = []
+    marker_data_files = sggo(bag_folders_meta_path,'*','marker_data.pkl')
+    for m in marker_data_files:
+        aruco_runs.append(fname(pname(m)))
+    M = {}
+    for a in aruco_runs:
+        splines = {}
+        raw_marker_data_to_cubic_splines.process_run_data(a,bag_folders_meta_path,M)
+        car_name = raw_marker_data_to_cubic_splines.car_name_from_run_name(a)
+        cprint(M[car_name][a].keys(),'yellow')
+        so(opj(bag_folders_meta_path,a,'trajectory.pkl'),M[car_name][a])
+        unix('rm '+opj(bag_folders_meta_path,a,'cubic_splines.pkl'))
+
