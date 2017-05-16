@@ -65,6 +65,7 @@ imread = scipy.misc.imread
 imsave = scipy.misc.imsave
 #opj = os.path.join
 gg = glob.glob
+arange = np.arange
 os.environ['GLOG_minloglevel'] = '2'
 
 def sgg(d):

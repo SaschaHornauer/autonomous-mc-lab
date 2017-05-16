@@ -159,5 +159,5 @@ if True:
         car_name = raw_marker_data_to_cubic_splines.car_name_from_run_name(a)
         cprint(M[car_name][a].keys(),'yellow')
         so(opj(bag_folders_meta_path,a,'trajectory.pkl'),M[car_name][a])
-        unix('rm '+opj(bag_folders_meta_path,a,'cubic_splines.pkl'))
+        #unix('rm '+opj(bag_folders_meta_path,a,'cubic_splines.pkl'))
 
