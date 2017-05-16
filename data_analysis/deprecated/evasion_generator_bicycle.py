@@ -20,8 +20,7 @@ from timeit import default_timer as timer
 
 framerate = 1. / 30.
 
-max_v = 4.47 # approximate max speed according to the internet for the axial bomber
-desired_v = 0.2 # meter per second
+
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -127,7 +126,7 @@ def get_center_circle_points(own_xys):
     return goalxys
     
 
-def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, speed):
+def get_straight_line(current_xy_own, heading, delta, goal_xy, speed):
     # We observe the goal and our own position
     own_x = current_xy_own[0]
     own_y = current_xy_own[1]
@@ -141,7 +140,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, speed):
     act_pos_y = own_y
     
     #For now a steady speed is assumed, later this can be changed
-    speed = 1
+    speed = 0.2
     
     for i in range(30):
        
@@ -169,7 +168,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, speed):
         # Finaly steering is reduced, according to the distance
         delta = delta * distance_cl_norm
         
-        answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
+        answer = getXYFor(act_pos_x, act_pos_y, i * 0.33, speed, heading, (i + 1) * 0.33, 0.0, delta)
         final_traj_x.append(answer[0])
         final_traj_y.append(answer[1])
     
@@ -207,50 +206,23 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     
     goal_xys=goal_trajectory_data
         
-    # For each obstacle in the obstacle trajectory list we create segments from
-    # the trajectories to improve computability.
-
     environment = Environment(room={'shape': RegularPolyhedron(diameter_arena, 24), 'draw': False})
-    test_obstacle_pos = []
+
+    # initialise the obstacles
     for i in range(0, len(other_xy)):
     
-        obstacle_xy = other_xy[i]
+        obstacle_xy = other_xy[i][timestep_start]
         # For each obstacle, get its segments
-        samplepoints = np.linspace(timestep_start, no_datapoints - 1, num=obstacle_segment_factor, dtype=np.int32)
         
-        segments_trajectory = np.array(obstacle_xy)[samplepoints]
-
-        # Calculate start and end time of the segment 
-        # obstacle_start_times = np.linspace(timestep_start, framerate * no_datapoints, num=obstacle_segment_factor)
-        # obstacle_end_times = obstacle_start_times[1:]
-        # obstacle_start_times = obstacle_start_times[:len(obstacle_start_times)-1]
-        
-        test_obstacle_pos.append(np.array(obstacle_xy))
-        # offset_diffs = get_pos_diff(segments_trajectory)
-
-        # Create a trajectory for that obstacle
-        # traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
-
-        # add it to the environment
-        # environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
-        #    simulation={'trajectories': traj}))
-        environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.2)))
-
-    init_xy_own, heading_own, _ = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
+        environment.add_obstacle(Obstacle({'position': obstacle_xy}, shape=Circle(0.2)))
     
-    #vehicle = Bicycle(length=0.4, options={'plot_type': 'car', 'substitution': False})  # 
+    init_xy_own, heading_own, _ = get_state(own_xy, timestep_start, 4)  # smooth heading over some timesteps
+    
     vehicle = Holonomic(shapes=Circle(0.25))
     vehicle.define_knots(knot_intervals=2)
     
-    #velocity_abs = np.hypot(velocity_own[0][0], velocity_own[0][1])
-    
-    # plan from the last known position
-    #vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own, 0.0])  # the assumption is that
     vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1]]) 
-    # for the time being that the steering angle is 0. This can be changed in the future, based on existing data.
-    
-    init_xy_own = own_xy[timestep_start] 
-    
+        
     # If there is a circle to follow, the timesteps will be used to avoid planning the goal
     # in another obstacle. If a car is followed, the goal has to be followed exactly
     if goal_trajectory_data:
@@ -279,14 +251,14 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
         for i in range(0, len(simulator.problem.environment.obstacles)):
             obstacle = simulator.problem.environment.obstacles[i]
-            obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
-              
+            obstacle.set_state({'position':other_xy[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
+            print other_xy[i][timestep]
         if plot_video:
             problem.update_plot('scene', 0)
             # circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
             plt.scatter(goal_xy[0],goal_xy[1])
             
-            # straight_line = get_trajectory_to_goal(own_xy[timestep],goal_xy)
+            # straight_line = get_straight_line(own_xy[timestep],goal_xy)
             # plt.scatter(straight_line[0],straight_line[1])
             # print goal_xy
             # axis = plt.gca()
@@ -415,7 +387,13 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
         if simulate:
             simulator.update()
-
+#     
+#             simulator.update_timing()
+#             #output = get_straight_line(own_xy[timestep],goal_xy)
+            
+            # plt.scatter(output[0],output[1])
+            
+            
             # return trajectories and signals
             trajectories, signals = {}, {}
             for vehicle in simulator.problem.vehicles:
@@ -439,7 +417,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             speed_abs = np.absolute(np.hypot(own_xy[timestep][0] - own_xy[timestep - 1][0], own_xy[timestep][1] - own_xy[timestep - 1][1]))
             heading_own = get_heading(own_xy[timestep-2:timestep])
         
-        new_trajectory = get_trajectory_to_goal(own_xy[timestep], heading_own, 0.0, goal_xy, speed_abs)
+        new_trajectory = get_straight_line(own_xy[timestep], heading_own, 0.0, goal_xy, speed_abs)
         resulting_trajectories.append(new_trajectory)
         
         plt.plot(new_trajectory[0],new_trajectory[1])

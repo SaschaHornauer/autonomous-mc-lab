@@ -16,7 +16,7 @@ def get_heading(seq_xy):
 
     diffsX = []
     diffsY = []
-    
+
     # calculate the angle:
     for i in range(0,len(seq_xy)-1):
         diffsX.append(seq_xy[i+1][0]-seq_xy[i][0])
@@ -125,6 +125,19 @@ class Point:
 def to_point(xy):
     # Convenience method to convert an arbitrary tuple/array to a point
     return Point(xy[0],xy[1])
+
+def distance_of_points(point_a, point_b):
+    return distance_2d((point_a.x,point_a.y), (point_b.x,point_b.y))
+
+def points_to_list(points):
+    return_points = []
+    
+    if isinstance(points, list):
+        for point in points:
+            return_points.append((point.x,point.y))
+    else:
+        return_points = (points.x,points.y)
+    return return_points
 
 class Triangle:
     """Represents a triangle in R^2."""
