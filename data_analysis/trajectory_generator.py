@@ -17,9 +17,10 @@ if __name__ == '__main__':
     t1 = 1493425694.71 + 5
     t2 = 1493425899.676476 - 100
     
-    modes = [behavior.follow, behavior.circle]
+    #modes = [behavior.follow, behavior.circle]
+    modes = [behavior.follow]
     
-    show_graphics = False
+    show_graphics = True
     
     resulting_trajectories = get_trajectories(pickle_path, t1, t2, modes, show_graphics)
     

@@ -132,9 +132,11 @@ def distance_of_points(point_a, point_b):
 def points_to_list(points):
     return_points = []
     
-    for point in points:
-        return_points.append((point.x,point.y))
-        
+    if isinstance(points, list):
+        for point in points:
+            return_points.append((point.x,point.y))
+    else:
+        return_points = (points.x,points.y)
     return return_points
 
 class Triangle:

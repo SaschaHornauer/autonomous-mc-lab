@@ -113,13 +113,13 @@ class Trajectory_From_Pkl:
             # As long as there is only one other car we fake second one by taking its trajectory 
             # and turning it aroudn
             
-#             first_trajectory_in_dict = other_trajectories.itervalues().next()
-#             fake_timestamps = first_trajectory_in_dict['timestamps']
-#             fake_positions = first_trajectory_in_dict['position'][::-1]
-#             
-#             fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
-#             other_trajectories['Mr_Fake']=fake_trajectory
-#             
+            first_trajectory_in_dict = other_trajectories.itervalues().next()
+            fake_timestamps = first_trajectory_in_dict['timestamps']
+            fake_positions = first_trajectory_in_dict['position'][::-1]
+             
+            fake_trajectory = {'timestamps':fake_timestamps,'position':fake_positions}
+            other_trajectories['Mr_Fake']=fake_trajectory
+             
             
                         
             for other_cars in other_trajectories:
@@ -141,9 +141,7 @@ class Trajectory_From_Pkl:
             #other_xy.append(other_positions[0])
             #other_xy.append(fake_positions)
             
-    
-    
-                        
+      
             own_x = (own_trajectory[0][0])
             own_y = (own_trajectory[1][0])
             own_xy = zip(own_x, own_y)
@@ -166,7 +164,13 @@ class Trajectory_From_Pkl:
                     time_segments = self.get_continous_segments(encounter_timestep)
                     # Add those points to the goal trajectory. 
                     print time_segments
-                    goal_xys = [None] * time_segments[-1][-1]
+                    goal_xys = [None] * (time_segments[-1][-1]+1)
+                    
+                    i = 0
+                    for time_segment in time_segments:
+                        for timepoint in time_segment:
+                            goal_xys[timepoint] = points_to_list(closest_xys[i])
+                            i+=1
                     
                     evasion_segment_data = []
                     for segment in time_segments:
@@ -175,7 +179,7 @@ class Trajectory_From_Pkl:
                         end_time = segment[len(segment)-1]
                         
                         # Add goal trajectory
-                        goal_xys[start_time:end_time] = points_to_list(closest_xys)
+                        #goal_xys[start_time:end_time] = points_to_list(closest_xys[start_time:end_time])
                         
                         trajectories_in_delta_angles = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, end_time, goal_xys)
                         resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)

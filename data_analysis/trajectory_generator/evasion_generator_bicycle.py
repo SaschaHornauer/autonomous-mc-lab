@@ -126,7 +126,7 @@ def get_center_circle_points(own_xys):
     return goalxys
     
 
-def get_straight_line(current_xy_own, heading, delta, goal_xy, speed):
+def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, speed):
     # We observe the goal and our own position
     own_x = current_xy_own[0]
     own_y = current_xy_own[1]
@@ -285,7 +285,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             # circle2 = plt.Circle((0,0), diameter_arena, color='b', fill=False)
             plt.scatter(goal_xy[0],goal_xy[1])
             
-            # straight_line = get_straight_line(own_xy[timestep],goal_xy)
+            # straight_line = get_trajectory_to_goal(own_xy[timestep],goal_xy)
             # plt.scatter(straight_line[0],straight_line[1])
             # print goal_xy
             # axis = plt.gca()
@@ -414,13 +414,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         
         if simulate:
             simulator.update()
-#     
-#             simulator.update_timing()
-#             #output = get_straight_line(own_xy[timestep],goal_xy)
-            
-            # plt.scatter(output[0],output[1])
-            
-            
+
             # return trajectories and signals
             trajectories, signals = {}, {}
             for vehicle in simulator.problem.vehicles:
@@ -444,7 +438,7 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
             speed_abs = np.absolute(np.hypot(own_xy[timestep][0] - own_xy[timestep - 1][0], own_xy[timestep][1] - own_xy[timestep - 1][1]))
             heading_own = get_heading(own_xy[timestep-2:timestep])
         
-        new_trajectory = get_straight_line(own_xy[timestep], heading_own, 0.0, goal_xy, speed_abs)
+        new_trajectory = get_trajectory_to_goal(own_xy[timestep], heading_own, 0.0, goal_xy, speed_abs)
         resulting_trajectories.append(new_trajectory)
         
         plt.plot(new_trajectory[0],new_trajectory[1])
