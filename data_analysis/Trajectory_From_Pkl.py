@@ -204,7 +204,7 @@ class Trajectory_From_Pkl:
                         trajectories_in_delta_angles, motor_cmds = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, end_time, goal_xys)
                         resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                         timestamps = actual_trajectories[car]['timestamps']
-                        evasion_segment_data.append({'mode':act_mode,'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds})
+                        evasion_segment_data.append({'mode':act_mode,'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds,'pos':own_xy})
                     
 
                     evasion_trajectory_data[(car,act_mode)]=evasion_segment_data

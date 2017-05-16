@@ -7,7 +7,8 @@ ModelAnswer = collections.namedtuple('ModelAnswer', ['x', 'y', 'v', 'psi'])
 
 lr = 0.12
 lf = 0.13
-
+#lr = 0.20
+#lf = 0.20
 
 
 

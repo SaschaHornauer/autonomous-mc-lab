@@ -5,8 +5,10 @@ Created on May 8, 2017
 '''
 
 import numpy as np
-from operator import mul, div, sub
+from operator import mul, div, sub,mod, add
 import cv2
+import sys
+
 
 def get_heading(seq_xy):
     '''
@@ -69,15 +71,11 @@ def distance_2d(point_a,point_b):
     return np.hypot(point_a[0]-point_b[0],point_a[1]-point_b[1])
 
 def get_pos_diff(xy_positions):
-    '''
-    Returns the diffs in between two x,y positions divided by the
-    framerate aka velocity in m/s since the distance in time between two
-    positions is exactly that framerate
-    '''
+    
     
     diffs = []
     # First add 0 as a start
-    diffs.append([0.0,0.0])
+    #diffs.append([0.0,0.0])
     
     for i in range(1,len(xy_positions)):
         x = xy_positions[i-1][0]
@@ -98,11 +96,28 @@ def get_pos_diff(xy_positions):
 
 def convert_delta_to_steer(delta_values):
     
-    max_left_command = 100
-    max_right_command = 0
+    max_left_command = 60
+    max_right_command = 40
     
-    steering_values = max_left_command*(((np.array(delta_values)/(np.pi))+1.)/2.)
-       
+    steering_values=[]
+    
+    for values in delta_values:
+        
+        delta_values_norm = map(mod,np.array(values),[np.pi]*len(values))
+        
+        delta_values_norm = map(div,np.array(values),[np.pi]*len(values))
+        
+        delta_values_norm = map(mul,delta_values_norm,[max_left_command]*len(values))
+        
+        delta_values_norm = map(add,delta_values_norm,[max_right_command]*len(values))
+        #print delta_values_norm
+        delta_values_norm = map(mul,delta_values_norm,[1./2.]*len(values))
+        
+        delta_values_norm = map(add,delta_values_norm,[max_left_command/2.]*len(values))
+        
+        steering_values.append(delta_values_norm) 
+        #sys.exit(0)
+        
     return steering_values
 
 ### Approach by Martin Thoma https://martin-thoma.com/author/martin-thoma/
