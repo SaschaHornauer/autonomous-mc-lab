@@ -1,7 +1,7 @@
-# /home/karlzipser/kzpy3/caf8/z2_color
-# Monday, 15 May 2017, 08:32:34 PM
-# /home/karlzipser/kzpy3/caf8/z2_color
-# Monday, 15 May 2017, 08:32:34 PM
+# /home/karlzipser/kzpy3/caf8/z2_color_reordered
+# Monday, 15 May 2017, 08:26:13 PM
+# /home/karlzipser/kzpy3/caf8/z2_color_reordered
+# Monday, 15 May 2017, 08:26:13 PM
 
 layer {
 	name: 'ZED_data_pool2'
@@ -9,8 +9,8 @@ layer {
 	top: 'ZED_data_pool2'
 	top: 'steer_motor_target_data'
 	input_param {
-		shape: {dim: 100 dim: 12 dim: 94 dim: 168}
-		shape: {dim: 100 dim: 20}
+		shape: {dim: 1 dim: 12 dim: 94 dim: 168}
+		shape: {dim: 1 dim: 20}
 	}
 }
 
@@ -20,7 +20,7 @@ layer {
 	top: "metadata"
 	dummy_data_param {
 		shape {
-			dim: 100
+			dim: 1
 			dim: 6
 			dim: 14
 			dim: 26
