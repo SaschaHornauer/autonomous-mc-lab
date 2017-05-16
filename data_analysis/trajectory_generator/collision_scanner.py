@@ -51,7 +51,8 @@ def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep)
     triangle_points = {}
     smooth_over_list_of_timestamps = 3
     
-    other_xys = other_xys[start_timestep:end_timestep]
+    
+    #other_xys = other_xys[start_timestep:end_timestep]
    
     for t in range(start_timestep+smooth_over_list_of_timestamps,end_timestep):
         

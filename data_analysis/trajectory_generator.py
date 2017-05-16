@@ -18,7 +18,6 @@ if __name__ == '__main__':
     t2 = 1493425899.676476 - 100
     
     modes = [behavior.follow, behavior.circle]
-    #modes = [behavior.follow]
     
     show_graphics = False
     
