@@ -60,22 +60,35 @@ N = lo(opjh('caffe_models','N.pkl'))
 CAR_NAME = 'Mr_Blue'
 RUN_NAME = 'direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
 
+while True:
+	CAR_NAME = random.choice(N.keys())
+	RUN_NAME = random.choice(N[CAR_NAME].keys())
+	if len(N[CAR_NAME][RUN_NAME]['other_trajectories']) < 2:
+		continue
+	print()
+	print(RUN_NAME)
+	print(CAR_NAME)
+	for o in N[CAR_NAME][RUN_NAME]['other_trajectories']:
+		print('\t'+get_trajectory_points.car_name_from_run_name(o['run_name']))
 
-traj1 = N[CAR_NAME][RUN_NAME]['self_trajectory']
-traj2 = N[CAR_NAME][RUN_NAME]['other_trajectories']
+	traj1 = N[CAR_NAME][RUN_NAME]['self_trajectory']
+	traj2 = N[CAR_NAME][RUN_NAME]['other_trajectories']
 
-out_img *= 0
-draw_markers(out_img)
+	out_img *= 0
+	draw_markers(out_img)
 
-for i in range(len(ts)):
-	for traj in [traj1]+traj2:
-		t = traj['ts'][i]
-		for side in ['left','right']:
-			car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
-			plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
-		k = mci(out_img,delay=1)
-		if k == ord('q'):
+	timer = Timer(60)
+	for i in range(len(traj1['ts'])):
+		if timer.check():
 			break
+		for traj in [traj1]+traj2:
+			t = traj['ts'][i]
+			for side in ['left','right']:
+				car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
+				plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
+			k = mci(out_img,delay=1)
+			if k == ord('q'):
+				break
 
 
 
