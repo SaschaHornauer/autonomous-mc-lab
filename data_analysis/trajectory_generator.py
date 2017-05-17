@@ -7,14 +7,13 @@ from Trajectory_From_Pkl import *
 import os
 import cPickle as pickle
 from aruco_tools.mode import behavior
-from vis import apply_rect_to_img
 import sys
 import rospy
 from operator import add
 import cv2
 import matplotlib.pyplot as plt
 from data_parsing.Image_Bagfile_Handler import Bagfile_Handler
-
+from kzpy3.vis import *
 def animate(resulting_trajectories):
     
     
