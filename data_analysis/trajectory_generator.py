@@ -10,6 +10,7 @@ from aruco_tools.mode import behavior
 from vis import apply_rect_to_img
 import sys
 import rospy
+from operator import add
 import cv2
 import matplotlib.pyplot as plt
 from data_parsing.Image_Bagfile_Handler import Bagfile_Handler
@@ -17,9 +18,16 @@ from data_parsing.Image_Bagfile_Handler import Bagfile_Handler
 def animate(resulting_trajectories):
     
     
-    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-10_10.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-10_10.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
+    
+    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
+    
+
     bagfile_handler = Bagfile_Handler(bagfile_name)
     paused_video = False
     
@@ -29,7 +37,7 @@ def animate(resulting_trajectories):
         
     for cars, modes in resulting_trajectories:
                  
-        blue_circle = resulting_trajectories[('Mr_Blue', modes)]
+        blue_circle = resulting_trajectories[('Mr_Black', modes)]
         
         if (modes == behavior.follow):
             for i in range(0, len(blue_circle)):
@@ -37,7 +45,7 @@ def animate(resulting_trajectories):
         else:
             trajectory_data = blue_circle
         
-        traj_per_timestamp = zip(trajectory_data['timestamps'], trajectory_data['trajectories'], trajectory_data['motor_cmds'], trajectory_data['pos'])
+        traj_per_timestamp = zip(trajectory_data['timestamps'], trajectory_data['trajectories'], trajectory_data['motor_cmds'], trajectory_data['pos'],trajectory_data['path'])
        
         for i in range(0, len(traj_per_timestamp)):
               
@@ -48,25 +56,27 @@ def animate(resulting_trajectories):
                 trajectory = traj_per_timestamp[i][1]
                 motor_cmd = traj_per_timestamp[i][2]
                 pos = traj_per_timestamp[i][3]
+                path = traj_per_timestamp[i][4]
                 
-                if timestamp + 0.05 < bagfile_timestamp.to_sec():
-                    # print "OUT OF SYNC " + str(timestamp -  bagfile_timestamp.to_sec())
+                if timestamp + 0.05 < bagfile_timestamp.to_sec() +1.3:
+                    #print "OUT OF SYNC " + str(timestamp -  bagfile_timestamp.to_sec())
+                    
                     continue
-          
-                while timestamp - 0.05 > bagfile_timestamp.to_sec():
+                
+                if timestamp - 0.05 > bagfile_timestamp.to_sec() +1.3:
                     cv_image, bagfile_timestamp = bagfile_handler.get_image()
-                    # print "OUT OF SYNC " + str(timestamp -  bagfile_timestamp.to_sec())
+                    #print "OUT OF SYNC " + str(timestamp -  bagfile_timestamp.to_sec())
+                    
                     continue
                 
-                
-                steer = trajectory[1]
+                #print trajectory
+                steer = np.mean(trajectory[15:-1])
+                print steer
+                #print(trajectory)
                 motor = motor_cmd[1]
-
                 
                 cv_image, timestamp = bagfile_handler.get_image()
                 
-                
-                # sys.exit(0)
                 if not cv_image == None:
                      
                     apply_rect_to_img(cv_image, steer, 0, 99, bar_color, bar_color, 0.9, 0.1, center=True, reverse=False, horizontal=True)
@@ -76,9 +86,16 @@ def animate(resulting_trajectories):
                     height = 367
                     width = height  # 672
                     radius_arena = 4.28
+                    pos_x= map(add,path[0],[8.0]*len(path[0]))
+                    pos_y= map(add,path[1],[8.0]*len(path[1]))
+                    polypath = np.array(zip(pos_x,pos_y))*30.0
+                    print polypath
+                    pts = np.array(polypath, np.int32)
+                    pts = pts.reshape((-1,1,2))
                     
+                    cv2.polylines(cv_image,[pts],False,(0,255,255),thickness=5)
                     posx = int((pos[0] * width / (2.*radius_arena)) + 672 / 2.)
-                    posy = int((pos[1] * height / (2.*radius_arena)) + height / 2.)
+                    posy = int(-(pos[1] * height / (2.*radius_arena)) + height / 2.)
                     cv2.circle(cv_image, (posx, posy), 10, (0, 0, 255), -1)
                     cv2.circle(cv_image, (672 / 2, height / 2), int(height / 2.0), (255, 0, 0), 3)
                     
@@ -113,7 +130,7 @@ if __name__ == '__main__':
     #selected_modes = [behavior.follow]
     selected_modes = [behavior.circle]
     show_graphics = False
-    calculate_new = True
+    calculate_new = False
      
     if calculate_new:
         resulting_trajectories = get_trajectories(pickle_path, t1, t2, selected_modes, show_graphics)

@@ -21,7 +21,7 @@ from timeit import default_timer as timer
 framerate = 1. / 30.
 
 max_v = 4.47  # approximate max speed according to the internet for the axial bomber
-desired_speed = 0.8  # percent
+desired_speed = 1.0  # percent
 distance_from_boundary_of_circle = 2.  #
 
 def get_state(own_xy, timestep_start, timestep_end):
@@ -84,8 +84,10 @@ def get_emergency_trajectories(obstacle_pos, current_xy_own, number):
 
 
 def get_center_trajectory(heading, current_xy_own, trajectory_length):
-    center_traj = get_trajectory_to_goal(current_xy_own, heading, 0.0, [0.0, 0.0], 0.1, 1.0 , 0.2)[0][0]
     
+    center_traj,_ = get_trajectory_to_goal(current_xy_own, heading, 0.0, [0.0, 0.0], 0.8, 1.0 , 0.2)
+
+    #print center_traj
     return center_traj
 
 def get_center_circle_points(own_xys):
@@ -122,7 +124,10 @@ def get_center_circle_points(own_xys):
     
 
 def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_speed, ideal_distance, min_distance):
+    #(current_xy_own, heading, 0.0, [0.0, 0.0], 0.1, 1.0 , 
     # We observe the goal and our own position
+    
+    
     own_x = current_xy_own[0]
     own_y = current_xy_own[1]
     goal_x = goal_xy[0]
@@ -155,7 +160,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_spee
         
         # We make the assumption that no single point is further away from 
         # the center line than the center line is actually long, for normalization
-        distance_cl_norm = distance_to_center_line / goal_diff
+        distance_cl_norm = distance_to_center_line / (goal_diff/3.)
         
         # Finaly steering is reduced, according to the distance
         delta = delta * distance_cl_norm
@@ -166,6 +171,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_spee
         else:
             goal_diff_norm = (goal_diff - min_distance) / (ideal_distance - min_distance)
             speed = goal_diff_norm * desired_speed
+        
         answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
         final_traj_x.append(answer[0])
         final_traj_y.append(answer[1])
@@ -263,15 +269,11 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
     else:
         goal_xy = goal_xys[timestep_start + d_timestep_goal]
 
-    # Change this by a tangential angle to the center circle TODO FIX
-    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
-    # Create a point-to-point problem
-    problem = Point2point(vehicle, environment, freeT=False)
     
+    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
+    problem = Point2point(vehicle, environment, freeT=False)
     problem.set_options({'solver_options':
     {'ipopt': {'ipopt.hessian_approximation': 'limited-memory'}}})
-    
-    
     problem.init()
     
     # simulate, plot some signals and save a movie
@@ -280,24 +282,19 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         problem.plot('scene')
         simulate = True
     for timestep in range(timestep_start, end_timestep):
-    # for timestep in range(timestep_start, timestep_start + 10):
-        
+            
         for i in range(0, len(simulator.problem.environment.obstacles)):
             obstacle = simulator.problem.environment.obstacles[i]
             obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
               
         if plot_video:
             problem.update_plot('scene', 0)
-            # circle2 = plt.Circle((0,0), radius_arena, color='b', fill=False)
+            circle2 = plt.Circle((0,0), radius_arena, color='b', fill=False)
             plt.scatter(goal_xy[0], goal_xy[1])
-            
-            # straight_line = get_trajectory_to_goal(own_xy[timestep],goal_xy)
-            # plt.scatter(straight_line[0],straight_line[1])
-            # print goal_xy
-            # axis = plt.gca()
-            # axis.set_xlim((-5, 5))
-            # axis.set_ylim((-5, 5))
-            # axis.add_artist(circle2)
+            axis = plt.gca()
+            axis.set_xlim((-5, 5))
+            axis.set_ylim((-5, 5))
+            axis.add_artist(circle2)
             # plt.savefig("scene" + "_" + str(timestep) + ".png")
             
         
@@ -339,7 +336,6 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 
                     goal_near_obstacle = goal_near_obstacle or distance_2d(obstacle_pos, goal_xy) < allowed_goal_distance
                     vehicle_too_near = vehicle_too_near or distance_2d(current_xy_own, obstacle_pos) < allowed_own_distance
-                    
                     
                     
                 # If we are far away from an obstacle, continue
@@ -407,9 +403,16 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                         heading = 0.0 
                         
                 center_traj = get_center_trajectory(heading, current_xy_own, trajectory_length)
-                resulting_trajectories.append(center_traj)
                 
-                # print center_traj
+                resulting_trajectories.append(center_traj)
+                center_plot_traj = np.transpose(zip(center_traj[0],center_traj[1]))
+                
+                plt.plot(center_plot_traj[0],center_plot_traj[1]) 
+                #print(current_xy_own[0]-center_plot_traj[0],current_xy_own[1]-center_plot_traj[1])
+                
+                
+                #plt.scatter()                
+                
                 distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
                 # resulting_motor_cmds.append(np.ones(trajectory_length)*(1-distance_boundary_norm))
                 resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
@@ -433,20 +436,8 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         if simulate:
             simulator.update()
 
-            # return trajectories and signals
-            trajectories, signals = {}, {}
-            for vehicle in simulator.problem.vehicles:
-                trajectories[str(vehicle)] = vehicle.traj_storage
-                signals[str(vehicle)] = vehicle.signals
-                
-                # Calculate the resulting trajectory and sample it to 30 values
-                trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
-                trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
-                
-                trajectory_30_x = sample_values(trajectory_xs, trajectory_length)
-                trajectory_30_y = sample_values(trajectory_ys, trajectory_length)
             
-                resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
+        
         # Calculate the resulting trajectory and sample it to 30 values
         try:
             speed_abs = np.absolute(np.hypot(own_xy[timestep + 1][0] - own_xy[timestep][0], own_xy[timestep + 1][1] - own_xy[timestep][1]))
@@ -459,11 +450,14 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
         resulting_trajectories.append(new_trajectory)
         resulting_motor_cmds.append(new_motor_cmds)
         
+        #print zip(resulting_trajectories[0][0],resulting_trajectories[0][1])
+        #print timestep
+        
         plt.plot(new_trajectory[0], new_trajectory[1])
         # print "--"
         
     
-    return convert_path_to_steeering_angles(resulting_trajectories), convert_to_motor(resulting_motor_cmds)
+    return convert_path_to_steeering_angles(resulting_trajectories), convert_to_motor(resulting_motor_cmds), resulting_trajectories
 
 
     

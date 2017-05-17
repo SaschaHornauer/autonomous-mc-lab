@@ -164,10 +164,14 @@ class Trajectory_From_Pkl:
                 if act_mode == behavior.circle:
                     goal_xys = evasion_generator.get_center_circle_points(own_xy)
                     
-                    trajectories_in_delta_angles, motor_cmds = evasion_generator.get_evasive_trajectory(own_xy, other_positions, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_xys)
+                    trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_evasive_trajectory(own_xy, other_positions, self.timestep_offset, self.goal_lookahead, plot_video, end_timestep, goal_xys)
                     resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                     timestamps = actual_trajectories[car]['timestamps']
-                    evasion_trajectory_data[(car,act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds,'pos':own_xy}
+                    evasion_trajectory_data[(car,act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds,'pos':own_xy,'path':path_data}
+                
+                    
+                
+                
                 elif act_mode == behavior.follow:
                     
                     # First find all the points in the dataset where another car is actually close
@@ -201,15 +205,15 @@ class Trajectory_From_Pkl:
                         # Add goal trajectory
                         #goal_xys[start_time:end_time] = points_to_list(closest_xys[start_time:end_time])
                         
-                        trajectories_in_delta_angles, motor_cmds = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, end_time, goal_xys)
+                        trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_evasive_trajectory(own_xy, other_positions, start_time, self.goal_lookahead, plot_video, end_time, goal_xys)
                         resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                         timestamps = actual_trajectories[car]['timestamps']
-                        evasion_segment_data.append({'mode':act_mode,'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds,'pos':own_xy})
+                        evasion_segment_data.append({'mode':act_mode,'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories,'motor_cmds':motor_cmds,'pos':own_xy,'path':path_data})
                     
 
                     evasion_trajectory_data[(car,act_mode)]=evasion_segment_data
                 
-            
+        
         return evasion_trajectory_data
         
     
