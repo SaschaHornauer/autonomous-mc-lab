@@ -84,12 +84,14 @@ while True:
 			break
 		try:
 			for traj in [traj1]+traj2:
-				t = traj['ts'][i]
-				for side in ['left','right']:
-					car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
-					plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
+				if i < len(traj['ts']):
+					t = traj['ts'][i]
+					for side in ['left','right']:
+						car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
+						plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
 		except Exception as e:
 			print("********** Exception ***********************")
+			print(time_str('Pretty'))
 			print(e.message, e.args)
 		k = mci(out_img,delay=1)
 		if k == ord('q'):
