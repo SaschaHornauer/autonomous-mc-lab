@@ -16,12 +16,13 @@ import copy
 import time
 import numpy.linalg
 from timeit import default_timer as timer
-
+from trajectory_generator.data_structure.entities import Obstacle
+from aruco_tools.mode import behavior
+import angles
 
 framerate = 1. / 30.
-
 max_v = 4.47  # approximate max speed according to the internet for the axial bomber
-desired_speed = 0.8  # percent
+desired_speed = 1.0  # percent
 distance_from_boundary_of_circle = 2.  #
 
 def get_state(own_xy, timestep_start, timestep_end):
@@ -33,8 +34,8 @@ def get_state(own_xy, timestep_start, timestep_end):
     # which add as slight smoothing
     heading = get_heading(own_xy[timestep_start:timestep_start + timestep_end])
     # Get the velocity over the first two timesteps
-    velocity = get_velocities([own_xy[timestep_start], own_xy[timestep_start + 1]], framerate)
-    return init_xy, heading, velocity
+    #velocity = get_velocities([own_xy[timestep_start], own_xy[timestep_start + 1]], framerate)
+    return init_xy, heading
 
 def sample_values(values, no_of_samples):
     
@@ -59,10 +60,26 @@ def convert_path_to_steeering_angles(resulting_trajectories):
     for trajectory in resulting_trajectories:
         if len(trajectory) == 2:
             trajectory_angles = []
-            pos_diffs = get_pos_diff(np.transpose(trajectory))
+            xy_positions = np.transpose(trajectory)
             
-            for pos_diff in pos_diffs:
-                trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
+            for i in range(0,len(xy_positions)-2):
+                x1 = xy_positions[i][0]
+                y1 = xy_positions[i][1]
+                x2 = xy_positions[i+1][0]
+                y2 = xy_positions[i+1][1]
+                x3 = xy_positions[i+2][0]
+                y3 = xy_positions[i+2][1]
+                
+                side_a = np.hypot(x3-x2,y3-y2)
+                side_b = np.hypot(x2-x1,y2-y1)
+                side_c = np.hypot(x3-x1,y3-y1)
+            
+                trajectory_angle = np.arccos((np.power(side_a,2)+np.power(side_b,2)-np.power(side_c,2))/(2.*side_a*side_b))
+                # The arccos outputs the angle in 0, pi it is however expected in -pi, pi
+                trajectory_angle = (trajectory_angle*2.)-np.pi
+
+                
+                trajectory_angles.append(trajectory_angle)
             
             trajectories.append(trajectory_angles)
         else:
@@ -80,12 +97,18 @@ def get_emergency_trajectories(obstacle_pos, current_xy_own, number):
     else:
         return np.ones(number) * np.pi / 2.
 
-    
 
+def get_center_trajectory(own_xy, other_xy, act_timestep, trajectory_length):
+    try:
+        heading = get_heading(own_xy[act_timestep:act_timestep + 3])
+    except:
+        try:
+            heading = get_heading(own_xy[act_timestep - 3:act_timestep])
+        except:
+            heading = 0.0 
+            #own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
+    center_traj, _ = get_trajectory_to_goal(own_xy, other_xy, act_timestep, heading, 0.0, [0.0, 0.0], 0.8, 1.0 , 0.2, trajectory_length)
 
-def get_center_trajectory(heading, current_xy_own, trajectory_length):
-    center_traj = get_trajectory_to_goal(current_xy_own, heading, 0.0, [0.0, 0.0], 0.1, 1.0 , 0.2)[0][0]
-    
     return center_traj
 
 def get_center_circle_points(own_xys):
@@ -120,9 +143,12 @@ def get_center_circle_points(own_xys):
         
     return goalxys
     
+                         
+def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length):
 
-def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_speed, ideal_distance, min_distance):
-    # We observe the goal and our own position
+    current_xy_own = own_xy[timestep] 
+    heading = heading_own
+
     own_x = current_xy_own[0]
     own_y = current_xy_own[1]
     goal_x = goal_xy[0]
@@ -134,7 +160,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_spee
     act_pos_x = own_x
     act_pos_y = own_y
     
-    for i in range(30):
+    for i in range(trajectory_length):
        
         # Get the straight angle to the goal
         angle_own_goal = np.arctan2(goal_y - act_pos_y, goal_x - act_pos_x)
@@ -155,7 +181,7 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_spee
         
         # We make the assumption that no single point is further away from 
         # the center line than the center line is actually long, for normalization
-        distance_cl_norm = distance_to_center_line / goal_diff
+        distance_cl_norm = distance_to_center_line / (goal_diff / 3.)
         
         # Finaly steering is reduced, according to the distance
         delta = delta * distance_cl_norm
@@ -164,15 +190,15 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_spee
         if goal_diff > ideal_distance:
             speed = desired_speed
         else:
-            goal_diff_norm = (goal_diff - min_distance) / (ideal_distance - min_distance)
+            goal_diff_norm = (goal_diff - min_distance_to_goal) / (ideal_distance - min_distance_to_goal)
             speed = goal_diff_norm * desired_speed
+        
         answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
         final_traj_x.append(answer[0])
         final_traj_y.append(answer[1])
         motor_speeds.append(speed)
         act_pos_x = answer[0]
-        act_pos_y = answer[1]
-        
+        act_pos_y = answer[1]        
         heading = answer[3]
     
     return [final_traj_x, final_traj_y], motor_speeds
@@ -180,290 +206,198 @@ def get_trajectory_to_goal(current_xy_own, heading, delta, goal_xy, desired_spee
 
 def convert_to_motor(resulting_motor_cmds):
     
-    return np.array(resulting_motor_cmds) * [100.0] / 2. + 49.0
+    return np.array(resulting_motor_cmds) * [80.0] / 2. + 49.0
+    
+goal_offset_limit = 150
+allowed_goal_distance = 0.3
+goal_ideal_distance = 50
+d_timestep_goal = 60
+
+def get_goal_position(goal_xys, own_xy, other_xy, timestep, exact_following):      
+    global d_timestep_goal
+    
+    if other_xy:
+        goal_near_obstacle = True
+    else:
+        goal_near_obstacle = False 
+        
+    if exact_following:
+        return goal_xys[timestep]
+        
+    while (goal_near_obstacle):
+    # The goal is in front on the observed trajectory, further in time.
+    # If it is too far than a certain value, keep it at that value
+        if d_timestep_goal > goal_offset_limit:
+            d_timestep_goal = goal_offset_limit            
+        
+        # Every time we try to get the goal distance towards the ideal goal distance
+        # when it quite far in front without reasons
+        if d_timestep_goal > goal_ideal_distance:
+            d_timestep_goal -= 1
+      
+        # If the end of the trajectory is reached, the endpoint will 'wait' at the last timestamp 
+        if timestep + d_timestep_goal >= len(own_xy):
+            d_timestep_goal = 0
+      
+        goal_xy = goal_xys[timestep+d_timestep_goal]   
+                
+        # Check if obstacle is too close to the goal or to the vehicle
+        for other_position in other_xy:
+            obstacle_pos = (other_position[timestep][0],other_position[timestep][1])        
+            goal_near_obstacle = distance_2d(obstacle_pos, goal_xy) < allowed_goal_distance
+            
+            # If the end of the timesteps is reached the last found goal will be returned
+            # anyway. This information can be retreived through the length of own_xy
+            # The -1 is for the -1 we substract each run
+            if len(own_xy) <= timestep+d_timestep_goal+1:
+                return goal_xy
+
+        if goal_near_obstacle:
+            # Look for a new goal along the trajectory if there is no explicit trajectory
+            # to follow for the goal
+            d_timestep_goal += 10 
+    
+    goal_xy = goal_xys[timestep+d_timestep_goal]   
+    
+    return goal_xy
+#             
+#         if vehicle_too_near:
+#             # Skip a number of simulation runs, create emergency
+#             # trajectories and check again
+#             emergency_traj = get_emergency_trajectories(obstacle_pos, current_xy_own, trajectory_length)
+#             resulting_trajectories.append(emergency_traj)
+#             resulting_motor_cmds.append(np.linspace(0.0, 0.0, trajectory_length))
+#             timestep += 1
+#             simulator.deployer.reset()
+#             # self.current_time, self.update_time, self.sample_time)
+#             # simulation_time, sample_tim
+#             # print simulator.current_time
+#             
+#             # simulator.problem.environment.simulate(update_time,sample_time)
+#             # print "Skipping timestamp, vehicle too near" + str(timestep)
+#             # print emergency_traj
+#             continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
+#         
+#         if goal_near_obstacle or vehicle_too_near:
+#             break
+#         
+#     if continue_outer_loop:
+#         continue
+#                         
+#             # Check if goal is too close to the boundary or rather if the distance to
+#             # the center is too large
+#             # The check is not used if the goal has to be on a certain trajectory 
+#             while (distance_2d(goal_xy, [0.0, 0.0]) > (radius_arena - allowed_goal_distance) and goal_trajectory_data == None):
+#                 # Otherwise, look for a new goal along the trajectory
+#                 d_timestep_goal += 10
+#                 if timestep + d_timestep_goal > no_datapoints:
+#                     # The goal at the end of the trajectory is outside the boundary. 
+#                     # This can not be avoided by looking further in the future
+#                     goal_xy = goal_xys[no_datapoints - 1]
+#                     # print "Goal at end of trajectory"
+#                     break;
+#                 else:
+#                     goal_xy = goal_xys[timestep + d_timestep_goal]                
+#                 
+#                 # todo change allowed_goal distance to allowed vehicle distance
+#             
+#             continue_outer_loop = False
     
 
 
-def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, plot_video, end_timestep, goal_trajectory_data=None):
+def close_to_boundary(current_xy_own, radius_arena, allowed_own_distance):
+    return distance_2d(current_xy_own, [0.0, 0.0]) > (radius_arena - allowed_own_distance)
+
+
+def get_slowdown_cmd(trajectory_length):
+    # A more sophisticated behavior can be planned later, based on the following lines
+    #distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
+    # resulting_motor_cmds.append(np.ones(trajectory_length)*(1-distance_boundary_norm))
+    #resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
+    return np.linspace(0.4, 0.0, trajectory_length)
+
+
+def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_timestep, goal_xys, act_behavior):
     '''
     Returns a short term evasion trajectory, in steering commands for 
     as many timesteps ahead as given in between timestep_start and timestep_ahead.
     Note that the trajectory will start one timestep further than timestep_start because
     one timestep is needed to retrieve information about the start conditions
-     
-    FOR NOW, OTHER_XY IS ONLY ONE OTHER VEHICLE    
+  
     '''
-    safety_distance = 0.2
-    allowed_goal_distance = 0.2
     allowed_own_distance = 0.4
+    min_distance_to_goal = allowed_own_distance
     ideal_distance = 1.2  # meter in following and to the boundary
-    obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
-    no_datapoints = len(own_xy)
     framerate = (1. / 30.)
     radius_arena = 4.28
-    sample_time = 1. / 4.
-    update_time = 1. / 4.
-    goal_offset_limit = 150
-    goal_ideal_distance = 50
-    trajectory_length = 30
+
+    trajectory_length = 40
     resulting_trajectories = []
     resulting_motor_cmds = []
-    simulate = False
-    
-    goal_xys = goal_trajectory_data
+
+    plt_vehicle = None
+    plt_boundary = None
         
-    # For each obstacle in the obstacle trajectory list we create segments from
-    # the trajectories to improve computability.
+    init_xy_own, heading_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
+     
+    if plot_graphics:
+        plt.ion()
+        if plt_boundary == None:
+            plt_boundary = plt.Circle((0, 0), radius_arena, color='b', fill=False)
+            axis = plt.gca()
+            axis.add_artist(plt_boundary)
+        plt.axis([-5, 5, -5, 5])
+        plt.show()
 
-    environment = Environment(room={'shape': RegularPolyhedron(radius_arena, 24), 'draw': False})
-    test_obstacle_pos = []
-    for i in range(0, len(other_xy)):
     
-        obstacle_xy = other_xy[i]
-        # For each obstacle, get its segments
-        samplepoints = np.linspace(timestep_start, no_datapoints - 1, num=obstacle_segment_factor, dtype=np.int32)
-        
-        segments_trajectory = np.array(obstacle_xy)[samplepoints]
-
-        # Calculate start and end time of the segment 
-        # obstacle_start_times = np.linspace(timestep_start, framerate * no_datapoints, num=obstacle_segment_factor)
-        # obstacle_end_times = obstacle_start_times[1:]
-        # obstacle_start_times = obstacle_start_times[:len(obstacle_start_times)-1]
-        
-        test_obstacle_pos.append(np.array(obstacle_xy))
-        # offset_diffs = get_pos_diff(segments_trajectory)
-
-        # Create a trajectory for that obstacle
-        # traj = ({'position': {'time':obstacle_start_times, 'values': offset_diffs}})
-
-        # add it to the environment
-        # environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.25),
-        #    simulation={'trajectories': traj}))
-        environment.add_obstacle(Obstacle({'position': segments_trajectory[0]}, shape=Circle(0.2)))
-
-    init_xy_own, heading_own, _ = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
-    
-    # vehicle = Bicycle(length=0.4, options={'plot_type': 'car', 'substitution': False})  # 
-    vehicle = Holonomic(shapes=Circle(0.25))
-    vehicle.define_knots(knot_intervals=2)
-    
-    # velocity_abs = np.hypot(velocity_own[0][0], velocity_own[0][1])
-    
-    # plan from the last known position
-    # vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1], heading_own, 0.0])  # the assumption is that
-    vehicle.set_initial_conditions(state=[init_xy_own[0], init_xy_own[1]]) 
-    # for the time being that the steering angle is 0. This can be changed in the future, based on existing data.
-    
-    init_xy_own = own_xy[timestep_start] 
-    
-    # If there is a circle to follow, the timesteps will be used to avoid planning the goal
-    # in another obstacle. If a car is followed, the goal has to be followed exactly
-    if goal_trajectory_data:
-        goal_xy = goal_xys[timestep_start]
-    else:
-        goal_xy = goal_xys[timestep_start + d_timestep_goal]
-
-    # Change this by a tangential angle to the center circle TODO FIX
-    vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
-    # Create a point-to-point problem
-    problem = Point2point(vehicle, environment, freeT=False)
-    
-    problem.set_options({'solver_options':
-    {'ipopt': {'ipopt.hessian_approximation': 'limited-memory'}}})
-    
-    
-    problem.init()
-    
-    # simulate, plot some signals and save a movie
-    simulator = Simulator(problem, sample_time=sample_time, update_time=update_time)
-    if plot_video:
-        problem.plot('scene')
-        simulate = True
+    ############### Iterate over all timesteps in the data
     for timestep in range(timestep_start, end_timestep):
-    # for timestep in range(timestep_start, timestep_start + 10):
         
-        for i in range(0, len(simulator.problem.environment.obstacles)):
-            obstacle = simulator.problem.environment.obstacles[i]
-            obstacle.set_state({'position':test_obstacle_pos[i][timestep], 'velocity':[0., 0.], 'acceleration':[0., 0.]})
-              
-        if plot_video:
-            problem.update_plot('scene', 0)
-            # circle2 = plt.Circle((0,0), radius_arena, color='b', fill=False)
-            plt.scatter(goal_xy[0], goal_xy[1])
-            
-            # straight_line = get_trajectory_to_goal(own_xy[timestep],goal_xy)
-            # plt.scatter(straight_line[0],straight_line[1])
-            # print goal_xy
-            # axis = plt.gca()
-            # axis.set_xlim((-5, 5))
-            # axis.set_ylim((-5, 5))
-            # axis.add_artist(circle2)
-            # plt.savefig("scene" + "_" + str(timestep) + ".png")
-            
-        
-        if timestep > timestep_start + 1:
-            
-            current_xy_own = own_xy[timestep]
-            
-            # The goal is in front on the observed trajectory, further in time.
-            # If it is to far than a certain value, keep it at that value
-            if d_timestep_goal > goal_offset_limit:
-                d_timestep_goal = goal_offset_limit            
-            
-            # If the end of the trajectory is reached, the endpoint will 'wait' at the last timestamp 
-            if timestep + d_timestep_goal >= len(own_xy):
-                d_timestep_goal = len(own_xy) - timestep 
-            
-            # Every time we try to get the goal distance towards the ideal goal distance
-            # when it quite far in front without reasons
-            if d_timestep_goal > goal_ideal_distance:
-                d_timestep_goal -= 1
-            try:
-                if goal_trajectory_data:
-                    goal_xy = goal_xys[timestep]
-                else:
-                    goal_xy = goal_xys[timestep + d_timestep_goal]
-            except IndexError:
-                goal_xy = goal_xys[len(own_xy) - 1]
-                print "IndexError: " + str(timestep + d_timestep_goal)
-                
-            continue_outer_loop = False
-            # Check if obstacle is too close to the goal or to the vehicle
-            while True:
-                goal_near_obstacle = False 
-                vehicle_too_near = False
-                
-                
-                for obstacle in simulator.problem.environment.obstacles:
-                    obstacle_pos = (obstacle.signals['position'][0][-1], obstacle.signals['position'][1][-1])
-                
-                    goal_near_obstacle = goal_near_obstacle or distance_2d(obstacle_pos, goal_xy) < allowed_goal_distance
-                    vehicle_too_near = vehicle_too_near or distance_2d(current_xy_own, obstacle_pos) < allowed_own_distance
-                    
-                    
-                    
-                # If we are far away from an obstacle, continue
-                if not goal_near_obstacle and not vehicle_too_near:
-                    break
-                
-                if goal_near_obstacle:
-                    # Look for a new goal along the trajectory if there is no explicit trajectory
-                    # to follow for the goal
-                    d_timestep_goal += 10 
-                    if not goal_trajectory_data:
-                        goal_xy = goal_xys[timestep + d_timestep_goal]
-                    
-                if vehicle_too_near:
-                    # Skip a number of simulation runs, create emergency
-                    # trajectories and check again
-                    emergency_traj = get_emergency_trajectories(obstacle_pos, current_xy_own, trajectory_length)
-                    resulting_trajectories.append(emergency_traj)
-                    resulting_motor_cmds.append(np.linspace(0.0, 0.0, trajectory_length))
-                    timestep += 1
-                    simulator.deployer.reset()
-                    # self.current_time, self.update_time, self.sample_time)
-                    # simulation_time, sample_tim
-                    # print simulator.current_time
-                    
-                    # simulator.problem.environment.simulate(update_time,sample_time)
-                    # print "Skipping timestamp, vehicle too near" + str(timestep)
-                    # print emergency_traj
-                    continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
-                
-                if goal_near_obstacle or vehicle_too_near:
-                    break
-                
-            if continue_outer_loop:
-                continue
-                        
-            # Check if goal is too close to the boundary or rather if the distance to
-            # the center is too large
-            # The check is not used if the goal has to be on a certain trajectory 
-            while (distance_2d(goal_xy, [0.0, 0.0]) > (radius_arena - allowed_goal_distance) and goal_trajectory_data == None):
-                # Otherwise, look for a new goal along the trajectory
-                d_timestep_goal += 10
-                if timestep + d_timestep_goal > no_datapoints:
-                    # The goal at the end of the trajectory is outside the boundary. 
-                    # This can not be avoided by looking further in the future
-                    goal_xy = goal_xys[no_datapoints - 1]
-                    # print "Goal at end of trajectory"
-                    break;
-                else:
-                    goal_xy = goal_xys[timestep + d_timestep_goal]                
-                
-                # todo change allowed_goal distance to allowed vehicle distance
-            
-            continue_outer_loop = False
-            if (distance_2d(current_xy_own, [0.0, 0.0]) > (radius_arena - allowed_own_distance)):
-                # Skip a number of simulation runs, create emergency
-                # trajectories and check again
-                # Try to get the heading. Use try and except for the beginning and end of own_Xy
-                try:
-                    heading = get_heading(own_xy[timestep:timestep + 3])
-                except:
-                    try:
-                        heading = get_heading(own_xy[timestep - 3:timestep])
-                    except:
-                        heading = 0.0 
-                        
-                center_traj = get_center_trajectory(heading, current_xy_own, trajectory_length)
-                resulting_trajectories.append(center_traj)
-                
-                # print center_traj
-                distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
-                # resulting_motor_cmds.append(np.ones(trajectory_length)*(1-distance_boundary_norm))
-                resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
-                # This is a simplification where in the emergency trajectory all entries are very slow
-                
-                timestep += 1
-                simulator.deployer.reset()
-                # print "Skipping timestamp, boundary too near " + str(timestep)
-                continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
-            
-            if continue_outer_loop:
-                continue
-            
-            try:    
-                simulator.problem.vehicles[0].overrule_state(current_xy_own)
-                vehicle.set_terminal_conditions([goal_xy[0], goal_xy[1]])
-            except AttributeError:
-                pass
-             
-        
-        if simulate:
-            simulator.update()
+        # If the behavior is follow, we fast-forward until we find a vehicle position in the goal_xys array
+        # where the other positions are stored
+        if goal_xys[timestep] == None:
+            timestep += 1
+            if timestep > end_timestep:
+                break
+            continue
 
-            # return trajectories and signals
-            trajectories, signals = {}, {}
-            for vehicle in simulator.problem.vehicles:
-                trajectories[str(vehicle)] = vehicle.traj_storage
-                signals[str(vehicle)] = vehicle.signals
-                
-                # Calculate the resulting trajectory and sample it to 30 values
-                trajectory_xs = trajectories[str(vehicle)]['pose'][-1][0]
-                trajectory_ys = trajectories[str(vehicle)]['pose'][-1][1]
-                
-                trajectory_30_x = sample_values(trajectory_xs, trajectory_length)
-                trajectory_30_y = sample_values(trajectory_ys, trajectory_length)
+        current_xy_own, heading_own = get_state(own_xy, timestep, 4)  # smooth heading over 3 timesteps in the future
+        
+        # A number of checks are performed to make sure the goal is clear of vehicles,
+        # and not planned within the boundary. If behavior is follow, now dynamic goal is used,
+        # which tries to avoid other vehicles
+        goal_xy = get_goal_position(goal_xys, own_xy, other_xy, timestep, act_behavior == behavior.follow)
+        
+        if close_to_boundary(current_xy_own,radius_arena, allowed_own_distance):
+            new_trajectory = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)            
+            resulting_trajectories.append(new_trajectory)
+            resulting_motor_cmds.append(get_slowdown_cmd(trajectory_length))
+            color = 'r'
+        else:
+            new_trajectory, new_motor_cmds = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
+            resulting_trajectories.append(new_trajectory)
+            resulting_motor_cmds.append(new_motor_cmds)
+            color = 'b'
             
-                resulting_trajectories.append((trajectory_30_x, trajectory_30_y))
-        # Calculate the resulting trajectory and sample it to 30 values
-        try:
-            speed_abs = np.absolute(np.hypot(own_xy[timestep + 1][0] - own_xy[timestep][0], own_xy[timestep + 1][1] - own_xy[timestep][1]))
-            heading_own = get_heading(own_xy[timestep:timestep + 2])
-        except:
-            speed_abs = np.absolute(np.hypot(own_xy[timestep][0] - own_xy[timestep - 1][0], own_xy[timestep][1] - own_xy[timestep - 1][1]))
-            heading_own = get_heading(own_xy[timestep - 2:timestep])
+        if plot_graphics:
+            lines = plt.plot(new_trajectory[0], new_trajectory[1], color)
+            vehicle = plt.plot(current_xy_own[0], current_xy_own[1], 'bo')
+            goal = plt.plot(goal_xy[0], goal_xy[1], 'go')
+            obstacle_plot = []
+            for other in other_xy:
+                obstacle_plot.append(plt.plot(other[timestep][0],other[timestep][1],'ro'))
+            plt.pause(0.0001)
+            plt.show()
+            for other_plot in obstacle_plot:
+                other_plot.pop(0).remove()
+            lines.pop(0).remove()
+            vehicle.pop(0).remove()
+            goal.pop(0).remove()
         
-        new_trajectory, new_motor_cmds = get_trajectory_to_goal(own_xy[timestep], heading_own, 0.0, goal_xy, desired_speed, ideal_distance, allowed_goal_distance)
-        resulting_trajectories.append(new_trajectory)
-        resulting_motor_cmds.append(new_motor_cmds)
-        
-        plt.plot(new_trajectory[0], new_trajectory[1])
-        # print "--"
-        
+    steering_angles = convert_path_to_steeering_angles(resulting_trajectories)
+    motor_commands = convert_to_motor(resulting_motor_cmds)
     
-    return convert_path_to_steeering_angles(resulting_trajectories), convert_to_motor(resulting_motor_cmds)
+    return steering_angles, motor_commands, resulting_trajectories
 
 
     
