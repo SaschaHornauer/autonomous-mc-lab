@@ -129,7 +129,7 @@ if __name__ == '__main__':
     #selected_modes = [behavior.follow]
     selected_modes = [behavior.circle]
     show_graphics = False
-    calculate_new = True
+    calculate_new = False
      
     if calculate_new:
         resulting_trajectories = get_trajectories(pickle_path, t1, t2, selected_modes, show_graphics)
