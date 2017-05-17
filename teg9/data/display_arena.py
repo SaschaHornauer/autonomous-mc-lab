@@ -76,18 +76,23 @@ while True:
 
 	out_img *= 0
 	draw_markers(out_img)
+	cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 
 	timer = Timer(60)
 	for i in range(len(traj1['ts'])):
 		if timer.check():
 			break
-		for traj in [traj1]+traj2:
-			t = traj['ts'][i]
-			for side in ['left','right']:
-				car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
-				plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
-			k = mci(out_img,delay=1)
-			if k == ord('q'):
+		try:
+			for traj in [traj1]+traj2:
+				t = traj['ts'][i]
+				for side in ['left','right']:
+					car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
+					plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
+		except Exception as e:
+			print("********** Exception ***********************")
+			print(e.message, e.args)
+		k = mci(out_img,delay=1)
+		if k == ord('q'):
 				break
 
 
