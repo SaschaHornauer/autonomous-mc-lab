@@ -7,6 +7,7 @@ import kzpy3.teg9.data.utils.get_trajectory_points as get_trajectory_points
 Origin = 300
 Mult = 50
 
+
 out_img = zeros((Origin*2,Origin*2,3),np.uint8)
 
 marker_ids_all = []
@@ -37,6 +38,64 @@ def draw_markers(out_img):
 
 
 
+
+bag_folders_path = opjD('bair_car_data_new')
+bag_folders_meta_path = opj(bag_folders_path,'meta')
+
+
+
+
+#M = {}
+c=(255,0,0)
+delay = 1#int(1000/30.0)
+run_name = 'direct_rewrite_test_25Apr17_15h57m04s_Mr_Black'
+run_name = 'direct_caffe_Fern_aruco_15Apr17_14h02m46s_Mr_Blue'
+run_name = 'direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
+run_name = 'direct_rewrite_test_30Apr17_11h50m02s_Mr_Blue'
+run_name = 'caffe2_z2_color_direct_local_11Apr17_15h25m02s_Mr_Silver'
+
+car_name = get_trajectory_points.car_name_from_run_name(run_name)
+
+"""
+if car_name not in M:
+	M[car_name] = {}
+M[car_name][run_name] = lo(opj(bag_folders_meta_path,run_name,'trajectory.pkl'))
+"""
+
+
+"""
+t0 = max(M[car_name][run_name]['left']['time_stamps'][0],M[car_name][run_name]['right']['time_stamps'][0])
+tn = max(M[car_name][run_name]['left']['time_stamps'][-1],M[car_name][run_name]['right']['time_stamps'][-1])
+dt = 1/30.0
+ts = arange(t0,tn,dt)
+
+pts = get_trajectory_points.get_xp_pts(M,run_name,ts,Mult,Origin,dt)
+
+
+
+
+for i in range(len(pts['left']['y_pix'])):
+	if np.mod(i,30*30*60) == 0:
+		out_img *= 0
+	for side in ['left','right']:
+		xp,yp = pts[side]['x_pix'][i],pts[side]['y_pix'][i]
+		#print pts['camera_separation'][i]
+		if pts[side]['t_vel'][i] > 1.788: # Above 4 mph
+			c = (255,255,255)
+		elif pts['camera_separation'][i] > 0.25: # almost larger than length of car
+			c = (0,255,0)
+		elif pts[side]['timestamp_gap'][i] > 0.1: # missed data points
+			c = (255,0,0)
+		else:
+			c = (0,0,255)
+		cv2.circle(out_img,(xp,yp),1,c,-1)
+		k = mci(out_img,delay=1)
+		if k == ord('q'):
+			break
+"""
+
+
+
 colors = {'Mr_Yellow':(255,255,0), 'Mr_Silver':(255,255,255), 'Mr_Blue':(0,0,255), 'Mr_Orange':(255,0,0), 'Mr_Black':(100,100,100)}
 
 
@@ -54,9 +113,6 @@ def plot_trajectory_point(traj,side,i,t,out_img,c):
 
 
 
-N = lo(opjh('caffe_models','N.pkl'))
-
-
 CAR_NAME = 'Mr_Blue'
 RUN_NAME = 'direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
 
@@ -65,7 +121,7 @@ traj1 = N[CAR_NAME][RUN_NAME]['self_trajectory']
 traj2 = N[CAR_NAME][RUN_NAME]['other_trajectories']
 
 out_img *= 0
-draw_markers(out_img)
+
 
 for i in range(len(ts)):
 	for traj in [traj1]+traj2:
