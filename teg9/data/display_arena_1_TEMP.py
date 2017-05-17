@@ -62,75 +62,44 @@ if DISPLAY_LEFT:
 N = lo(opjD('N.pkl'))
 
 
-CAR_NAME = 'Mr_Blue'
-RUN_NAME = 'direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
-
-while True:
-	try:
-		CAR_NAME = random.choice(N.keys())
-		RUN_NAME = random.choice(N[CAR_NAME].keys())
-		if len(N[CAR_NAME][RUN_NAME]['other_trajectories']) < 2:
-			continue
-		print()
-		print(RUN_NAME)
-		print(CAR_NAME)
-		for o in N[CAR_NAME][RUN_NAME]['other_trajectories']:
-			print('\t'+get_trajectory_points.car_name_from_run_name(o['run_name']))
-
-		traj1 = N[CAR_NAME][RUN_NAME]['self_trajectory']
 
 
+bk = N['Mr_Black']['direct_rewrite_test_28Apr17_17h50m34s_Mr_Black']['self_trajectory']
+yl = N['Mr_Yellow']['direct_rewrite_test_29Apr17_00h50m25s_Mr_Yellow']['self_trajectory']
+si = N['Mr_Silver']['direct_rewrite_test_28Apr17_17h51m01s_Mr_Silver']['self_trajectory']
+bu = N['Mr_Blue']['direct_rewrite_test_28Apr17_17h50m31s_Mr_Blue']['self_trajectory']
+og = N['Mr_Orange']['direct_rewrite_test_28Apr17_17h59m53s_Mr_Orange']['self_trajectory']
 
+traj_lst = [bk,yl,si,bu,og]
 
-		if DISPLAY_LEFT:
-			for traj in [traj1]:
-				if True: #'data' not in traj.keys():
-					traj['data'] = get_new_A.get_new_A()
-					multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
-						traj['data'],
-						opj(bag_folders_dst_meta_path,traj['run_name']),
-						opj(bag_folders_dst_rgb1to4_path,traj['run_name']))
+traj_lst[0]['data'] = get_new_A.get_new_A()
+multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
+	traj_lst[0]['data'],
+		opj(bag_folders_dst_meta_path,traj_lst[0]['run_name']),
+		opj(bag_folders_dst_rgb1to4_path,traj_lst[0]['run_name']))
 
-		out_img *= 0
-		draw_markers(out_img)
-		cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+t = traj_lst[0]['ts'][0]
 
-		timer = Timer(10)
-
-		for i in range(len(traj1['ts'])):
-			if timer.check():
-				out_img *= 0
-				draw_markers(out_img)
-				cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
-
-				timer.reset()
-			try:
-				for traj in [traj1]: #+traj2:
-					car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
-					if i < len(traj['ts']):
-						t = traj['ts'][i]
-						for side in ['left','right']:
-							plot_trajectory_point(traj,side,i,t,out_img,colors[car_name])
-			except Exception as e:
-				print("********** Exception ***********************")
-				print(time_str('Pretty'))
-				print(e.message, e.args)
-			if DISPLAY_LEFT:
-				#print i #traj1['ts'][i]
-				index = traj1['data']['t_to_indx'][traj1['ts'][i]]
-				img = traj1['data']['left'][index]
-				out_img[:shape(img)[0]:,-shape(img)[1]:] = img
-			k = mci(out_img,delay=33)
-			if k == ord('q'):
+dt = 1/30.
+while t < traj_lst[0]['ts'][-1]:
+	for traj in traj_lst:
+		car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
+		if t>traj['ts'][0] and t<traj['ts'][-1]:
+			near_t = -1
+			for i in range(1,len(traj['ts'])):
+				if traj['ts'][i-1]<t and traj['ts'][i]>t:
+					near_t = traj['ts'][i]
+					near_i = i
 					break
-		
-	except Exception as e:
-		print("********** Exception ***********************")
-		print(time_str('Pretty'))
-		print(e.message, e.args)
+			if near_t > 0:
+				for side in ['left','right']:
+					plot_trajectory_point(traj,side,near_i,near_t,out_img,colors[car_name])
+	t += dt
+	index = traj_lst[0]['data']['t_to_indx'][traj_lst[0]['ts'][i]]
+	img = traj_lst[0]['data']['left'][index]
+	out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj1['run_name'])]
+	out_img[:shape(img)[0]:,-shape(img)[1]:] = img
 
-	raw_input('>>>>')
-
-
+	k = mci(out_img,delay=3)
 
 
