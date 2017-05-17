@@ -201,7 +201,7 @@ for ref_run_name in aruco_runs:
     for side in ['left']:
         clf()
         car_name = get_trajectory_points.car_name_from_run_name(ref_run_name)
-        R = M[car_name][ref_run_name][side]['time_stamps']
+        R = M[car_name][ref_run_name][side]['raw_time_stamps']
         R0,Rn = R[0],R[-1]
         M[car_name][ref_run_name]['self_trajectory'] = get_trajectory_points.get_xp_pts(M,ref_run_name,R,Mult,Origin,dt)
         M[car_name][ref_run_name]['other_trajectories'] = []
