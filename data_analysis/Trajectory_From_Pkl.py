@@ -112,7 +112,6 @@ class Trajectory_From_Pkl:
         self.timestep_offset = start_timestep
         evasion_trajectory_data = {}
         
-        
         # For all cars in actual trajectories
         for car in actual_trajectories:
             print "Calculating trajectories for " + str(car)
@@ -123,7 +122,7 @@ class Trajectory_From_Pkl:
             # Create a list containing all other trajectories
             other_positions = []
             # As long as there is only one other car we fake second one by taking its trajectory 
-            # and turning it aroudn
+            # and turning it around
             
             if self.fake_more_entries:
                 first_trajectory_in_dict = other_trajectories.itervalues().next()
@@ -133,12 +132,9 @@ class Trajectory_From_Pkl:
                 fake_trajectory = {'timestamps':fake_timestamps, 'position':fake_positions}
                 other_trajectories['Mr_Fake'] = fake_trajectory
                  
-            
-                        
             for other_cars in other_trajectories:
                 other_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
                 
-                                    
             # Now calculate the evasive trajectory for the car
             own_trajectories = actual_trajectories[car]
             
@@ -156,11 +152,10 @@ class Trajectory_From_Pkl:
                 if act_mode == behavior.circle:
                     goal_xys = evasion_generator.get_center_circle_points(own_xy)
                                                                              
-                    trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, True, end_timestep, goal_xys)
+                    trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, True, end_timestep, goal_xys, act_mode)
                     resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                     timestamps = actual_trajectories[car]['timestamps']
                     evasion_trajectory_data[(car, act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories, 'motor_cmds':motor_cmds, 'pos':own_xy, 'path':path_data}
-                
                  
                 elif act_mode == behavior.follow:
                     
@@ -192,14 +187,13 @@ class Trajectory_From_Pkl:
                         end_time = segment[len(segment) - 1]
                         if start_time == end_time:
                             continue
-                        # Add goal trajectory
-                        # goal_xys[start_time:end_time] = points_to_list(closest_xys[start_time:end_time])
-                        
-                        trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, True, end_timestep, goal_xys)
-                        resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
-                        timestamps = actual_trajectories[car]['timestamps']
-                        evasion_segment_data.append({'mode':act_mode, 'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories, 'motor_cmds':motor_cmds, 'pos':own_xy, 'path':path_data})
-                    
+                        try:
+                            trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, True, end_timestep, goal_xys, act_mode)
+                            resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
+                            timestamps = actual_trajectories[car]['timestamps']
+                            evasion_segment_data.append({'mode':act_mode, 'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories, 'motor_cmds':motor_cmds, 'pos':own_xy, 'path':path_data})
+                        except IndexError as ix:
+                            print "IndexError, end of timesteps reached"
 
                     evasion_trajectory_data[(car, act_mode)] = evasion_segment_data
                 

@@ -34,8 +34,8 @@ def get_state(own_xy, timestep_start, timestep_end):
     # which add as slight smoothing
     heading = get_heading(own_xy[timestep_start:timestep_start + timestep_end])
     # Get the velocity over the first two timesteps
-    velocity = get_velocities([own_xy[timestep_start], own_xy[timestep_start + 1]], framerate)
-    return init_xy, heading, velocity
+    #velocity = get_velocities([own_xy[timestep_start], own_xy[timestep_start + 1]], framerate)
+    return init_xy, heading
 
 def sample_values(values, no_of_samples):
     
@@ -91,7 +91,7 @@ def get_center_trajectory(own_xy, other_xy, act_timestep, trajectory_length):
         except:
             heading = 0.0 
             #own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
-    center_traj, _ = get_trajectory_to_goal(own_xy, other_xy, act_timestep, heading, 0.0, [0.0, 0.0], 0.8, 1.0 , 0.2)
+    center_traj, _ = get_trajectory_to_goal(own_xy, other_xy, act_timestep, heading, 0.0, [0.0, 0.0], 0.8, 1.0 , 0.2, trajectory_length)
 
     return center_traj
 
@@ -128,7 +128,7 @@ def get_center_circle_points(own_xys):
     return goalxys
     
                          
-def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
+def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length):
 
     current_xy_own = own_xy[timestep] 
     heading = heading_own
@@ -144,7 +144,7 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
     act_pos_x = own_x
     act_pos_y = own_y
     
-    for i in range(30):
+    for i in range(trajectory_length):
        
         # Get the straight angle to the goal
         angle_own_goal = np.arctan2(goal_y - act_pos_y, goal_x - act_pos_x)
@@ -197,13 +197,16 @@ allowed_goal_distance = 0.3
 goal_ideal_distance = 50
 d_timestep_goal = 60
 
-def get_goal_position(goal_xys, own_xy, other_xy, timestep):      
+def get_goal_position(goal_xys, own_xy, other_xy, timestep, exact_following):      
     global d_timestep_goal
     
     if other_xy:
         goal_near_obstacle = True
     else:
         goal_near_obstacle = False 
+        
+    if exact_following:
+        return goal_xys[timestep]
         
     while (goal_near_obstacle):
     # The goal is in front on the observed trajectory, further in time.
@@ -237,7 +240,9 @@ def get_goal_position(goal_xys, own_xy, other_xy, timestep):
             # Look for a new goal along the trajectory if there is no explicit trajectory
             # to follow for the goal
             d_timestep_goal += 10 
-            
+    
+    goal_xy = goal_xys[timestep+d_timestep_goal]   
+    
     return goal_xy
 #             
 #         if vehicle_too_near:
@@ -296,7 +301,7 @@ def get_slowdown_cmd(trajectory_length):
     return np.linspace(0.4, 0.0, trajectory_length)
 
 
-def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_timestep, goal_xys):
+def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_timestep, goal_xys, act_behavior):
     '''
     Returns a short term evasion trajectory, in steering commands for 
     as many timesteps ahead as given in between timestep_start and timestep_ahead.
@@ -310,26 +315,16 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
     framerate = (1. / 30.)
     radius_arena = 4.28
 
-    trajectory_length = 30
+    trajectory_length = 100
     resulting_trajectories = []
     resulting_motor_cmds = []
 
     plt_vehicle = None
     plt_boundary = None
-    
-    obstacle_list = []
-    
-    init_xy_own, heading_own, _ = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
-    
-    # If there is a circle to follow, the timesteps will be used to avoid planning the goal
-    # in another obstacle. If a car is followed, the goal has to be followed exactly
-    goal_xy = goal_xys[timestep_start]
-    
-    #DEBUG
-    plot_graphics = False
-    
+        
+    init_xy_own, heading_own = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
+     
     if plot_graphics:
-        plt_vehicle = plt.plot(init_xy_own[0], init_xy_own[1], 'bo')
         plt.ion()
         if plt_boundary == None:
             plt_boundary = plt.Circle((0, 0), radius_arena, color='b', fill=False)
@@ -342,25 +337,42 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
     ############### Iterate over all timesteps in the data
     for timestep in range(timestep_start, end_timestep):
         
+        # If the behavior is follow, we fast-forward until we find a vehicle position in the goal_xys array
+        # where the other positions are stored
+        if goal_xys[timestep] == None:
+            timestep += 1
+            continue
 
-        current_xy_own, heading_own, _ = get_state(own_xy, timestep_start, 4)  # smooth heading over 3 timesteps in the future
+        current_xy_own, heading_own = get_state(own_xy, timestep, 4)  # smooth heading over 3 timesteps in the future
         
         # A number of checks are performed to make sure the goal is clear of vehicles,
-        # and not planned within the boundary
-        goal_xy = get_goal_position(goal_xys, own_xy, other_xy, timestep)
+        # and not planned within the boundary. If behavior is follow, now dynamic goal is used,
+        # which tries to avoid other vehicles
+        goal_xy = get_goal_position(goal_xys, own_xy, other_xy, timestep, act_behavior == behavior.follow)
         
         if close_to_boundary(current_xy_own,radius_arena, allowed_own_distance):
-            center_traj = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)            
-            resulting_trajectories.append(center_traj)
+            new_trajectory = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)            
+            resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(get_slowdown_cmd(trajectory_length))
         else:
-            new_trajectory, new_motor_cmds = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal)
+            new_trajectory, new_motor_cmds = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(new_motor_cmds)
             
         if plot_graphics:
-            plt.plot(new_trajectory[0], new_trajectory[1])
+            lines = plt.plot(new_trajectory[0], new_trajectory[1], 'b')
+            vehicle = plt.plot(current_xy_own[0], current_xy_own[1], 'bo')
+            goal = plt.plot(goal_xy[0], goal_xy[1], 'go')
+            obstacle_plot = []
+            for other in other_xy:
+                obstacle_plot.append(plt.plot(other[timestep][0],other[timestep][1],'ro'))
+            plt.pause(0.0001)
             plt.show()
+            for other_plot in obstacle_plot:
+                other_plot.pop(0).remove()
+            lines.pop(0).remove()
+            vehicle.pop(0).remove()
+            goal.pop(0).remove()
         
     steering_angles = convert_path_to_steeering_angles(resulting_trajectories)
     motor_commands = convert_to_motor(resulting_motor_cmds)
