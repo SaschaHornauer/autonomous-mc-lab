@@ -22,8 +22,8 @@ import angles
 
 framerate = 1. / 30.
 max_v = 4.47  # approximate max speed according to the internet for the axial bomber
-desired_speed = 1.0  # percent
 distance_from_boundary_of_circle = 2.  #
+desired_speed = 2.0  # 
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -78,7 +78,6 @@ def convert_path_to_steeering_angles(resulting_trajectories):
                 # The arccos outputs the angle in 0, pi it is however expected in -pi, pi
                 trajectory_angle = (trajectory_angle*2.)-np.pi
 
-                
                 trajectory_angles.append(trajectory_angle)
             
             trajectories.append(trajectory_angles)
@@ -107,9 +106,9 @@ def get_center_trajectory(own_xy, other_xy, act_timestep, trajectory_length):
         except:
             heading = 0.0 
             #own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
-    center_traj, _ = get_trajectory_to_goal(own_xy, other_xy, act_timestep, heading, 0.0, [0.0, 0.0], 0.8, 1.0 , 0.2, trajectory_length)
+    center_traj, dismissed_motor, steering_deltas = get_trajectory_to_goal(own_xy, other_xy, act_timestep, heading, 0.0, [0.0, 0.0], 2.0,1.0 , 0.2, trajectory_length)
 
-    return center_traj
+    return center_traj, steering_deltas
 
 def get_center_circle_points(own_xys):
     
@@ -159,6 +158,7 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
     goal_diff = np.hypot(goal_x - own_x, goal_y - own_y)
     act_pos_x = own_x
     act_pos_y = own_y
+    deltas = []
     
     for i in range(trajectory_length):
        
@@ -192,6 +192,7 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
         else:
             goal_diff_norm = (goal_diff - min_distance_to_goal) / (ideal_distance - min_distance_to_goal)
             speed = goal_diff_norm * desired_speed
+            print speed
         
         answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
         final_traj_x.append(answer[0])
@@ -200,13 +201,24 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
         act_pos_x = answer[0]
         act_pos_y = answer[1]        
         heading = answer[3]
+        deltas.append(delta)    
     
-    return [final_traj_x, final_traj_y], motor_speeds
+    return [final_traj_x, final_traj_y], motor_speeds, deltas
     
 
 def convert_to_motor(resulting_motor_cmds):
     
-    return np.array(resulting_motor_cmds) * [80.0] / 2. + 49.0
+    max_motor = 75.0
+    min_motor = 49.0
+    range = max_motor-min_motor
+    
+    
+    # normalize
+    resulting_motor_cmds = map(div,resulting_motor_cmds,[desired_speed]*np.ones(len(resulting_motor_cmds)))
+    resulting_motor_cmds = map(mul,resulting_motor_cmds,[range]*np.ones(len(resulting_motor_cmds)))
+    resulting_motor_cmds = map(add,resulting_motor_cmds,[49.0]*np.ones(len(resulting_motor_cmds)))
+    
+    return resulting_motor_cmds
     
 goal_offset_limit = 150
 allowed_goal_distance = 0.3
@@ -325,15 +337,16 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
     one timestep is needed to retrieve information about the start conditions
   
     '''
-    allowed_own_distance = 0.4
+    allowed_own_distance = 1.5
     min_distance_to_goal = allowed_own_distance
-    ideal_distance = 1.2  # meter in following and to the boundary
+    ideal_distance = 2.0  # meter in following and to the boundary
     framerate = (1. / 30.)
     radius_arena = 4.28
 
-    trajectory_length = 40
+    trajectory_length = 30
     resulting_trajectories = []
     resulting_motor_cmds = []
+    resulting_deltas = []
 
     plt_vehicle = None
     plt_boundary = None
@@ -369,16 +382,19 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
         goal_xy = get_goal_position(goal_xys, own_xy, other_xy, timestep, act_behavior == behavior.follow)
         
         if close_to_boundary(current_xy_own,radius_arena, allowed_own_distance):
-            new_trajectory = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)            
+            new_trajectory, new_deltas = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)   
+            resulting_deltas.append(new_deltas)         
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(get_slowdown_cmd(trajectory_length))
             color = 'r'
         else:
-            new_trajectory, new_motor_cmds = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
+            new_trajectory, new_motor_cmds, new_deltas = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
+            resulting_deltas.append(new_deltas)    
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(new_motor_cmds)
             color = 'b'
             
+        
         if plot_graphics:
             lines = plt.plot(new_trajectory[0], new_trajectory[1], color)
             vehicle = plt.plot(current_xy_own[0], current_xy_own[1], 'bo')
@@ -394,7 +410,8 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
             vehicle.pop(0).remove()
             goal.pop(0).remove()
         
-    steering_angles = convert_path_to_steeering_angles(resulting_trajectories)
+    #steering_angles = convert_path_to_steeering_angles(resulting_trajectories)
+    steering_angles = resulting_deltas
     motor_commands = convert_to_motor(resulting_motor_cmds)
     
     return steering_angles, motor_commands, resulting_trajectories

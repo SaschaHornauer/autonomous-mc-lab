@@ -98,25 +98,31 @@ def get_pos_diff(xy_positions):
 
 def convert_delta_to_steer(delta_values):
     
-    max_left_command = 80
-    max_right_command = 20
+    # delta values are assumed to be in +pi/2,-pi/2
+    
+    max_left_command = 100
+    max_right_command = 0
+    
+    range = max_left_command-max_right_command
     
     steering_values=[]
     
     for values in delta_values:
         
-        #delta_values_norm = map(mod,np.array(values),[np.pi]*len(values))
+        norm_values = map(div,values,[np.pi]*np.ones(len(values)))
+        norm_values = map(add,norm_values,[0.5]*np.ones(len(values)))
+        norm_values = map(mul,norm_values,[range]*np.ones(len(values)))
+        norm_values = map(add,norm_values,[max_right_command]*np.ones(len(values)))
         
-        #delta_values_norm = map(div,np.array(values),[np.pi]*len(values))
-        norm_values = []
-        for value in values:
-            value = normalize_angle(value)
-            
-            range = max_left_command-max_right_command
-            value = normalize_angle(np.pi - value)/np.pi
-            value = value*range + max_right_command
-            norm_values.append(value)
         
+#         for value in values:
+#             value = normalize_angle(value)
+#             
+#             range = max_left_command-max_right_command
+#             value = normalize_angle(np.pi - value)/np.pi
+#             value = value*range + max_right_command
+#             norm_values.append(value)
+#         
         steering_values.append(norm_values) 
         
     return steering_values

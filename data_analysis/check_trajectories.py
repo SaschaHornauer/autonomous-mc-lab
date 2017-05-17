@@ -22,8 +22,8 @@ def animate(resulting_trajectories):
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
     
-    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
-    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
+    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
     
@@ -72,16 +72,15 @@ def animate(resulting_trajectories):
                 except AttributeError:
                     print "End of Bagfile"
                 #print trajectory
-                steer = trajectory[0]
-                print steer
-                #print(trajectory)
-                motor = motor_cmd[1]
+                steer = 49.0 + np.sum(np.diff(trajectory[0:10]))
+                motor = np.average(motor_cmd)
+                print motor
                 
                 cv_image, timestamp = bagfile_handler.get_image()
                 
                 if not cv_image == None:
                      
-                    apply_rect_to_img(cv_image, steer, 0, 99, bar_color, bar_color, 0.9, 0.1, center=True, reverse=False, horizontal=True)
+                    apply_rect_to_img(cv_image, steer, 0, 99, bar_color, bar_color, 0.9, 0.1, center=True, reverse=True, horizontal=True)
                 
                     apply_rect_to_img(cv_image, motor, 0, 99, bar_color, bar_color, 0.9, 0.1, center=True, reverse=True, horizontal=False)
                     
@@ -90,6 +89,10 @@ def animate(resulting_trajectories):
                     radius_arena = 4.28
                     pos_x= map(add,path[0],[8.0]*len(path[0]))
                     pos_y= map(add,path[1],[8.0]*len(path[1]))
+                    
+                    pos_x = map(add,pos_x,[height/2.]*np.ones(len(pos_x)))
+                    pos_y = pos_y * -1
+                    
                     polypath = np.array(zip(pos_x,pos_y))*30.0
                     #print polypath
                     pts = np.array(polypath, np.int32)
@@ -129,11 +132,11 @@ if __name__ == '__main__':
     t2 = 1493425899.676476 - 100
      
     #selected_modes = [behavior.follow, behavior.circle]
-    selected_modes = [behavior.circle, behavior.follow]
+    #selected_modes = [behavior.circle, behavior.follow]
     #selected_modes = [behavior.follow]
-    #selected_modes = [behavior.circle]
-    show_graphics = True
-    calculate_new = True
+    selected_modes = [behavior.circle]
+    show_graphics = False
+    calculate_new = False
      
     if calculate_new:
         resulting_trajectories = get_trajectories(pickle_path, t1, t2, selected_modes, show_graphics)
