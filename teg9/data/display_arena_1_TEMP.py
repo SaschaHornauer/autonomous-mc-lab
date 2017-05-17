@@ -62,6 +62,9 @@ if DISPLAY_LEFT:
 N = lo(opjD('N.pkl'))
 
 
+Origin = 300
+Mult = 50
+Extra = 10
 
 
 bk = N['Mr_Black']['direct_rewrite_test_28Apr17_17h50m34s_Mr_Black']['self_trajectory']
@@ -97,7 +100,7 @@ while t < traj_lst[0]['ts'][-1]:
 	t += dt
 	index = traj_lst[0]['data']['t_to_indx'][traj_lst[0]['ts'][i]]
 	img = traj_lst[0]['data']['left'][index]
-	out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj1['run_name'])]
+	out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj_lst[0]['run_name'])]
 	out_img[:shape(img)[0]:,-shape(img)[1]:] = img
 
 	k = mci(out_img,delay=3)

@@ -197,7 +197,11 @@ def get_new_A():
 
 #A = get_new_A()
 def main():
-     
+    """
+    e.g.
+    python kzpy3/teg9/data/animate_bag_or_pkl_data.py pkl '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017' '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta/direct_rewrite_test_15May17_03h17m17s_Mr_Yellow'
+
+    """
     #bag_or_pkl = 'pkl'#sys.argv[1]
     #data_path = '/home/karlzipser/Desktop/bair_car_data_Main_Dataset'#sys.argv[2]
     #run_name = 'follow_26Aug2016_Mr_Orange_Tilden_1'#fname(sys.argv[3])
