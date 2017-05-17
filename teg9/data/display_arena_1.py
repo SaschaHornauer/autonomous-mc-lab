@@ -82,7 +82,7 @@ while True:
 
 		if DISPLAY_LEFT:
 			for traj in [traj1]:
-				if 'data' not in traj.keys():
+				if True: #'data' not in traj.keys():
 					traj['data'] = get_new_A.get_new_A()
 					multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
 						traj['data'],
