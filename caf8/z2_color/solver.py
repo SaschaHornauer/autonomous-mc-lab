@@ -10,7 +10,7 @@ import kzpy3.caf8.protos as protos
 #
 model_path = opjh(REPO,CAF,MODEL)
 
-batch_size = 100
+batch_size = 1
 
 
 

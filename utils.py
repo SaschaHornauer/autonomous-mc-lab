@@ -9,6 +9,9 @@ from __future__ import print_function  # print('me') instead of print 'me'
 from __future__ import division  # 1/2 == 0.5, not 0
 ######################
 
+
+
+
 ####################################
 # exception format:
 if False:
@@ -62,9 +65,15 @@ imread = scipy.misc.imread
 imsave = scipy.misc.imsave
 #opj = os.path.join
 gg = glob.glob
+arange = np.arange
 os.environ['GLOG_minloglevel'] = '2'
+
 def sgg(d):
     return sorted(gg(d),key=natural_keys)
+
+def sggo(d,*args):
+    a = opj(d,*args)
+    return sgg(a)
 
 shape = np.shape
 randint = np.random.randint
@@ -108,12 +117,15 @@ def copy_list_of_arrays(lst):
 def nps(x):
     return np.shape(x)
 
+
+PRINT_COMMENTS = True
 def CS_(comment,section=''):
     str = '# - '
     if len(section) > 0:
         str = str + section + ': '
     str = str + comment
-    print(str)
+    if PRINT_COMMENTS:
+        print(str)
 
 
 def zeroToOneRange(m):
@@ -240,7 +252,19 @@ def load_obj(name ):
         name = name[:-len('.pkl')]
     with open(name + '.pkl', 'rb') as f:
         return pickle.load(f)
-lo = load_obj   
+
+lo = load_obj
+
+def so(arg1,arg2):
+    if type(arg1) == str and type(arg2) != str:
+        save_obj(arg2,arg1)
+        return
+    if type(arg2) == str and type(arg1) != str:
+        save_obj(arg1,arg2)
+        return
+    assert(False)
+
+
 
 def psave(dic,data_path_key,path):
     save_obj(dic[data_path_key],opj(path,data_path_key))
@@ -642,12 +666,14 @@ def str_replace(input_str,replace_dic):
         input_str = input_str.replace(r,replace_dic[r])
     return input_str
 
+
+
 def srtky(d):
     return sorted(d.keys())
 
-def get_key_sorted_elements_of_dic(d,specific=None):
 
-    ks = srtky(d)
+def get_key_sorted_elements_of_dic(d,specific=None):
+    ks = sorted(d.keys())
     els = []
     for k in ks:
         if specific == None:
@@ -661,7 +687,7 @@ def mean_of_upper_range(data,min_proportion,max_proportion):
     return array(sorted(data))[int(len(data)*min_proportion):int(len(data)*max_proportion)].mean()
 
 
-def mean_of_upper_range_apply_to_list(lst,n,min_proportion,max_proportion):
+def mean_exclude_outliers(data,n,min_proportion,max_proportion):
     """
     e.g.,
 
@@ -672,10 +698,38 @@ def mean_of_upper_range_apply_to_list(lst,n,min_proportion,max_proportion):
     
     """
     n2 = int(n/2)
-    lst2 = []
-    for i in range(len(lst)):
+    rdata = []
+    len_data = len(data)
+    for i in range(len_data):
         if i < n2:
-            lst2.append(lst[i])
+            rdata.append(mean_of_upper_range(data[i:i-n2+n],min_proportion,max_proportion))
+        elif i < len_data + n2:
+            rdata.append(mean_of_upper_range(data[i-n2:i-n2+n],min_proportion,max_proportion))
         else:
-            lst2.append(mean_of_upper_range(lst[i-n2:i-n2+n],min_proportion,max_proportion))
-    return lst2
+            rdata.append(mean_of_upper_range(data[i-n2:i],min_proportion,max_proportion))
+    return rdata
+
+
+
+
+def unit_vector(vector):
+    """http://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+    Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+
+def angle_between(v1, v2):
+    """http://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+    Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+

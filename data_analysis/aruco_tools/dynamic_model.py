@@ -1,5 +1,6 @@
 import collections
 import numpy as np
+from angles import normalize_angle
 '''
 Create datatype for position, speed into heading and heading (x,y,v,psi)
 '''
@@ -7,8 +8,6 @@ ModelAnswer = collections.namedtuple('ModelAnswer', ['x', 'y', 'v', 'psi'])
 
 lr = 0.12
 lf = 0.13
-
-
 
 
 def getXYFor(x_0, y_0, t_0, v, psi, t, a, delta):
@@ -24,9 +23,9 @@ def getXYFor(x_0, y_0, t_0, v, psi, t, a, delta):
     and the position of the center of gravity chosen respectively. Change lr and lf if it is elsewhere.
     """
     dt = t-t_0
-
-    beta = np.arctan((lr/lf+lr)*np.tan(delta))
-
+    
+    beta = np.arctan((lr/(lf+lr))*np.tan(delta))
+    
     dpsi = (v/lr)*np.sin(beta)
     psi = psi + dpsi*dt
     

@@ -1,8 +1,8 @@
 from kzpy3.vis import *
-from kzpy3.data_analysis.markers_clockwise import markers_clockwise
+from kzpy3.teg9.data.markers_clockwise import markers_clockwise
 import operator
-import kzpy3.teg9.data.multi_preprocess_pkl_files_1 as multi_preprocess_pkl_files_1
-import kzpy3.teg9.data.get_new_A as get_new_A
+import kzpy3.teg9.data.utils.multi_preprocess_pkl_files_1 as multi_preprocess_pkl_files_1
+import kzpy3.teg9.data.utils.data.get_new_A as get_new_A
 
 O = 300
 M = 50
