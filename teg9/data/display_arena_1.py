@@ -7,6 +7,7 @@ import kzpy3.teg9.data.utils.get_new_A as get_new_A
 
 Origin = 300
 Mult = 50
+Extra = 10
 
 out_img = zeros((Origin*2,Origin*2,3),np.uint8)
 
@@ -91,17 +92,18 @@ while True:
 
 		out_img *= 0
 		draw_markers(out_img)
-		cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+		cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 
 		timer = Timer(10)
-
-		for i in range(len(traj1['ts'])):
-			if timer.check():
-				out_img *= 0
-				draw_markers(out_img)
-				cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
-
-				timer.reset()
+		PAUSE = False
+		i = 0
+		while True: #i < len(traj1['ts']):
+			if not PAUSE:
+				if timer.check():
+					out_img *= 0
+					draw_markers(out_img)
+					cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+					timer.reset()
 			try:
 				for traj in [traj1]+traj2:
 					car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
@@ -117,17 +119,46 @@ while True:
 				#print i #traj1['ts'][i]
 				index = traj1['data']['t_to_indx'][traj1['ts'][i]]
 				img = traj1['data']['left'][index]
+				out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj1['run_name'])]
 				out_img[:shape(img)[0]:,-shape(img)[1]:] = img
-			k = mci(out_img,delay=33)
-			if k == ord('q'):
+				k = mci(out_img,delay=33)
+				di = 0
+				if k == ord('q'):
+					print('q')
 					break
+				if k == ord('d'):
+					print('done')
+					exit()
+				elif k == ord('k'):
+					di = -30*2
+				elif k == ord('l'):
+					di = 30*2
+				elif k == ord(' '):
+					if PAUSE:
+						PAUSE = False
+					else:
+						PAUSE = True
+						print("<<pause>>")
+				else:
+					if not PAUSE:
+						di = 1
+				if abs(di) > 1:
+					timer.trigger()
+				i += di
+				if i < 0:
+					i = 0
+				elif i >= len(traj1['ts']):
+					print('At end')
+					i = len(traj1['ts'])-1
+
+		#raw_input('>>>>')
 		
 	except Exception as e:
 		print("********** Exception ***********************")
 		print(time_str('Pretty'))
 		print(e.message, e.args)
 
-	raw_input('>>>>')
+	
 
 
 
