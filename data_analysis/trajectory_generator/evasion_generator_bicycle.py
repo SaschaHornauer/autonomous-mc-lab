@@ -315,7 +315,7 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
     framerate = (1. / 30.)
     radius_arena = 4.28
 
-    trajectory_length = 100
+    trajectory_length = 40
     resulting_trajectories = []
     resulting_motor_cmds = []
 
@@ -341,6 +341,8 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
         # where the other positions are stored
         if goal_xys[timestep] == None:
             timestep += 1
+            if timestep > end_timestep:
+                break
             continue
 
         current_xy_own, heading_own = get_state(own_xy, timestep, 4)  # smooth heading over 3 timesteps in the future
@@ -354,13 +356,15 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
             new_trajectory = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)            
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(get_slowdown_cmd(trajectory_length))
+            color = 'r'
         else:
             new_trajectory, new_motor_cmds = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(new_motor_cmds)
+            color = 'b'
             
         if plot_graphics:
-            lines = plt.plot(new_trajectory[0], new_trajectory[1], 'b')
+            lines = plt.plot(new_trajectory[0], new_trajectory[1], color)
             vehicle = plt.plot(current_xy_own[0], current_xy_own[1], 'bo')
             goal = plt.plot(goal_xy[0], goal_xy[1], 'go')
             obstacle_plot = []

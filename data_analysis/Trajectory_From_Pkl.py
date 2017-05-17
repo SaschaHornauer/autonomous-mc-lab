@@ -194,6 +194,7 @@ class Trajectory_From_Pkl:
                             evasion_segment_data.append({'mode':act_mode, 'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories, 'motor_cmds':motor_cmds, 'pos':own_xy, 'path':path_data})
                         except IndexError as ix:
                             print "IndexError, end of timesteps reached"
+                            break
 
                     evasion_trajectory_data[(car, act_mode)] = evasion_segment_data
                 
