@@ -23,8 +23,8 @@ def animate(resulting_trajectories):
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
     
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
-    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
-    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
+    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
     
 
@@ -72,9 +72,9 @@ def animate(resulting_trajectories):
                 except AttributeError:
                     print "End of Bagfile"
                 #print trajectory
-                steer = np.mean(trajectory[15:-1])
-                print steer
-                #print(trajectory)
+                steer = np.mean(trajectory[0:-1])
+                #print steer
+                print(trajectory)
                 motor = motor_cmd[1]
                 
                 cv_image, timestamp = bagfile_handler.get_image()
@@ -91,7 +91,7 @@ def animate(resulting_trajectories):
                     pos_x= map(add,path[0],[8.0]*len(path[0]))
                     pos_y= map(add,path[1],[8.0]*len(path[1]))
                     polypath = np.array(zip(pos_x,pos_y))*30.0
-                    print polypath
+                    #print polypath
                     pts = np.array(polypath, np.int32)
                     pts = pts.reshape((-1,1,2))
                     

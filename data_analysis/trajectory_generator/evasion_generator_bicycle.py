@@ -60,12 +60,24 @@ def convert_path_to_steeering_angles(resulting_trajectories):
     for trajectory in resulting_trajectories:
         if len(trajectory) == 2:
             trajectory_angles = []
-            pos_diffs = get_pos_diff(np.transpose(trajectory))
+            xy_positions = np.transpose(trajectory)
             
-            for pos_diff in pos_diffs:
+            for i in range(0,len(xy_positions)-2):
+                x1 = xy_positions[i][0]
+                y1 = xy_positions[i][1]
+                x2 = xy_positions[i+1][0]
+                y2 = xy_positions[i+1][1]
+                x3 = xy_positions[i+2][0]
+                y3 = xy_positions[i+2][1]
                 
-                
-                trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
+                side_a = np.hypot(x3-x2,y3-y2)
+                side_b = np.hypot(x2-x1,y2-y1)
+                side_c = np.hypot(x3-x1,y3-y1)
+            
+                trajectory_angle = np.arccos((np.power(side_a,2)+np.power(side_b,2)-np.power(side_c,2))/(2.*side_a*side_b))
+                # The arccos outputs the angle in 0, pi it is however expected in -pi, pi
+                #trajectory_angle = normalize_angle(trajectory_angle+np.pi)
+                trajectory_angles.append(trajectory_angle)
             
             trajectories.append(trajectory_angles)
         else:

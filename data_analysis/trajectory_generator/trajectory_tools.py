@@ -112,9 +112,13 @@ def convert_delta_to_steer(delta_values):
         for value in values:
             value = normalize_angle(value)
             
+#             range = max_left_command-max_right_command
+#             value = ((value / np.pi)+1.0)/2.0
+#             value = value*range + max_right_command
+#             norm_values.append(value)
+#       
             range = max_left_command-max_right_command
-            value = ((value / np.pi)+1.0)/2.0
-            value = value*range + max_right_command
+            value = (value*range)/np.pi + max_right_command
             norm_values.append(value)
         
         steering_values.append(norm_values) 
