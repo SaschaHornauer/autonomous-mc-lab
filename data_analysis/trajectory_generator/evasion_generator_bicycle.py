@@ -18,7 +18,7 @@ import numpy.linalg
 from timeit import default_timer as timer
 from trajectory_generator.data_structure.entities import Obstacle
 from aruco_tools.mode import behavior
-
+import angles
 
 framerate = 1. / 30.
 max_v = 4.47  # approximate max speed according to the internet for the axial bomber
@@ -63,6 +63,8 @@ def convert_path_to_steeering_angles(resulting_trajectories):
             pos_diffs = get_pos_diff(np.transpose(trajectory))
             
             for pos_diff in pos_diffs:
+                
+                
                 trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
             
             trajectories.append(trajectory_angles)
@@ -190,7 +192,7 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
 
 def convert_to_motor(resulting_motor_cmds):
     
-    return np.array(resulting_motor_cmds) * [100.0] / 2. + 49.0
+    return np.array(resulting_motor_cmds) * [80.0] / 2. + 49.0
     
 goal_offset_limit = 150
 allowed_goal_distance = 0.3

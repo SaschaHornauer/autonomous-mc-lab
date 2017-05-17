@@ -152,7 +152,7 @@ class Trajectory_From_Pkl:
                 if act_mode == behavior.circle:
                     goal_xys = evasion_generator.get_center_circle_points(own_xy)
                                                                              
-                    trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, True, end_timestep, goal_xys, act_mode)
+                    trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, plot_video, end_timestep, goal_xys, act_mode)
                     resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                     timestamps = actual_trajectories[car]['timestamps']
                     evasion_trajectory_data[(car, act_mode)] = {'timestamps':timestamps, 'trajectories':resulting_trajectories, 'motor_cmds':motor_cmds, 'pos':own_xy, 'path':path_data}
@@ -188,7 +188,7 @@ class Trajectory_From_Pkl:
                         if start_time == end_time:
                             continue
                         try:
-                            trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, True, end_timestep, goal_xys, act_mode)
+                            trajectories_in_delta_angles, motor_cmds, path_data = evasion_generator.get_batch_trajectories(own_xy, other_positions, self.timestep_offset, plot_video, end_timestep, goal_xys, act_mode)
                             resulting_trajectories = convert_delta_to_steer(trajectories_in_delta_angles)
                             timestamps = actual_trajectories[car]['timestamps']
                             evasion_segment_data.append({'mode':act_mode, 'timestamps':timestamps[start_time:end_time], 'trajectories':resulting_trajectories, 'motor_cmds':motor_cmds, 'pos':own_xy, 'path':path_data})
