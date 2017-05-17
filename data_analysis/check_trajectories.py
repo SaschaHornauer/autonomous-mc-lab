@@ -7,7 +7,7 @@ from Trajectory_From_Pkl import *
 import os
 import cPickle as pickle
 from aruco_tools.mode import behavior
-from vis import apply_rect_to_img
+from kzpy3.vis import apply_rect_to_img
 import sys
 import rospy
 from operator import add

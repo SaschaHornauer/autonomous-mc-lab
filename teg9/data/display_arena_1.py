@@ -45,7 +45,7 @@ colors = {'Mr_Yellow':(255,255,0), 'Mr_Silver':(255,255,255), 'Mr_Blue':(0,0,255
 def plot_trajectory_point(traj,side,i,t,out_img,c):
 	assert(traj['ts'][i] <= t)
 	if traj['ts'][i] == t:
-		if traj[side]['t_vel'][i] > 1.788: # Above 4 mph
+		if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
 			c = (0,30,0)
 		elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
 			c = (0,20,0)
@@ -93,11 +93,15 @@ while True:
 		draw_markers(out_img)
 		cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 
-		timer = Timer(60)
+		timer = Timer(10)
 
 		for i in range(len(traj1['ts'])):
-			#if timer.check():
-			#	break
+			if timer.check():
+				out_img *= 0
+				draw_markers(out_img)
+				cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+
+				timer.reset()
 			try:
 				for traj in [traj1]+traj2:
 					car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
@@ -117,11 +121,13 @@ while True:
 			k = mci(out_img,delay=33)
 			if k == ord('q'):
 					break
-		raw_inpupt('>>>>')
+		
 	except Exception as e:
 		print("********** Exception ***********************")
 		print(time_str('Pretty'))
 		print(e.message, e.args)
+
+	raw_input('>>>>')
 
 
 
