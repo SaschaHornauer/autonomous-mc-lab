@@ -7,7 +7,7 @@ import kzpy3.teg9.data.utils.get_new_A as get_new_A
 
 Origin = 300
 Mult = 50
-Extra = 10
+E = 10
 
 out_img = zeros((Origin*2,Origin*2,3),np.uint8)
 
@@ -158,113 +158,145 @@ while True:
 		print(time_str('Pretty'))
 		print(e.message, e.args)
 """
-	
+
+while True:
+	try:
+		traj_lst = []
+		CAR_NAME = random.choice(N.keys())
+		RUN_NAME = random.choice(N[CAR_NAME].keys())
+		if len(N[CAR_NAME][RUN_NAME]['other_trajectories']) < 2:
+			continue
+		for ot in [N[CAR_NAME][RUN_NAME]['self_trajectory']]+N[CAR_NAME][RUN_NAME]['other_trajectories']:
+			run_name = ot['run_name']
+			car_name = get_trajectory_points.car_name_from_run_name(run_name)
+			traj_lst.append( N[car_name][run_name]['self_trajectory'] )
+			print(car_name,run_name)
+
+
+		"""
+		bk = N['Mr_Black']['direct_rewrite_test_28Apr17_17h50m34s_Mr_Black']['self_trajectory']
+		yl = N['Mr_Yellow']['direct_rewrite_test_29Apr17_00h50m25s_Mr_Yellow']['self_trajectory']
+		si = N['Mr_Silver']['direct_rewrite_test_28Apr17_17h51m01s_Mr_Silver']['self_trajectory']
+		bu = N['Mr_Blue']['direct_rewrite_test_28Apr17_17h50m31s_Mr_Blue']['self_trajectory']
+		og = N['Mr_Orange']['direct_rewrite_test_28Apr17_17h59m53s_Mr_Orange']['self_trajectory']
+		traj_lst = [yl,bk,si,bu,og]
 
 
 
+		bk = N['Mr_Black']['direct_rewrite_test_28Apr17_17h23m15s_Mr_Black']['self_trajectory']
+		yl = N['Mr_Yellow']['direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow']['self_trajectory']
+		si = N['Mr_Silver']['direct_rewrite_test_28Apr17_17h27m30s_Mr_Silver']['self_trajectory']
+		bu = N['Mr_Blue']['direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue']['self_trajectory']
+		traj_lst = [yl,bk,si,bu]
+		"""
 
 
-bk = N['Mr_Black']['direct_rewrite_test_28Apr17_17h50m34s_Mr_Black']['self_trajectory']
-yl = N['Mr_Yellow']['direct_rewrite_test_29Apr17_00h50m25s_Mr_Yellow']['self_trajectory']
-si = N['Mr_Silver']['direct_rewrite_test_28Apr17_17h51m01s_Mr_Silver']['self_trajectory']
-bu = N['Mr_Blue']['direct_rewrite_test_28Apr17_17h50m31s_Mr_Blue']['self_trajectory']
-og = N['Mr_Orange']['direct_rewrite_test_28Apr17_17h59m53s_Mr_Orange']['self_trajectory']
-traj_lst = [yl,bk,si,bu,og]
+		for i in range(4):
+			traj_lst[i]['data'] = get_new_A.get_new_A()
+			multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
+				traj_lst[i]['data'],
+					opj(bag_folders_dst_meta_path,traj_lst[i]['run_name']),
+					opj(bag_folders_dst_rgb1to4_path,traj_lst[i]['run_name']))
 
-
-
-bk = N['Mr_Black']['direct_rewrite_test_28Apr17_17h23m15s_Mr_Black']['self_trajectory']
-yl = N['Mr_Yellow']['direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow']['self_trajectory']
-si = N['Mr_Silver']['direct_rewrite_test_28Apr17_17h27m30s_Mr_Silver']['self_trajectory']
-bu = N['Mr_Blue']['direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue']['self_trajectory']
-traj_lst = [yl,bk,si,bu]
-
-
-
-
-traj_lst[0]['data'] = get_new_A.get_new_A()
-multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
-	traj_lst[0]['data'],
-		opj(bag_folders_dst_meta_path,traj_lst[0]['run_name']),
-		opj(bag_folders_dst_rgb1to4_path,traj_lst[0]['run_name']))
-
-T0 = traj_lst[0]['ts'][0]
-t = T0
-Tn = traj_lst[0]['ts'][-1]
-
-
-DT = 1/30.
-dt = DT
-timer = Timer(10)
-PAUSE = False
-
-out_img *= 0
-draw_markers(out_img)
-cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
-
-while t < traj_lst[0]['ts'][-1]:
-
-	if not PAUSE:
-		if timer.check():
-			out_img *= 0
-			draw_markers(out_img)
-			cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
-			timer.reset()
-
-	ctr = 0
-	for traj in traj_lst:
-		if t>traj['ts'][0] and t<traj['ts'][-1]:
-			near_t = -1
-			for i in range(1,len(traj['ts'])):
-				if traj['ts'][i-1]<t and traj['ts'][i]>t:
-					near_t = traj['ts'][i]
-					near_i = i
-					break
-			if near_t > 0:
-				for side in ['left','right']:
-					plot_trajectory_point(traj,side,near_i,near_t,out_img,colors[get_trajectory_points.car_name_from_run_name(traj['run_name'])])
-				if ctr == 0:
-					index = traj_lst[0]['data']['t_to_indx'][near_t]
-					img = traj_lst[0]['data']['left'][index]
-					out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj_lst[0]['run_name'])]
-					out_img[:shape(img)[0]:,-shape(img)[1]:] = img
-		ctr += 1
-
-	k = mci(out_img,delay=33)
-
-
-	if not PAUSE:
-		dt = DT
-	if k == ord('q'):
-		print('q')
-		break
-	if k == ord('d'):
-		print('done')
-		exit()
-	elif k == ord('k'):
-		dt = -2
-	elif k == ord('l'):
-		dt = 2
-	elif k == ord(' '):
-		if PAUSE:
-			PAUSE = False
-			print("<<end pause>>")
-		else:
-			PAUSE = True
-			dt = 0
-			print("<<pause>>")
-
-	if abs(dt) > DT:
-		timer.trigger()
-
-	t += dt
-
-	if t < T0:
+		T0 = traj_lst[0]['ts'][0]
 		t = T0
-	elif t >= Tn:
-		print('At end')
-		t = Tn-1
+		Tn = traj_lst[0]['ts'][-1]
+
+
+		DT = 1/30.
+		dt = DT
+		timer = Timer(10)
+		PAUSE = False
+
+		out_img *= 0
+		draw_markers(out_img)
+		cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+
+		while t < traj_lst[0]['ts'][-1]:
+
+			if not PAUSE:
+				if timer.check():
+					out_img *= 0
+					draw_markers(out_img)
+					cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+					timer.reset()
+
+			ctr = 0
+			for traj in traj_lst:
+				car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
+				if t>traj['ts'][0] and t<traj['ts'][-1]:
+					near_t = -1
+					for i in range(1,len(traj['ts'])):
+						if traj['ts'][i-1]<t and traj['ts'][i]>t:
+							near_t = traj['ts'][i]
+							near_i = i
+							break
+					if near_t > 0:
+						for side in ['left','right']:
+							plot_trajectory_point(traj,side,near_i,near_t,out_img,colors[car_name])
+						if ctr < 4:
+							quadrant = ctr
+							index = traj['data']['t_to_indx'][near_t]
+							img = traj['data']['left'][index]
+							if quadrant == 0:
+								out_img[:shape(img)[0]+E,:E+shape(img)[1],:] = colors[car_name]
+								out_img[:shape(img)[0],:shape(img)[1]] = img
+							elif quadrant == 1:
+								out_img[-E-shape(img)[0]:,:E+shape(img)[1],:] = colors[car_name]
+								out_img[-shape(img)[0]:,:shape(img)[1]] = img
+							elif quadrant == 2:
+								out_img[:shape(img)[0]+E,-E-shape(img)[1]:,:] = colors[car_name]
+								out_img[:shape(img)[0]:,-shape(img)[1]:] = img
+							elif quadrant == 3:
+								out_img[-E-shape(img)[0]:,-E-shape(img)[1]:,:] = colors[car_name]
+								out_img[-shape(img)[0]:,-shape(img)[1]:] = img
+
+							#out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj_lst[0]['run_name'])]
+							#out_img[:shape(img)[0]:,-shape(img)[1]:] = img
+				ctr += 1
+
+			k = mci(out_img,delay=33)
+
+
+			if not PAUSE:
+				dt = DT
+			if k == ord('q'):
+				print('q')
+				break
+			if k == ord('d'):
+				print('done')
+				exit()
+			elif k == ord('k'):
+				dt = -2
+			elif k == ord('l'):
+				dt = 2
+			elif k == ord(' '):
+				if PAUSE:
+					PAUSE = False
+					print("<<end pause>>")
+				else:
+					PAUSE = True
+					dt = 0
+					print("<<pause>>")
+			elif k == ord('d'):
+				print('done')
+				exit()
+
+			if abs(dt) > DT:
+				timer.trigger()
+
+			t += dt
+
+			if t < T0:
+				t = T0
+			elif t >= Tn:
+				print('At end')
+				t = Tn-1
 
 
 
 
+	except Exception as e:
+		print("********** Exception ***********************")
+		print(time_str('Pretty'))
+		print(e.message, e.args)
