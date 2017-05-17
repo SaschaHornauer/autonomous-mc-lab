@@ -72,9 +72,9 @@ def animate(resulting_trajectories):
                 except AttributeError:
                     print "End of Bagfile"
                 #print trajectory
-                steer = np.mean(trajectory[0:-1])
-                #print steer
-                print(trajectory)
+                steer = trajectory[0]
+                print steer
+                #print(trajectory)
                 motor = motor_cmd[1]
                 
                 cv_image, timestamp = bagfile_handler.get_image()
@@ -129,9 +129,10 @@ if __name__ == '__main__':
     t2 = 1493425899.676476 - 100
      
     #selected_modes = [behavior.follow, behavior.circle]
+    selected_modes = [behavior.circle, behavior.follow]
     #selected_modes = [behavior.follow]
-    selected_modes = [behavior.circle]
-    show_graphics = False
+    #selected_modes = [behavior.circle]
+    show_graphics = True
     calculate_new = True
      
     if calculate_new:

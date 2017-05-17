@@ -76,7 +76,9 @@ def convert_path_to_steeering_angles(resulting_trajectories):
             
                 trajectory_angle = np.arccos((np.power(side_a,2)+np.power(side_b,2)-np.power(side_c,2))/(2.*side_a*side_b))
                 # The arccos outputs the angle in 0, pi it is however expected in -pi, pi
-                #trajectory_angle = normalize_angle(trajectory_angle+np.pi)
+                trajectory_angle = (trajectory_angle*2.)-np.pi
+
+                
                 trajectory_angles.append(trajectory_angle)
             
             trajectories.append(trajectory_angles)
