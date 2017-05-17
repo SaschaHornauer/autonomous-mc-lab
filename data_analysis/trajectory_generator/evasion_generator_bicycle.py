@@ -60,7 +60,7 @@ def convert_path_to_steeering_angles(resulting_trajectories):
         if len(trajectory) == 2:
             trajectory_angles = []
             pos_diffs = get_pos_diff(np.transpose(trajectory))
-            
+            print pos_diffs
             for pos_diff in pos_diffs:
                 trajectory_angles.append(np.arctan2(pos_diff[1], pos_diff[0]))
             
@@ -199,9 +199,9 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
      
     FOR NOW, OTHER_XY IS ONLY ONE OTHER VEHICLE    
     '''
-    safety_distance = 0.2
+    safety_distance = 0.5
     allowed_goal_distance = 0.2
-    allowed_own_distance = 0.4
+    allowed_own_distance = 0.8
     ideal_distance = 1.2  # meter in following and to the boundary
     obstacle_segment_factor = int(2999 / 10)  # This factor should be made dependent on the length of the dataset
     no_datapoints = len(own_xy)
@@ -389,39 +389,39 @@ def get_evasive_trajectory(own_xy, other_xy, timestep_start, d_timestep_goal, pl
                 
                 # todo change allowed_goal distance to allowed vehicle distance
             
-            continue_outer_loop = False
-            if (distance_2d(current_xy_own, [0.0, 0.0]) > (radius_arena - allowed_own_distance)):
-                # Skip a number of simulation runs, create emergency
-                # trajectories and check again
-                # Try to get the heading. Use try and except for the beginning and end of own_Xy
-                try:
-                    heading = get_heading(own_xy[timestep:timestep + 3])
-                except:
-                    try:
-                        heading = get_heading(own_xy[timestep - 3:timestep])
-                    except:
-                        heading = 0.0 
-                        
-                center_traj = get_center_trajectory(heading, current_xy_own, trajectory_length)
-                
-                resulting_trajectories.append(center_traj)
-                center_plot_traj = np.transpose(zip(center_traj[0],center_traj[1]))
-                
-                plt.plot(center_plot_traj[0],center_plot_traj[1]) 
-                #print(current_xy_own[0]-center_plot_traj[0],current_xy_own[1]-center_plot_traj[1])
-                
-                
-                #plt.scatter()                
-                
-                distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
-                # resulting_motor_cmds.append(np.ones(trajectory_length)*(1-distance_boundary_norm))
-                resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
-                # This is a simplification where in the emergency trajectory all entries are very slow
-                
-                timestep += 1
-                simulator.deployer.reset()
-                # print "Skipping timestamp, boundary too near " + str(timestep)
-                continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
+#             continue_outer_loop = False
+#             if (distance_2d(current_xy_own, [0.0, 0.0]) > (radius_arena - allowed_own_distance)):
+#                 # Skip a number of simulation runs, create emergency
+#                 # trajectories and check again
+#                 # Try to get the heading. Use try and except for the beginning and end of own_Xy
+#                 try:
+#                     heading = get_heading(own_xy[timestep:timestep + 3])
+#                 except:
+#                     try:
+#                         heading = get_heading(own_xy[timestep - 3:timestep])
+#                     except:
+#                         heading = 0.0 
+#                         
+#                 center_traj = get_center_trajectory(heading, current_xy_own, trajectory_length)
+#                 
+#                 resulting_trajectories.append(center_traj)
+#                 center_plot_traj = np.transpose(zip(center_traj[0],center_traj[1]))
+#                 
+#                 plt.plot(center_plot_traj[0],center_plot_traj[1]) 
+#                 #print(current_xy_own[0]-center_plot_traj[0],current_xy_own[1]-center_plot_traj[1])
+#                 
+#                 
+#                 #plt.scatter()                
+#                 
+#                 distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
+#                 # resulting_motor_cmds.append(np.ones(trajectory_length)*(1-distance_boundary_norm))
+#                 resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
+#                 # This is a simplification where in the emergency trajectory all entries are very slow
+#                 
+#                 timestep += 1
+#                 simulator.deployer.reset()
+#                 # print "Skipping timestamp, boundary too near " + str(timestep)
+#                 continue_outer_loop = True  # Guido the great has spoken there shall be no continuation to the outer loop in this language. I don't like python. :(
             
             if continue_outer_loop:
                 continue

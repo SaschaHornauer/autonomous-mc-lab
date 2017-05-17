@@ -8,6 +8,7 @@ import numpy as np
 from operator import mul, div, sub,mod, add
 import cv2
 import sys
+from angles import normalize_angle
 
 
 def get_heading(seq_xy):
@@ -96,27 +97,26 @@ def get_pos_diff(xy_positions):
 
 def convert_delta_to_steer(delta_values):
     
-    max_left_command = 60
-    max_right_command = 40
+    max_left_command = 80
+    max_right_command = 20
     
     steering_values=[]
     
     for values in delta_values:
         
-        delta_values_norm = map(mod,np.array(values),[np.pi]*len(values))
+        #delta_values_norm = map(mod,np.array(values),[np.pi]*len(values))
         
-        delta_values_norm = map(div,np.array(values),[np.pi]*len(values))
+        #delta_values_norm = map(div,np.array(values),[np.pi]*len(values))
+        norm_values = []
+        for value in values:
+            value = normalize_angle(value)
+            
+            range = max_left_command-max_right_command
+            value = ((value / np.pi)+1.0)/2.0
+            value = value*range + max_right_command
+            norm_values.append(value)
         
-        delta_values_norm = map(mul,delta_values_norm,[max_left_command]*len(values))
-        
-        delta_values_norm = map(add,delta_values_norm,[max_right_command]*len(values))
-        #print delta_values_norm
-        delta_values_norm = map(mul,delta_values_norm,[1./2.]*len(values))
-        
-        delta_values_norm = map(add,delta_values_norm,[max_left_command/2.]*len(values))
-        
-        steering_values.append(delta_values_norm) 
-        #sys.exit(0)
+        steering_values.append(norm_values) 
         
     return steering_values
 

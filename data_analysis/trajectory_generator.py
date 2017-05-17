@@ -19,10 +19,10 @@ def animate(resulting_trajectories):
     
     
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-10_10.bag'
-    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
+    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
     
-    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
@@ -37,7 +37,7 @@ def animate(resulting_trajectories):
         
     for cars, modes in resulting_trajectories:
                  
-        blue_circle = resulting_trajectories[('Mr_Black', modes)]
+        blue_circle = resulting_trajectories[('Mr_Blue', modes)]
         
         if (modes == behavior.follow):
             for i in range(0, len(blue_circle)):
@@ -70,7 +70,7 @@ def animate(resulting_trajectories):
                     continue
                 
                 #print trajectory
-                steer = np.mean(trajectory[15:-1])
+                steer = trajectory[1]
                 print steer
                 #print(trajectory)
                 motor = motor_cmd[1]
@@ -126,11 +126,11 @@ if __name__ == '__main__':
     t1 = 1493425694.71 + 5
     t2 = 1493425899.676476 - 100
      
-    #selected_modes = [behavior.follow, behavior.circle]
+    selected_modes = [behavior.follow, behavior.circle]
     #selected_modes = [behavior.follow]
     selected_modes = [behavior.circle]
     show_graphics = False
-    calculate_new = False
+    calculate_new = True
      
     if calculate_new:
         resulting_trajectories = get_trajectories(pickle_path, t1, t2, selected_modes, show_graphics)
