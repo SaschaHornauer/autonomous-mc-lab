@@ -1,6 +1,6 @@
 import collections
 import numpy as np
-from angles import normalize_angle
+from angles import normalize as normalize_angle # normalize_angle is not standard
 '''
 Create datatype for position, speed into heading and heading (x,y,v,psi)
 '''

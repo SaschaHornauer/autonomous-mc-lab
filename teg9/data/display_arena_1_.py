@@ -7,6 +7,7 @@ import kzpy3.teg9.data.utils.get_new_A as get_new_A
 
 Origin = 300
 Mult = 50
+Extra = 10
 
 out_img = zeros((Origin*2,Origin*2,3),np.uint8)
 
@@ -45,7 +46,7 @@ colors = {'Mr_Yellow':(255,255,0), 'Mr_Silver':(255,255,255), 'Mr_Blue':(0,0,255
 def plot_trajectory_point(traj,side,i,t,out_img,c):
 	assert(traj['ts'][i] <= t)
 	if traj['ts'][i] == t:
-		if traj[side]['t_vel'][i] > 1.788: # Above 4 mph
+		if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
 			c = (0,30,0)
 		elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
 			c = (0,20,0)
@@ -82,7 +83,7 @@ while True:
 
 		if DISPLAY_LEFT:
 			for traj in [traj1]:
-				if 'data' not in traj.keys():
+				if True: #'data' not in traj.keys():
 					traj['data'] = get_new_A.get_new_A()
 					multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
 						traj['data'],
@@ -91,13 +92,18 @@ while True:
 
 		out_img *= 0
 		draw_markers(out_img)
-		cv2.putText(out_img,RUN_NAME,(50,50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+		cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 
-		timer = Timer(60)
-
-		for i in range(len(traj1['ts'])):
-			#if timer.check():
-			#	break
+		timer = Timer(10)
+		PAUSE = False
+		i = 0
+		while True: #i < len(traj1['ts']):
+			if not PAUSE:
+				if timer.check():
+					out_img *= 0
+					draw_markers(out_img)
+					cv2.putText(out_img,RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+					timer.reset()
 			try:
 				for traj in [traj1]+traj2:
 					car_name = get_trajectory_points.car_name_from_run_name(traj['run_name'])
@@ -113,15 +119,46 @@ while True:
 				#print i #traj1['ts'][i]
 				index = traj1['data']['t_to_indx'][traj1['ts'][i]]
 				img = traj1['data']['left'][index]
+				out_img[:shape(img)[0]+Extra,-Extra-shape(img)[1]:,:] = colors[get_trajectory_points.car_name_from_run_name(traj1['run_name'])]
 				out_img[:shape(img)[0]:,-shape(img)[1]:] = img
-			k = mci(out_img,delay=33)
-			if k == ord('q'):
+				k = mci(out_img,delay=33)
+				di = 0
+				if k == ord('q'):
+					print('q')
 					break
-		raw_inpupt('>>>>')
+				if k == ord('d'):
+					print('done')
+					exit()
+				elif k == ord('k'):
+					di = -30*2
+				elif k == ord('l'):
+					di = 30*2
+				elif k == ord(' '):
+					if PAUSE:
+						PAUSE = False
+					else:
+						PAUSE = True
+						print("<<pause>>")
+				else:
+					if not PAUSE:
+						di = 1
+				if abs(di) > 1:
+					timer.trigger()
+				i += di
+				if i < 0:
+					i = 0
+				elif i >= len(traj1['ts']):
+					print('At end')
+					i = len(traj1['ts'])-1
+
+		#raw_input('>>>>')
+		
 	except Exception as e:
 		print("********** Exception ***********************")
 		print(time_str('Pretty'))
 		print(e.message, e.args)
+
+	
 
 
 

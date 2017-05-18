@@ -9,7 +9,7 @@ from operator import mul, div, sub,mod, add
 import cv2
 import angles
 import sys
-from angles import normalize_angle
+from angles import normalize as normalize_angle # normalize_angle is not standard
 
 
 def get_heading(seq_xy):

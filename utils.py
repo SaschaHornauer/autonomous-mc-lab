@@ -86,7 +86,7 @@ reshape = np.reshape
 mod = np.mod
 array = np.array
 sqrt = np.sqrt
-
+abs = np.abs
 def opj(*args):
     if len(args) == 0:
         args = ['']
@@ -611,6 +611,8 @@ class Timer:
         return time.time() - self.start_time
     def reset(self):
         self.start_time = time.time()
+    def trigger(self):
+        self.start_time = 0
 
   
 

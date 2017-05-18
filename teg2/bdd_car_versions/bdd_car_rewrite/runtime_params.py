@@ -30,7 +30,7 @@ Racing = 0.0
 Location =  'local' # 'local' #'Smyth_tape'
 
 solver_file_path = opjh("kzpy3/caf5/z2_color/solver_live.prototxt")
-weights_file_path = opjh("caffe_current/z2_color.caffemodel")
+weights_file_path = opjh("caffe_current/z2_color.caffemodel" )
 #weights_file_path = opjh("caffe_current/z2_color_aruco1_16400000.caffemodel")
 #weights_file_path = opjh("caffe_current/z2_color_aruco2_1300000.caffemodel")
 #weights_file_path = opjh("caffe_current/z2_color_aruco3_11900000.caffemodel")
