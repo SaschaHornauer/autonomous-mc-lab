@@ -74,7 +74,7 @@ def animate(resulting_trajectories):
                 #print trajectory
                 steer = 49.0 + np.sum(np.diff(trajectory[0:10]))
                 motor = np.average(motor_cmd)
-                print motor
+                #print motor
                 
                 cv_image, timestamp = bagfile_handler.get_image()
                 
@@ -122,8 +122,6 @@ def animate(resulting_trajectories):
 
 if __name__ == '__main__':
     
-    
-
     
     home = os.path.expanduser("~")
     pickle_path = home + '/kzpy3/teg9/trajectories.pkl'
