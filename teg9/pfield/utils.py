@@ -166,7 +166,7 @@ for j in range(20):
     print j
     for i in range(75):
         #print i
-        if mod(i,10) == 0:
+        if mod(i,3) == 0:
             PLOT = True
             pix = meters_to_pixels(xy[0],xy[1])
             figure('pfield')
