@@ -22,7 +22,7 @@ def animate(resulting_trajectories):
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
     
-    bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    bagfile_name = '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'#'/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     #selected_modes = [behavior.follow]
     selected_modes = [behavior.circle]
     show_graphics = False
-    calculate_new = False
+    calculate_new = True
      
     if calculate_new:
         resulting_trajectories = get_trajectories(pickle_path, t1, t2, selected_modes, show_graphics)
