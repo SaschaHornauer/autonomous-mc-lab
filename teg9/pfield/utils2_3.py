@@ -13,6 +13,17 @@ def rotatePoint(centerPoint,point,angle):
     return temp_point
 
 
+import math
+def rotatePolygon(polygon,theta):
+    """http://stackoverflow.com/questions/20023209/function-for-rotating-2d-objects
+    Rotates the given polygon which consists of corners represented as (x,y),
+    around the ORIGIN, clock-wise, theta degrees"""
+    theta = math.radians(theta)
+    rotatedPolygon = []
+    for corner in polygon :
+        rotatedPolygon.append(( corner[0]*math.cos(theta)-corner[1]*math.sin(theta) , corner[0]*math.sin(theta)+corner[1]*math.cos(theta)) )
+    return rotatedPolygon
+
 
 def makeGaussian(size, fwhm = 3, center=None):
     """ Make a square gaussian kernel.
