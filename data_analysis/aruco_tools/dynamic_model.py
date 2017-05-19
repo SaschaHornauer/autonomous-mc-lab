@@ -1,5 +1,6 @@
 import collections
 import numpy as np
+import math
 try:
     from angles import normalize as normalize_angle # Adjust for different angles packages
 except ImportError:
