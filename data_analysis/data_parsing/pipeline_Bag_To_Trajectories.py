@@ -55,7 +55,7 @@ def create_marker_data(abs_bagfolder_name, meta_path_name):
             os.mkdir(os.path.join(abs_bagfolder_name, meta_path_name))
             
     # Check if marker pkl file already exists and return if it does
-    if os.path.isfile(os.path.join(abs_bagfolder_name, 'marker_data.pkl')):
+    if os.path.isfile(os.path.join(abs_bagfolder_name,meta_path_name, 'marker_data.pkl')):
         print(os.path.join(abs_bagfolder_name, 'marker_data.pkl') + ' exists, doing nothing.')
         return 
 
@@ -76,32 +76,40 @@ def process_run_folder(run_folder_path, meta_path_name, max_threads = 1):
     
     threads = []
     
-    # Since parsing a bag folder takes a lot of time, bag folders will be parsed simultanously
+    
     for bag_folder_name in os.listdir(run_folder_path):
         
         abs_bagfolder_name = os.path.join(run_folder_path, bag_folder_name)
-        thread = threading.Thread(target=create_marker_data,args=(abs_bagfolder_name,meta_path_name))
-        threads.append(thread)
+        create_marker_data(abs_bagfolder_name,meta_path_name)
         
-        
+     
+    
+    # Since parsing a bag folder takes a lot of time, bag folders will be parsed simultanously
+#     for bag_folder_name in os.listdir(run_folder_path):
+#         
+#         abs_bagfolder_name = os.path.join(run_folder_path, bag_folder_name)
+#         thread = threading.Thread(target=create_marker_data,args=(abs_bagfolder_name,meta_path_name))
+#         threads.append(thread)
+#         
+#         
     # Because all threads should have approximately the same length, we wait for a random thread to
     # finish and then start the next
         
-    active_threads = check_active_threads(threads)
-    thread_counter = 0
-    while thread_counter < len(threads):
-        
-        if active_threads >= max_threads:
-            
-            if threads[thread_counter].is_alive(): 
-                threads[thread_counter].join()
-        
-        while active_threads < max_threads:
-            threads[thread_counter].start()
-            thread_counter += 1
-            active_threads = check_active_threads(threads)
-        
-    print "Parsing of all folders finished"
+#     active_threads = check_active_threads(threads)
+#     thread_counter = 0
+#     while thread_counter < len(threads):
+#         
+#         if active_threads >= max_threads:
+#             
+#             if threads[thread_counter].is_alive(): 
+#                 threads[thread_counter].join()
+#         
+#         while active_threads < max_threads:
+#             threads[thread_counter].start()
+#             thread_counter += 1
+#             active_threads = check_active_threads(threads)
+#         
+#     print "Parsing of all folders finished"
     
     
 def check_active_threads(threads):

@@ -49,21 +49,26 @@ class Trajectory_From_Pkl:
         
         pickle_file = pickle.load(open(pkl_file, "rb"))
         
-        timestamps = np.arange(start_timestamp, end_timestamp, 1 / 30.)
+#        timestamps = np.arange(start_timestamp, end_timestamp, 1 / 30.)
                 
         actual_trajectories = {}
         
         # Enter here the carnames which should be considered
-        for car in ['Mr_Black', 'Mr_Blue']:
-                
-            car_left_x = [pickle_file[car]['left'][0](timestamps)]
-            car_right_x = [pickle_file[car]['right'][0](timestamps)]
-            car_left_y = [pickle_file[car]['left'][1](timestamps)]
-            car_right_y = [pickle_file[car]['right'][1](timestamps)]
+        for car in pickle_file.keys():
+            for runname in pickle_file[car].keys():
+                own_trajectory = pickle_file[car][runname]['self_trajectory']
+ 
+                timestamps = own_trajectory['ts'] 
+               
+                car_left_x = own_trajectory['left']['x']
+                car_right_x = own_trajectory['right']['x']
+                car_left_y = own_trajectory['left']['y']
+                car_right_y = own_trajectory['right']['y']
+            
             car_x, car_y = self.get_average_position(car_left_x, car_left_y, car_right_x, car_right_y)
-        
+            print (car_x,car_y)
             actual_trajectories[car] = {'timestamps':timestamps, 'position': (car_x, car_y)}
-        
+         
         return actual_trajectories
 
 
@@ -133,7 +138,7 @@ class Trajectory_From_Pkl:
                 other_trajectories['Mr_Fake'] = fake_trajectory
                  
             for other_cars in other_trajectories:
-                other_positions.append(zip(other_trajectories[other_cars]['position'][0][0], other_trajectories[other_cars]['position'][1][0]))
+                other_positions.append(zip(other_trajectories[other_cars]['position'][0], other_trajectories[other_cars]['position'][1]))
                 
             # Now calculate the evasive trajectory for the car
             own_trajectories = actual_trajectories[car]
@@ -143,8 +148,8 @@ class Trajectory_From_Pkl:
             # Get the short term trajectory
             own_trajectory = own_trajectories['position']
       
-            own_x = (own_trajectory[0][0])
-            own_y = (own_trajectory[1][0])
+            own_x = (own_trajectory[0])
+            own_y = (own_trajectory[1])
             own_xy = zip(own_x, own_y)
                     
             for act_mode in modes_selected:

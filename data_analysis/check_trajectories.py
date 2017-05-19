@@ -123,7 +123,8 @@ def animate(resulting_trajectories):
 if __name__ == '__main__':    
     
     home = os.path.expanduser("~")
-    pickle_path = home + '/kzpy3/teg9/trajectories.pkl'
+    #pickle_path = home + '/kzpy3/teg9/trajectories.pkl'
+    pickle_path = home + '/2ndDisk/N.pkl'
  
     t1 = 1493425694.71 + 5
     t2 = 1493425899.676476 - 100
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     #selected_modes = [behavior.follow]
     selected_modes = [behavior.circle]
     
-    show_graphics = False
+    show_graphics = True
     calculate_new = True
     
     if calculate_new:

@@ -192,7 +192,6 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
         else:
             goal_diff_norm = (goal_diff - min_distance_to_goal) / (ideal_distance - min_distance_to_goal)
             speed = goal_diff_norm * desired_speed
-            print speed
         
         answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
         final_traj_x.append(answer[0])
