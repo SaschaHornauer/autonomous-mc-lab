@@ -20,6 +20,8 @@ from timeit import default_timer as timer
 from trajectory_generator.data_structure.entities import Obstacle
 from aruco_tools.mode import behavior
 import angles
+import sys, random, math, pygame
+from pygame.locals import *
 
 
 framerate = 1. / 30.
@@ -108,9 +110,9 @@ def get_center_trajectory(own_xy, other_xys, act_timestep, trajectory_length):
         except:
             heading = 0.0 
             # own_xy, other_xys, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
-    center_traj, dismissed_motor, steering_deltas = get_trajectory_to_goal(own_xy, other_xys, act_timestep, heading, 0.0, [0.0, 0.0], 2.0, 1.0 , 0.2, trajectory_length)
+    center_traj, dismissed_motor, steering_deltas, safe_path = get_trajectory_to_goal(own_xy, other_xys, act_timestep, heading, 0.0, [0.0, 0.0], 2.0, 1.0 , 0.2, trajectory_length)
 
-    return center_traj, steering_deltas
+    return center_traj, steering_deltas, safe_path
 
 def get_center_circle_points(own_xys):
     
@@ -193,12 +195,27 @@ def step_from_to(p1, p2, epsilon):
             theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
             return Node((p1[0] + epsilon * np.cos(theta), p1[1] + epsilon * np.sin(theta)), previous_node, None)
 
+XDIM = 640
+YDIM = 480
+WINSIZE = [XDIM, YDIM]
+
 def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, timestep):
+    
+    visualize = False
+    
+    if visualize:
+        pygame.init()
+        screen = pygame.display.set_mode(WINSIZE)
+        pygame.display.set_caption('RRT      S. LaValle    May 2011')
+        white = 255, 240, 200
+        black = 20, 20, 40
+        screen.fill(black)
+    
     
     numnodes = 5000
     nodes = []
     other_current_xy = []
-    epsilon = 0.1
+    epsilon = 0.2
     own_point = Node((own_xy[0], own_xy[1]), None, None)
     
     nodes.append(own_point)
@@ -214,8 +231,7 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
         next_node = nodes[0]
         for p in nodes:
             
-            random_point = Node((np.random.uniform() * 4.0, np.random.uniform() * 4.0), None, None)
-            
+            random_point = Node((np.random.uniform(low=-1.0,high=1.0) * 4.0, np.random.uniform(low=-1.0,high=1.0) * 4.0), None, None)
             
             if dist(p, random_point) < dist(next_node, random_point):
                 random_point_safe = True
@@ -231,6 +247,14 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
             
         nodes.append(newnode)
         
+        if visualize:
+            scale_factor = 100
+            shift_factor = 100
+            vis_point_a = (next_node._point[0]*scale_factor+4*shift_factor,next_node._point[1]*scale_factor+shift_factor)
+            vis_point_b = (newnode._point[0]*scale_factor+4*shift_factor,newnode._point[1]*scale_factor+shift_factor)
+            pygame.draw.line(screen, white, vis_point_a,vis_point_b)
+            pygame.display.update()
+
         if dist(newnode, Node(goal_xy,None,None)) < distance_to_goal:
             return_path = []
             
@@ -239,7 +263,7 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
             
             while(previous != None):
                 return_path.append(previous)
-                previous = previous._previous
+                previous = previous._previous_p
                 
             return return_path
             
@@ -252,30 +276,85 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
 ##########################################################
 
 def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length):
+    
+    max_allowed_distance_to_obstacle = 0.5 
+    start_evasion_range = 1.0
+    
+    safe_path = None
+    
+    # We might have a number of sub-goals if we encounter problems on our way.
+    # So we initialise a list
+    goal_xys = []
+    goal_xys.append(goal_xy)
+
+    new_traj, motor_speeds, deltas, is_colliding = get_model_based_path(own_xy, other_xys, timestep, heading_own, delta, goal_xys, desired_speed, 
+                                                                             ideal_distance, min_distance_to_goal, trajectory_length, max_allowed_distance_to_obstacle)
+    
+    
+    if is_colliding:
+        
+        # Get first goal
+        goal_x = goal_xys[0][0]
+        goal_y = goal_xys[0][1]
+        
+        own_x = own_xy[timestep][0]
+        own_y = own_xy[timestep][1]
+        
+        # since the direct way is colliding, we plan a different route
+        safe_path = get_safe_path((own_x,own_y), other_xys, (goal_x, goal_y), 0.5, 0.5, timestep)
+        
+        intermediate_goals = []
+        for node in safe_path:
+            intermediate_goals.append(node._point)
+                    
+        new_traj, motor_speeds, deltas, is_colliding = get_model_based_path(own_xy, other_xys, timestep, heading_own, delta, goal_xys, desired_speed, 
+                                                                             ideal_distance, min_distance_to_goal, trajectory_length, max_allowed_distance_to_obstacle)
+        
+        
+    return new_traj, motor_speeds, deltas, safe_path
+    
+    
+
+def get_model_based_path(own_xy, other_xys, timestep, heading_own, delta, goal_xys, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length, allowed_distance):
 
     current_xy_own = own_xy[timestep] 
     heading = heading_own
 
     own_x = current_xy_own[0]
     own_y = current_xy_own[1]
-    goal_x = goal_xy[0]
-    goal_y = goal_xy[1]
+    
     final_traj_x = []
     final_traj_y = []
     motor_speeds = []
-    goal_diff = np.hypot(goal_x - own_x, goal_y - own_y)
+    
     act_pos_x = own_x
     act_pos_y = own_y
     deltas = []
     
-    max_allowed_distance_to_obstacle = 0.5 
-    start_evasion_range = 1.0
+    goal_x = goal_xys[0][0]
+    goal_y = goal_xys[0][1]
+    goal_xy = goal_xys[0]
+
+    is_colliding = False
     
     for i in range(trajectory_length):
        
-        # Get the straight angle to the goal
-        angle_own_goal = np.arctan2(goal_y - act_pos_y, goal_x - act_pos_x)
+        # Get nearest goal
+        goal_x = goal_xys[0][0]
+        goal_y = goal_xys[0][1]
+        goal_xy = goal_xys[0]
+
+        # Get distance to current goal
+        goal_diff = np.hypot(goal_x - own_x, goal_y - own_y)
         
+        # Pop old goal if it is reached and update data to it
+        if goal_diff < min_distance_to_goal:
+            goal_xys.pop(0)
+            goal_diff = np.hypot(goal_x - own_x, goal_y - own_y)
+            
+        # Get the straight angle to the current goal
+        angle_own_goal = np.arctan2(goal_y - act_pos_y, goal_x - act_pos_x)
+                
         # Compare our angle, get the difference to the heading against the goal
         angle_diff = angle_own_goal - heading
         
@@ -306,20 +385,9 @@ def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal
         
         answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
         
-        # check if that step leads into the area of another vehicle.
-        # One alternative here would be to use velocity areas etc. though since
-        # in our example the own vehicle has during data analysis time no control over
-        # its actual behavior, and since all other positions and the future is known
-        # we can exploit that knowledge. For the time being a simple heuristic is used
-        # however, since the whole approach has to be tested quickly in the field.
-        
-        for other_xy in other_xys[timestep]:
-            if distance_2d((answer[0], answer[1]), (other_xy[0], other_xy[1])) < start_evasion_range:
-                print get_safe_path(own_xy[timestep], other_xys, (goal_x, goal_y), 0.5, 0.5, timestep)
-                sys.exit(0)
-                break
-        
-        
+        for other_xy in other_xys:
+            if distance_2d((answer[0],answer[1]),(other_xy[timestep][0],other_xy[timestep][1])) < allowed_distance:
+                is_colliding = True
         
         final_traj_x.append(answer[0])
         final_traj_y.append(answer[1])
@@ -329,7 +397,7 @@ def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal
         heading = answer[3]
         deltas.append(delta)    
     
-    return [final_traj_x, final_traj_y], motor_speeds, deltas
+    return [final_traj_x, final_traj_y], motor_speeds, deltas, is_colliding
     
 
 def convert_to_motor(resulting_motor_cmds):
@@ -464,7 +532,7 @@ def get_batch_trajectories(own_xy, other_xys, timestep_start, plot_graphics, end
   
     '''
     allowed_own_distance = 1.5
-    min_distance_to_goal = allowed_own_distance
+    min_distance_to_goal = 0.2
     ideal_distance = 2.0  # meter in following and to the boundary
     framerate = (1. / 30.)
     radius_arena = 4.28
@@ -508,13 +576,13 @@ def get_batch_trajectories(own_xy, other_xys, timestep_start, plot_graphics, end
         goal_xy = get_goal_position(goal_xys, own_xy, other_xys, timestep, act_behavior == behavior.follow)
         
         if close_to_boundary(current_xy_own, radius_arena, allowed_own_distance):
-            new_trajectory, new_deltas = get_center_trajectory(own_xy, other_xys, timestep, trajectory_length)   
+            new_trajectory, new_deltas, safe_path = get_center_trajectory(own_xy, other_xys, timestep, trajectory_length)   
             resulting_deltas.append(new_deltas)         
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(get_slowdown_cmd(trajectory_length))
             color = 'r'
         else:
-            new_trajectory, new_motor_cmds, new_deltas = get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
+            new_trajectory, new_motor_cmds, new_deltas, safe_path = get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
             resulting_deltas.append(new_deltas)    
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(new_motor_cmds)
@@ -526,13 +594,27 @@ def get_batch_trajectories(own_xy, other_xys, timestep_start, plot_graphics, end
             vehicle = plt.plot(current_xy_own[0], current_xy_own[1], 'bo')
             goal = plt.plot(goal_xy[0], goal_xy[1], 'go')
             obstacle_plot = []
+            plt_safe_path_points = []
+            if safe_path != None:
+                for node in safe_path:
+                    plt_safe_path_points.append(node._point)
+            
+            plt_safe_path_points = np.transpose(plt_safe_path_points)
+            
+            if safe_path != None:
+                plt_safe_path = plt.scatter(plt_safe_path_points[0],plt_safe_path_points[1])
+            
             for other in other_xys:
                 obstacle_plot.append(plt.plot(other[timestep][0], other[timestep][1], 'ro'))
+                
             plt.pause(0.0001)
             plt.show()
+            
             for other_plot in obstacle_plot:
                 other_plot.pop(0).remove()
             lines.pop(0).remove()
+            if safe_path != None:
+                plt_safe_path.remove()
             vehicle.pop(0).remove()
             goal.pop(0).remove()
         
