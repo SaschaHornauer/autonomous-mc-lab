@@ -241,7 +241,7 @@ raw_input('enter to quit')
 
 N = 10
 M = 3
-for i in range(0,200,2):
+for i in range(0,200,1):
     A = array(pts2[i:(i+N)])
     A = A - A[0]
     angs = []
@@ -255,7 +255,7 @@ for i in range(0,200,2):
     clf()
     pts_plot(B)
     xlim(-1,1);ylim(-1,1)
-    pause(0.3)#raw_input('---')
+    pause(0.033)#raw_input('---')
 
 
 
