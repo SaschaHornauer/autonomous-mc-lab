@@ -22,7 +22,8 @@ def animate(resulting_trajectories):
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
     
-    bagfile_name = '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'#'/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    bagfile_name = '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    #'/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
@@ -115,13 +116,11 @@ def animate(resulting_trajectories):
                     paused_video = not paused_video
                 if key == ord('w'):
                     bagfile_handler.fast_forward()
-            # except:
-            #    pass
+
         
 
 
-if __name__ == '__main__':
-    
+if __name__ == '__main__':    
     
     home = os.path.expanduser("~")
     pickle_path = home + '/kzpy3/teg9/trajectories.pkl'
@@ -133,14 +132,15 @@ if __name__ == '__main__':
     #selected_modes = [behavior.circle, behavior.follow]
     #selected_modes = [behavior.follow]
     selected_modes = [behavior.circle]
+    
     show_graphics = False
     calculate_new = True
-     
+    
     if calculate_new:
         resulting_trajectories = get_trajectories(pickle_path, t1, t2, selected_modes, show_graphics)
-        pickle.dump(resulting_trajectories, open("mydict.p", "wb"))
+        pickle.dump(resulting_trajectories, open("tmp_traj_data.p", "wb"))
     else:
-        resulting_trajectories = pickle.load(open("mydict.p", "rb"))
+        resulting_trajectories = pickle.load(open("tmp_traj_data", "rb"))
     
     animate(resulting_trajectories)
     

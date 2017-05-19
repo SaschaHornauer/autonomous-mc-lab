@@ -33,8 +33,7 @@ def getXYFor(x_0, y_0, t_0, v, psi, t, a, delta):
     psi = psi + dpsi*dt
     
     dx = v * np.cos(psi+beta)
-    #print("dt " + str(dt))
-    #print("dx " + str(dx))
+
     x = x_0 + dx*dt
 
     dy = v * np.sin(psi+beta)
