@@ -215,7 +215,7 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
     numnodes = 5000
     nodes = []
     other_current_xy = []
-    epsilon = 0.2
+    epsilon = 0.4
     own_point = Node((own_xy[0], own_xy[1]), None, None)
     
     nodes.append(own_point)
