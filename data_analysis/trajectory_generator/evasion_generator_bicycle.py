@@ -14,11 +14,13 @@ from aruco_tools.dynamic_model import *
 from operator import add
 import copy
 import time
+import numpy as np
 import numpy.linalg
 from timeit import default_timer as timer
 from trajectory_generator.data_structure.entities import Obstacle
 from aruco_tools.mode import behavior
 import angles
+
 
 framerate = 1. / 30.
 max_v = 4.47  # approximate max speed according to the internet for the axial bomber
@@ -34,7 +36,7 @@ def get_state(own_xy, timestep_start, timestep_end):
     # which add as slight smoothing
     heading = get_heading(own_xy[timestep_start:timestep_start + timestep_end])
     # Get the velocity over the first two timesteps
-    #velocity = get_velocities([own_xy[timestep_start], own_xy[timestep_start + 1]], framerate)
+    # velocity = get_velocities([own_xy[timestep_start], own_xy[timestep_start + 1]], framerate)
     return init_xy, heading
 
 def sample_values(values, no_of_samples):
@@ -62,21 +64,21 @@ def convert_path_to_steeering_angles(resulting_trajectories):
             trajectory_angles = []
             xy_positions = np.transpose(trajectory)
             
-            for i in range(0,len(xy_positions)-2):
+            for i in range(0, len(xy_positions) - 2):
                 x1 = xy_positions[i][0]
                 y1 = xy_positions[i][1]
-                x2 = xy_positions[i+1][0]
-                y2 = xy_positions[i+1][1]
-                x3 = xy_positions[i+2][0]
-                y3 = xy_positions[i+2][1]
+                x2 = xy_positions[i + 1][0]
+                y2 = xy_positions[i + 1][1]
+                x3 = xy_positions[i + 2][0]
+                y3 = xy_positions[i + 2][1]
                 
-                side_a = np.hypot(x3-x2,y3-y2)
-                side_b = np.hypot(x2-x1,y2-y1)
-                side_c = np.hypot(x3-x1,y3-y1)
+                side_a = np.hypot(x3 - x2, y3 - y2)
+                side_b = np.hypot(x2 - x1, y2 - y1)
+                side_c = np.hypot(x3 - x1, y3 - y1)
             
-                trajectory_angle = np.arccos((np.power(side_a,2)+np.power(side_b,2)-np.power(side_c,2))/(2.*side_a*side_b))
+                trajectory_angle = np.arccos((np.power(side_a, 2) + np.power(side_b, 2) - np.power(side_c, 2)) / (2.*side_a * side_b))
                 # The arccos outputs the angle in 0, pi it is however expected in -pi, pi
-                trajectory_angle = (trajectory_angle*2.)-np.pi
+                trajectory_angle = (trajectory_angle * 2.) - np.pi
 
                 trajectory_angles.append(trajectory_angle)
             
@@ -97,7 +99,7 @@ def get_emergency_trajectories(obstacle_pos, current_xy_own, number):
         return np.ones(number) * np.pi / 2.
 
 
-def get_center_trajectory(own_xy, other_xy, act_timestep, trajectory_length):
+def get_center_trajectory(own_xy, other_xys, act_timestep, trajectory_length):
     try:
         heading = get_heading(own_xy[act_timestep:act_timestep + 3])
     except:
@@ -105,8 +107,8 @@ def get_center_trajectory(own_xy, other_xy, act_timestep, trajectory_length):
             heading = get_heading(own_xy[act_timestep - 3:act_timestep])
         except:
             heading = 0.0 
-            #own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
-    center_traj, dismissed_motor, steering_deltas = get_trajectory_to_goal(own_xy, other_xy, act_timestep, heading, 0.0, [0.0, 0.0], 2.0,1.0 , 0.2, trajectory_length)
+            # own_xy, other_xys, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal):
+    center_traj, dismissed_motor, steering_deltas = get_trajectory_to_goal(own_xy, other_xys, act_timestep, heading, 0.0, [0.0, 0.0], 2.0, 1.0 , 0.2, trajectory_length)
 
     return center_traj, steering_deltas
 
@@ -142,8 +144,88 @@ def get_center_circle_points(own_xys):
         
     return goalxys
     
-                         
-def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length):
+
+########################################################## 
+# Modified after Steve LaValle
+# 2011
+# http://msl.cs.illinois.edu/~lavalle/sub/rrt.py
+#
+#########                         
+
+class Node():
+    
+    _next_p = None
+    _previous_p = None
+    point = None
+    
+    def __init__(self,point, previous_p, next_p):
+        _next_p = next_p
+        _previous_p = previous_p
+        _point = point
+
+def dist(p1, p2):
+    
+    p1 = p1.point
+    p2 = p2.point
+    
+    return np.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]))
+
+def step_from_to(p1, p2, epsilon,other_xys):
+    
+        previous_node = p1
+        
+        p1 = p1.point
+        p2 = p2.point
+    
+        if dist(p1, p2) < epsilon:
+            return Node(p2,previous_node,None)
+        else:
+            theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
+            return Node(p1[0] + epsilon * np.cos(theta), p1[1] + epsilon * np.sin(theta),previous_node,None)
+
+def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal):
+    
+    numnodes = 5000
+    nodes = []
+    epsilon = 7.0
+    own_point = Node((own_xy[0],own_xy[1]),None,None)
+    
+    nodes.append(own_point)
+
+    for i in range(numnodes):
+        random_point = Node((np.random.uniform() * 4.0, np.random.uniform() * 4.0),None,None)
+        next_node = nodes[0]
+        for p in nodes:
+            if dist(p, random_point) < dist(next_node, random_point):
+                next_node = p
+        
+        for other_xy in other_xys:        
+            newnode = step_from_to(next_node, random_point, epsilon,other_xys)
+            if dist(newnode,other_xy) < safety_range:
+                continue
+        nodes.append(newnode)
+        # Implement from to approach here tomorrow
+        if dist(newnode,goal_xy) < distance_to_goal:
+            return_path = []
+            
+            previous = newnode._previous_p
+            return_path.append(newnode)
+            
+            while(previous != None):
+                return_path.append(previous)
+                previous = previous._previous
+                
+            return return_path
+            
+
+#########
+# Modified after Steve LaValle
+# 2011
+# http://msl.cs.illinois.edu/~lavalle/sub/rrt.py
+#
+##########################################################
+
+def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length):
 
     current_xy_own = own_xy[timestep] 
     heading = heading_own
@@ -159,6 +241,9 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
     act_pos_x = own_x
     act_pos_y = own_y
     deltas = []
+    
+    max_allowed_distance_to_obstacle = 0.5 
+    start_evasion_range = 1.0
     
     for i in range(trajectory_length):
        
@@ -181,7 +266,7 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
         
         # We make the assumption that no single point is further away from 
         # the center line than the center line is actually long, for normalization
-        distance_cl_norm = distance_to_center_line / (goal_diff / 3.)
+        distance_cl_norm = distance_to_center_line / (goal_diff)
         
         # Finaly steering is reduced, according to the distance
         delta = delta * distance_cl_norm
@@ -194,6 +279,22 @@ def get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own,delta, goal_x
             speed = goal_diff_norm * desired_speed
         
         answer = getXYFor(act_pos_x, act_pos_y, i * 0.033, speed, heading, (i + 1) * 0.033, 0.0, delta)
+        
+        # check if that step leads into the area of another vehicle.
+        # One alternative here would be to use velocity areas etc. though since
+        # in our example the own vehicle has during data analysis time no control over
+        # its actual behavior, and since all other positions and the future is known
+        # we can exploit that knowledge. For the time being a simple heuristic is used
+        # however, since the whole approach has to be tested quickly in the field.
+        
+        for other_xy in other_xys[timestep]:
+            if distance_2d((answer[0], answer[1]), (other_xy[0], other_xy[1])) < start_evasion_range:
+                print get_safe_path(own_xy, other_xys, (goal_x,goal_y), 0.5, 0.5)
+                sys.exit(0)
+                break
+        
+        
+        
         final_traj_x.append(answer[0])
         final_traj_y.append(answer[1])
         motor_speeds.append(speed)
@@ -209,13 +310,13 @@ def convert_to_motor(resulting_motor_cmds):
     
     max_motor = 75.0
     min_motor = 49.0
-    range = max_motor-min_motor
+    range = max_motor - min_motor
     
     
     # normalize
-    resulting_motor_cmds = map(div,resulting_motor_cmds,[desired_speed]*np.ones(len(resulting_motor_cmds)))
-    resulting_motor_cmds = map(mul,resulting_motor_cmds,[range]*np.ones(len(resulting_motor_cmds)))
-    resulting_motor_cmds = map(add,resulting_motor_cmds,[49.0]*np.ones(len(resulting_motor_cmds)))
+    resulting_motor_cmds = map(div, resulting_motor_cmds, [desired_speed] * np.ones(len(resulting_motor_cmds)))
+    resulting_motor_cmds = map(mul, resulting_motor_cmds, [range] * np.ones(len(resulting_motor_cmds)))
+    resulting_motor_cmds = map(add, resulting_motor_cmds, [49.0] * np.ones(len(resulting_motor_cmds)))
     
     return resulting_motor_cmds
     
@@ -224,10 +325,10 @@ allowed_goal_distance = 0.3
 goal_ideal_distance = 50
 d_timestep_goal = 60
 
-def get_goal_position(goal_xys, own_xy, other_xy, timestep, exact_following):      
+def get_goal_position(goal_xys, own_xy, other_xys, timestep, exact_following):      
     global d_timestep_goal
     
-    if other_xy:
+    if other_xys:
         goal_near_obstacle = True
     else:
         goal_near_obstacle = False 
@@ -250,17 +351,17 @@ def get_goal_position(goal_xys, own_xy, other_xy, timestep, exact_following):
         if timestep + d_timestep_goal >= len(own_xy):
             d_timestep_goal = 0
       
-        goal_xy = goal_xys[timestep+d_timestep_goal]   
+        goal_xy = goal_xys[timestep + d_timestep_goal]   
                 
         # Check if obstacle is too close to the goal or to the vehicle
-        for other_position in other_xy:
-            obstacle_pos = (other_position[timestep][0],other_position[timestep][1])        
+        for other_position in other_xys:
+            obstacle_pos = (other_position[timestep][0], other_position[timestep][1])        
             goal_near_obstacle = distance_2d(obstacle_pos, goal_xy) < allowed_goal_distance
             
             # If the end of the timesteps is reached the last found goal will be returned
             # anyway. This information can be retreived through the length of own_xy
             # The -1 is for the -1 we substract each run
-            if len(own_xy) <= timestep+d_timestep_goal+1:
+            if len(own_xy) <= timestep + d_timestep_goal + 1:
                 return goal_xy
 
         if goal_near_obstacle:
@@ -268,7 +369,7 @@ def get_goal_position(goal_xys, own_xy, other_xy, timestep, exact_following):
             # to follow for the goal
             d_timestep_goal += 10 
     
-    goal_xy = goal_xys[timestep+d_timestep_goal]   
+    goal_xy = goal_xys[timestep + d_timestep_goal]   
     
     return goal_xy
 #             
@@ -322,13 +423,13 @@ def close_to_boundary(current_xy_own, radius_arena, allowed_own_distance):
 
 def get_slowdown_cmd(trajectory_length):
     # A more sophisticated behavior can be planned later, based on the following lines
-    #distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
+    # distance_boundary_norm = (distance_2d(current_xy_own, [0.0, 0.0]) / radius_arena)
     # resulting_motor_cmds.append(np.ones(trajectory_length)*(1-distance_boundary_norm))
-    #resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
+    # resulting_motor_cmds.append(np.ones(trajectory_length) * (1 - distance_boundary_norm))
     return np.linspace(0.4, 0.0, trajectory_length)
 
 
-def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_timestep, goal_xys, act_behavior):
+def get_batch_trajectories(own_xy, other_xys, timestep_start, plot_graphics, end_timestep, goal_xys, act_behavior):
     '''
     Returns a short term evasion trajectory, in steering commands for 
     as many timesteps ahead as given in between timestep_start and timestep_ahead.
@@ -378,16 +479,16 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
         # A number of checks are performed to make sure the goal is clear of vehicles,
         # and not planned within the boundary. If behavior is follow, now dynamic goal is used,
         # which tries to avoid other vehicles
-        goal_xy = get_goal_position(goal_xys, own_xy, other_xy, timestep, act_behavior == behavior.follow)
+        goal_xy = get_goal_position(goal_xys, own_xy, other_xys, timestep, act_behavior == behavior.follow)
         
-        if close_to_boundary(current_xy_own,radius_arena, allowed_own_distance):
-            new_trajectory, new_deltas = get_center_trajectory(own_xy,other_xy,timestep, trajectory_length)   
+        if close_to_boundary(current_xy_own, radius_arena, allowed_own_distance):
+            new_trajectory, new_deltas = get_center_trajectory(own_xy, other_xys, timestep, trajectory_length)   
             resulting_deltas.append(new_deltas)         
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(get_slowdown_cmd(trajectory_length))
             color = 'r'
         else:
-            new_trajectory, new_motor_cmds, new_deltas = get_trajectory_to_goal(own_xy, other_xy, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
+            new_trajectory, new_motor_cmds, new_deltas = get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, 0.0, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length)
             resulting_deltas.append(new_deltas)    
             resulting_trajectories.append(new_trajectory)
             resulting_motor_cmds.append(new_motor_cmds)
@@ -399,8 +500,8 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
             vehicle = plt.plot(current_xy_own[0], current_xy_own[1], 'bo')
             goal = plt.plot(goal_xy[0], goal_xy[1], 'go')
             obstacle_plot = []
-            for other in other_xy:
-                obstacle_plot.append(plt.plot(other[timestep][0],other[timestep][1],'ro'))
+            for other in other_xys:
+                obstacle_plot.append(plt.plot(other[timestep][0], other[timestep][1], 'ro'))
             plt.pause(0.0001)
             plt.show()
             for other_plot in obstacle_plot:
@@ -409,7 +510,7 @@ def get_batch_trajectories(own_xy, other_xy, timestep_start, plot_graphics, end_
             vehicle.pop(0).remove()
             goal.pop(0).remove()
         
-    #steering_angles = convert_path_to_steeering_angles(resulting_trajectories)
+    # steering_angles = convert_path_to_steeering_angles(resulting_trajectories)
     steering_angles = resulting_deltas
     motor_commands = convert_to_motor(resulting_motor_cmds)
     
