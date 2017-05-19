@@ -156,56 +156,82 @@ class Node():
     
     _next_p = None
     _previous_p = None
-    point = None
+    _point = None
     
-    def __init__(self,point, previous_p, next_p):
-        _next_p = next_p
-        _previous_p = previous_p
-        _point = point
+    def __init__(self, point, previous_p, next_p):
+        
+        if not isinstance(point,tuple):
+            raise Exception("Wrong type of point, should be tuple but is " + str(type(point)) + " - " + str(point))
+        
+        self._next_p = next_p
+        self._previous_p = previous_p
+        self._point = point
 
 def dist(p1, p2):
+    if not isinstance(p1, Node):
+        raise Exception("Wrong type of p1, should be Node but is " + str(type(p1)) + " - " + str(p1))
+    if not isinstance(p2, Node):
+        raise Exception("Wrong type of p2, should be Node but is " + str(type(p2)) + " - " + str(p2))
     
-    p1 = p1.point
-    p2 = p2.point
+        
+    p1 = p1._point
+    p2 = p2._point
     
     return np.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]))
 
-def step_from_to(p1, p2, epsilon,other_xys):
+def step_from_to(p1, p2, epsilon):
     
         previous_node = p1
-        
-        p1 = p1.point
-        p2 = p2.point
-    
-        if dist(p1, p2) < epsilon:
-            return Node(p2,previous_node,None)
-        else:
-            theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
-            return Node(p1[0] + epsilon * np.cos(theta), p1[1] + epsilon * np.sin(theta),previous_node,None)
 
-def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal):
+        if dist(p1, p2) < epsilon:
+            return Node(p2._point, previous_node, None)
+        else:
+                    
+            p1 = p1._point
+            p2 = p2._point
+            
+            theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
+            return Node((p1[0] + epsilon * np.cos(theta), p1[1] + epsilon * np.sin(theta)), previous_node, None)
+
+def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, timestep):
     
     numnodes = 5000
     nodes = []
-    epsilon = 7.0
-    own_point = Node((own_xy[0],own_xy[1]),None,None)
+    other_current_xy = []
+    epsilon = 0.1
+    own_point = Node((own_xy[0], own_xy[1]), None, None)
     
     nodes.append(own_point)
 
+    # Add the other positions to a short list
+    for other_xy in other_xys:
+            # Right now we look at the current situation and search a path. 
+            # It is repeated each time in the future we look for a path.
+            other_current_xy.append(other_xy[timestep])
+
     for i in range(numnodes):
-        random_point = Node((np.random.uniform() * 4.0, np.random.uniform() * 4.0),None,None)
+        
         next_node = nodes[0]
         for p in nodes:
+            
+            random_point = Node((np.random.uniform() * 4.0, np.random.uniform() * 4.0), None, None)
+            
+            
             if dist(p, random_point) < dist(next_node, random_point):
-                next_node = p
+                random_point_safe = True
+                # Check if new point is not too close to obstacle
+                for other_xy in other_current_xy:
+                    if dist(random_point, Node(other_xy, None, None)) < safety_range:
+                        random_point_safe = False
+                        
+                if random_point_safe:
+                    next_node = p
         
-        for other_xy in other_xys:        
-            newnode = step_from_to(next_node, random_point, epsilon,other_xys)
-            if dist(newnode,other_xy) < safety_range:
-                continue
+            newnode = step_from_to(next_node, random_point, epsilon)
+            
         nodes.append(newnode)
-        # Implement from to approach here tomorrow
-        if dist(newnode,goal_xy) < distance_to_goal:
+        
+        if dist(newnode, Node(goal_xy,None,None)) < distance_to_goal:
             return_path = []
             
             previous = newnode._previous_p
@@ -289,7 +315,7 @@ def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal
         
         for other_xy in other_xys[timestep]:
             if distance_2d((answer[0], answer[1]), (other_xy[0], other_xy[1])) < start_evasion_range:
-                print get_safe_path(own_xy, other_xys, (goal_x,goal_y), 0.5, 0.5)
+                print get_safe_path(own_xy[timestep], other_xys, (goal_x, goal_y), 0.5, 0.5, timestep)
                 sys.exit(0)
                 break
         
