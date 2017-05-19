@@ -235,3 +235,12 @@ for k in range(200):
 pts_plot(pts_meters_to_pixels(pts2),'b')
 
 raw_input('enter to quit')
+
+"""
+pfield *= 0
+for i in range(100):
+    iadd(7*gc,pfield,(Origin+i,Origin+13*i))
+    mi(pfield);pause(0.0001)
+    isub(7*gc,pfield,(Origin+i,Origin+13*i))
+
+"""
