@@ -4,6 +4,7 @@ Created on May 8, 2017
 @author: Sascha Hornauer
 '''
 from omgtools import *
+from scipy.ndimage import gaussian_filter1d
 from kzpy3.data_analysis.trajectory_generator.trajectory_tools import *
 import cv2
 import sys
@@ -308,6 +309,7 @@ def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal
                     
         new_traj, motor_speeds, deltas, is_colliding = get_model_based_path(own_xy, other_xys, timestep, heading_own, delta, intermediate_goals, desired_speed, 
                                                                              ideal_distance, min_distance_to_goal, trajectory_length, max_allowed_distance_to_obstacle)
+        
         
         
     return new_traj, motor_speeds, deltas, safe_path
