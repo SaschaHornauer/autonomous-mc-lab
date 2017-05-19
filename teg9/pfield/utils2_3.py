@@ -236,12 +236,14 @@ pts_plot(pts_meters_to_pixels(pts2),'b')
 
 raw_input('enter to quit')
 
+figure(2)
+pts_plot(pts2,'b')
+pt_plot(pts2[0],'r')
 
-
-
+figure(1)
 N = 10
 M = 3
-for i in range(0,200,1):
+for i in range(0,len(pts2)-N,1):
     A = array(pts2[i:(i+N)])
     A = A - A[0]
     angs = []
