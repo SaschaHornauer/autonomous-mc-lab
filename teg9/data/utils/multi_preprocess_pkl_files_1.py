@@ -14,7 +14,7 @@ vector3_topics = ['acc','gyro','gyro_heading']#,'gps']
 camera_sides = ['left','right']
 
 
-def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False):
+def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False,load_images=True):
     for topic in image_topics + single_value_topics:
         if topic not in A:
             A[topic] = []
@@ -31,11 +31,14 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False):
     for b in bag_pkls:
         if print_b:
             print b
-        o = load_obj(b)
-        ts = sorted(o['left'].keys())
-        
+        if load_images:
+            o = load_obj(b)
+            ts = sorted(o['left'].keys())
+        else:
+            ts = A['meta'].keys()
         for t in ts:
-            A['left'].append(o['left'][t])
+            if load_images:
+                A['left'].append(o['left'][t])
             A['t_to_indx'][t] = indx
             indx += 1
             try:

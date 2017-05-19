@@ -1,0 +1,57 @@
+from kzpy3.vis import *
+import math
+
+
+def rotatePoint(centerPoint,point,angle):
+    """http://stackoverflow.com/questions/20023209/function-for-rotating-2d-objects
+    Rotates a point around another centerPoint. Angle is in degrees.
+    Rotation is counter-clockwise"""
+    angle = math.radians(angle)
+    temp_point = point[0]-centerPoint[0] , point[1]-centerPoint[1]
+    temp_point = ( temp_point[0]*math.cos(angle)-temp_point[1]*math.sin(angle) , temp_point[0]*math.sin(angle)+temp_point[1]*math.cos(angle))
+    temp_point = temp_point[0]+centerPoint[0] , temp_point[1]+centerPoint[1]
+    return temp_point
+
+
+
+
+
+
+
+
+def sample_gradient(xy,xy_prev,angles,pfield):
+
+    sample_points = []
+    potential_values = []
+
+    delta_xy = xy - array(xy_prev)
+
+    xy = array(xy)
+    xy_forward = xy + delta_xy
+
+    for angle in angles:
+        pt = rotatePoint(xy,xy_forward,angle)
+        sample_points.append(pt)
+
+    for sp in sample_points:
+        pix = meters_to_pixels(sp[0],sp[1])
+        potential_values.append(pfield[pix[0],pix[1]])
+
+    return sample_points,potential_values
+
+
+
+from scipy.optimize import curve_fit
+
+def f(x,A,B):
+    return A*x+B
+
+
+A,B = curve_fit(f,x,y)[0]
+
+
+
+def normalized(a, axis=-1, order=2):
+    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
+    l2[l2==0] = 1
+    return a / np.expand_dims(l2, axis)
