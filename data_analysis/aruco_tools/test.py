@@ -3,25 +3,38 @@ Created on Apr 12, 2017
 
 @author: picard
 '''
-import pickle
+import cPickle as pickle
 import sys
 import cv2
 #import aruco_code
 
-for i in range(1,len(sys.argv)):
+
+def pretty(d, indent=0):
+    
+    for key, value in d.iteritems():
+        print '\t' * indent + str(key)
+        if isinstance(value, dict):
+            pretty(value, indent+1)
+        #else:
+            #print '\t' * (indent+1) + str(value)
+
+
+file_array = ['/home/picard/2ndDisk/carData/rosbags/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/meta/marker_data.pkl']
+print '--'
+for i in range(0,len(file_array)):
     print("-----------------")
-    print("File: " + sys.argv[i])
-    file = open(sys.argv[i], "rb" )
+    print("File: " + file_array[i])
+    file = open(file_array[i], "rb" )
     
     while True:
         try:
             mylist = pickle.load( file )
-            print(mylist)
-        except:
+            pretty(mylist)
+        except Exception as ex:
+            print ex
             break
 
 
-#    print("#####################")
 
 
 #cap = cv2.VideoCapture(0)

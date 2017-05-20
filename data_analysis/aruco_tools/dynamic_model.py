@@ -1,5 +1,6 @@
 import collections
 import numpy as np
+import math
 try:
     from angles import normalize as normalize_angle # Adjust for different angles packages
 except ImportError:
@@ -9,8 +10,8 @@ Create datatype for position, speed into heading and heading (x,y,v,psi)
 '''
 ModelAnswer = collections.namedtuple('ModelAnswer', ['x', 'y', 'v', 'psi'])
 
-lr = 0.12
-lf = 0.13
+lr = 0.14
+lf = 0.14
 
 
 def getXYFor(x_0, y_0, t_0, v, psi, t, a, delta):
