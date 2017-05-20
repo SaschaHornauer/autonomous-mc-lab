@@ -236,7 +236,10 @@ def interpret_potential_values(potential_values):
     steer_angles = np.floor(99-arange(0,100,d))
     dp = potential_values[max_potential_index] - potential_values[min_potential_index]
     
-    p = min(1,dp/0.6)
+
+ 
+
+    p = min(1,dp/max( (0.6-max(0,potential_values[max_potential_index]-0.8)) ,0.2) )
     steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
     return steer
 
