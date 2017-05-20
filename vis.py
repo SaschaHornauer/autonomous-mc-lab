@@ -440,3 +440,13 @@ def frames_to_video_with_ffmpeg(input_dir,output_path,img_range=(),rate=30):
             print "***************************************"
     if success:
         print('frames_to_video_with_ffmpeg() had success with ' + frames_folder)
+
+
+
+def pt_plot(xy,color='r'):
+    plot(xy[0],xy[1],color+'.')
+
+def pts_plot(xys,color='r'):
+    for xy in xys:
+        pt_plot(xy,color)
+        

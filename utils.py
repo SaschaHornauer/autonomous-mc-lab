@@ -763,12 +763,6 @@ def rotatePolygon(polygon,theta):
 
             
 
-def pt_plot(xy,color='r'):
-    plot(xy[0],xy[1],color+'.')
-
-def pts_plot(xys,color='r'):
-    for xy in xys:
-        pt_plot(xy,color)
 
 def length(xy):
     return sqrt(xy[0]**2+xy[1]**2)
