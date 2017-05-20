@@ -25,6 +25,53 @@ for r in [4.0,4.2,4.4]:
         marker_xys[r].append([x,y])
 
 
+def makeGaussian(size, fwhm = 3, center=None):
+    """ Make a square gaussian kernel.
+
+    size is the length of a side of the square
+    fwhm is full-width-half-maximum, which
+    can be thought of as an effective radius.
+    http://stackoverflow.com/questions/7687679/how-to-generate-2d-gaussian-with-python
+
+    """
+
+    x = np.arange(0, size, 1, float)
+    y = x[:,np.newaxis]
+
+    if center is None:
+        x0 = y0 = size // 2
+    else:
+        x0 = center[0]
+        y0 = center[1]
+
+    return np.exp(-4*np.log(2) * ((x-x0)**2 + (y-y0)**2) / fwhm**2)
+
+
+
+
+def iadd(src,dst,xy,neg=False):
+    src_size = []
+    upper_corner = []
+    lower_corner = []
+    for i in [0,1]:
+        src_size.append(shape(src)[i])
+        upper_corner.append(int(xy[i]-src_size[i]/2.0))
+        lower_corner.append(int(xy[i]+src_size[i]/2.0))
+    if neg:
+        dst[upper_corner[0]:lower_corner[0],upper_corner[1]:lower_corner[1]] -= src
+    else:
+        dst[upper_corner[0]:lower_corner[0],upper_corner[1]:lower_corner[1]] += src
+    
+def isub(src,dst,xy):
+    iadd(src,dst,xy,neg=True)
+
+def meters_to_pixels(x,y):
+    return (int(-Mult*x)+Origin),(int(Mult*y)+Origin)
+
+
+markers_xy_dic = {}
+
+
 pfield *= 0
 gm = makeGaussian(3*Mult,1*Mult)
 gc = makeGaussian(6*Mult,1.6*Mult)
