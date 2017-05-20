@@ -98,15 +98,15 @@ iadd(4*gc,pfield,(Origin,Origin))
 pfield -= pfield.min()
 pfield /= pfield.max()
 
-
+"""
 for x in range(2*Origin):
     for y in range(2*Origin):
         if sqrt((x - Origin)**2+(y - Origin)**2) > 720:
             pfield[x,y] = 1
-
+"""
 mi(pfield,'pfield')
 figure(3);plot(pfield[:,Origin])
-
+PFIELD = pfield.copy()
 
 
 
@@ -225,8 +225,29 @@ def get_sample_points(pts,angles,n=3):
 
 
 
+
+
+def interpret_potential_values(potential_values):
+    min_potential_index = potential_values.index(min(potential_values))
+    max_potential_index = potential_values.index(max(potential_values))
+    middle_index = int(len(potential_values)/2)
+
+    d = 99.0/(1.0*len(potential_values)-1)
+    steer_angles = np.floor(99-arange(0,100,d))
+    dp = potential_values[max_potential_index] - potential_values[min_potential_index]
+    
+    p = min(1,dp/0.6)
+    steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
+    return steer
+
+
+
+
+
+
+
 angles = range(-30,31,10)
-angles = -1*array(angles)
+#angles = -1*array(angles)
 pix_prev = [Origin,Origin]
 mi(pfield,1)
 xylim(-4,4,-4,4)
@@ -241,24 +262,26 @@ for i in range(5000,len(pts),3):
         sample_points,potential_values = get_sample_points(pts[i:i+6],angles,6)
         sp = sample_points[0]
         sp_pix = meters_to_pixels(sp[0]+pt[0],sp[1]+pt[1])
-        if ctr ==0 or ctr > 5:
+        if ctr ==0 or ctr > 3:
             figure(1)
             mi(pfield,img_title=d2s(i))
             if ctr > 0:
-                isub(gcar,pfield,(pix_prev[0],pix_prev[1]))
-            iadd(gcar,pfield,(pix[0],pix[1]))
+                isub(gcar,pfield,(pix_prev[1],pix_prev[0]))
+            iadd(gcar,pfield,(pix[1],pix[0]))
             pix_prev = array(pix).copy()
             figure(2)
             clf()
             xylim(-0.1,6.1,-0.1,1.1)
             ctr = 0
         figure(1)
-        plot(pix[0],pix[1],'r.')
-        plot(sp_pix[0],sp_pix[1],'g.')
+        plot(pix[1],pix[0],'r.')
+        plot(sp_pix[1],sp_pix[0],'g.')
         figure(2)
         plot(potential_values,'r.-')
+        title(interpret_potential_values(potential_values))
+
         ctr += 1
         
         pause(0.1)
-        #raw_input("dafds")#pause(0.03)
+        raw_input("dafds")#pause(0.03)
 
