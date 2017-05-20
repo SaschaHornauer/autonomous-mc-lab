@@ -82,14 +82,14 @@ Pts[:,1] = traj['left']['y']
 
 pts = Pts.copy()
 
-def get_sample_points(pts,angles,n=-3):
+def get_sample_points(pts,angles,n=3):
 
     sample_points = []
     potential_values = []
 
-    heading = normalized_vector_from_pts(pts[n:,:])
+    heading = normalized_vector_from_pts(pts[-n:,:])
     heading *= 0.5 # 50 cm, about the length of the car
-    if pts[n,0] > pts[-1,0]:
+    if pts[-n,0] > pts[-1,0]:
         heading *= -1
     #if pts[-3,1] > pts[-1,1]:
     #    heading *= -1
@@ -97,13 +97,15 @@ def get_sample_points(pts,angles,n=-3):
     for a in angles:
 
         sample_points.append( rotatePoint([0,0],heading,a) )
-    pts_plot(pts)
+    #figure(3)
+    #pts_plot(pts)
     for k in range(len(sample_points)):
         f = sample_points[k]
-        plot([pts[-1,0],pts[-1,0]+f[0]],[pts[-1,1],pts[-1,1]+f[1]])
-
+        #plot([pts[-1,0],pts[-1,0]+f[0]],[pts[-1,1],pts[-1,1]+f[1]])
+    figure(1)
     for sp in sample_points:
-        pix = meters_to_pixels(sp[0],sp[1])
+        pix = meters_to_pixels(sp[0]+pts[-1,0],sp[1]+pts[-1,1])
+        plot(pix[0],pix[1],'kx')
         potential_values.append(pfield[pix[0],pix[1]])
 
     return sample_points,potential_values
@@ -114,29 +116,39 @@ def get_sample_points(pts,angles,n=-3):
 #pt_plot(pts[-1]+5*heading)
 
 angles = range(-30,31,10)
+angles = -1*array(angles)
 
-figure(1)
-clf()
+mi(pfield,1)
 xylim(-4,4,-4,4)
 figure(2)
 clf()
-for i in range(0,len(pts),20):
+#xylim(0,7,1.5,1.57)
+ctr = 0
+for i in range(3000,len(pts),3):
     if traj['left']['t_vel'][i] > 0.4:
         pt = pts[i]
         pix = meters_to_pixels(pt[0],pt[1])
-        figure('pfield')
-        if mod(i,50) == 0:
+        sample_points,potential_values = get_sample_points(pts[i:i+6],angles,6)
+        sp = sample_points[0]
+        sp_pix = meters_to_pixels(sp[0]+pt[0],sp[1]+pt[1])
+        if ctr ==0 or ctr > 10:
+            figure(1)
+
             mi(pfield)
-        plot(pix[0],pix[1],'r.')
+            
+            
+            figure(2)
+
+            clf()
+            #xylim(0,7,1.5,1.57)
+            ctr = 0
         figure(1)
-        if mod(i,50) == 0:
-            clf()
-            xylim(-4,4,-4,4)
-        sample_points,potential_values = get_sample_points(pts[i:i+3],angles)
+        plot(pix[0],pix[1],'r.')
+        plot(sp_pix[0],sp_pix[1],'g.')
         figure(2)
-        if mod(i,10) == 0:
-            clf()
         plot(potential_values)
+        ctr += 1
+        
         pause(0.1)
         #raw_input("dafds")#pause(0.03)
 

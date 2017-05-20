@@ -117,10 +117,10 @@ for j in range(len(markers_clockwise)):
     xp,yp = meters_to_pixels(0.75*xy[0],0.75*xy[1])
     #print((xp,yp))
     isub(gm,pfield,(xp,yp))
-    if j>31 and j<45:
-        iadd(100*gs,pfield,(xp,yp))
-    else:
-        isub(5*gs,pfield,(xp,yp))
+    #if j>31 and j<45:
+    #    iadd(100*gs,pfield,(xp,yp))
+    #else:
+    #    isub(5*gs,pfield,(xp,yp))
 iadd(2*gc,pfield,(Origin,Origin))
 mi(pfield,'pfield')
 
