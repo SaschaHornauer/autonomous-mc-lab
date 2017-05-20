@@ -109,7 +109,7 @@ for tr in range(10):
     xy_start = array(xy).copy()
     xy_start_prev = array(xy_prev).copy()
 
-    get_trajectory(num_points,xy,xy_prev,angles,pfield,rand_proportion)
+    pts = get_trajectory(num_points,xy,xy_prev,angles,pfield,rand_proportion)
 
 """
 dsteer max = ~ 25 control units
