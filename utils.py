@@ -766,3 +766,14 @@ def rotatePolygon(polygon,theta):
 
 def length(xy):
     return sqrt(xy[0]**2+xy[1]**2)
+
+
+
+def pythonpaths(paths):
+    for p in paths:
+        sys.path.append(opjh(p))
+
+
+
+
+    
