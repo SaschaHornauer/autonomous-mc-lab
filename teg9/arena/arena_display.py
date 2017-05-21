@@ -5,7 +5,7 @@ from vis import *
 import data.utils.general
 from data.utils.general import car_name_from_run_name
 from data.utils.general import car_colors as colors
-import data.arena
+#import data.arena
 
 
 
@@ -20,7 +20,8 @@ def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEF
 	bag_folders_dst_rgb1to4_path = opj(bair_car_data_location,'rgb_1to4')
 	bag_folders_dst_meta = opj(bair_car_data_location,'meta')
 	Done = False
-	markers['cv2_draw'](markers,out_img)
+	#markers['cv2_draw'](markers,out_img)
+	markers['cv2_draw'](out_img)
 
 	while not Done:
 		if True:#try:
@@ -47,7 +48,8 @@ def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEF
 			timer = Timer(10)
 			PAUSE = False
 			out_img['img'] *= 0
-			markers['cv2_draw'](markers,out_img)
+			#markers['cv2_draw'](out_img)
+			markers['cv2_draw'](out_img)
 			cv2.putText(out_img['img'],RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 
 			while t < traj_lst[0]['ts'][-1]:
@@ -55,7 +57,8 @@ def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEF
 				if not PAUSE:
 					if timer.check():
 						out_img['img'] *= 0
-						markers['cv2_draw'](markers,out_img)
+						#markers['cv2_draw'](markers,out_img)
+						markers['cv2_draw'](out_img)
 						cv2.putText(out_img['img'],RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 						timer.reset()
 
