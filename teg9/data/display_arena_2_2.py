@@ -2,16 +2,16 @@ from kzpy3.utils import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 
 from vis import *
-from data.markers_clockwise import markers_clockwise
 import data.utils.general
 from data.utils.general import car_name_from_run_name
 from data.utils.general import car_colors as colors
 import data.arena_display as arena_display
 import data.arena
- 
+from data.markers_clockwise import markers_clockwise
+
 DISPLAY_LEFT = False
 bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
-markers = data.arena.Markers(range(96),4*107/100.)
+markers = data.arena.Markers(markers_clockwise,4*107/100.)
 if 'N' not in locals():
 	print("Loading trajectory data . . .")
 	N = lo(opjD('N.pkl'))

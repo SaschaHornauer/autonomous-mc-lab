@@ -23,7 +23,7 @@ def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEF
 	markers['cv2_draw'](markers,out_img)
 
 	while not Done:
-		try:
+		if True:#try:
 			traj_lst = []
 			for ot in [N[CAR_NAME][RUN_NAME]['self_trajectory']]+N[CAR_NAME][RUN_NAME]['other_trajectories']:
 				run_name = ot['run_name']
@@ -31,7 +31,7 @@ def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEF
 				traj_lst.append( N[car_name][run_name]['self_trajectory'] )
 				print(car_name,run_name)
 
-			for i in range(4):
+			for i in range(min(len(traj_lst),4)):
 				traj_lst[i]['data'] = data.utils.general.get_new_Data_dic()
 				if DISPLAY_LEFT:
 					data.utils.multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
@@ -130,12 +130,12 @@ def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEF
 
 
 		
-
+		"""
 		except Exception as e:
 			print("********** Exception ***********************")
 			print(time_str('Pretty'))
 			print(e.message, e.args)
-
+		"""
 		
 
 
