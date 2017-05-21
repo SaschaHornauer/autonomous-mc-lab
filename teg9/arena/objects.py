@@ -45,6 +45,8 @@ def Markers(markers_clockwise,radius):
 
 
 
+
+
 def Potential_Field(xy_sizes,origin,mult):
 	D = {}
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Potential field for path planning.')
@@ -67,6 +69,11 @@ def Potential_Field(xy_sizes,origin,mult):
 
 
 
+
+
+
+
+
 def Arena_Potential_Field(origin,mult,markers):
 	xy_sizes = [2*origin,2*origin]
 	D = Potential_Field(xy_sizes,origin,mult)
@@ -79,11 +86,9 @@ def Arena_Potential_Field(origin,mult,markers):
 	for xy in markers['xy']:
 		D['add'](gau_marker,xy)
 		D['add'](-1.0*gau_s,xy)
-		D['add'](-1.0*gau_marker,0.75*(array(xy)))
 		D['add'](2*gau_marker,1.05*(array(xy)))
 		D['add'](3*gau_marker,1.1*(array(xy)))
 		D['add'](4*gau_marker,1.15*(array(xy)))
-	D['add'](4*gau_center,[0,0])
 	D['previous_additions'] = []
 	def _test(iterations=1,Graphics=True):
 		timer = Timer(0)
@@ -101,10 +106,62 @@ def Arena_Potential_Field(origin,mult,markers):
 		print timer.time()
 		print ctr
 	D['test'] = _test
+	def _other_cars(xy_list,follow=False):
+		sub_add_list = []
+		for xy in xy_list:
+			if follow:
+				sub_add_list.append([-15/6.5*gau_follow,array(xy)])
+				sub_add_list.append([10/6.5*gau_car,array(xy)])
+			else:
+				sub_add_list.append([5/6.5*gau_car,array(xy)])
+				sub_add_list.append([5/6.5*gau_marker,array(xy)])
+		D['sub_add'](sub_add_list)
+	D['other_cars'] = _other_cars
 	return D
 
 
+def Play_Arena_Potential_Field(origin,mult,markers):
+	D = Arena_Potential_Field(origin,mult,markers)
+	gau_center = Gaussian_2D(6*mult)
+	for xy in markers['xy']:
+		D['add'](gau_center,xy)
+	D['previous_additions'] = []
+	return D
 
+def Follow_Arena_Potential_Field(origin,mult,markers):
+	D = Arena_Potential_Field(origin,mult,markers)
+	D['other_cars_parent'] = D['other_cars']
+	def _other_cars(xy_list,follow=False):
+		D['other_cars_parent'](xy_list,follow=True)
+	D['other_cars'] = _other_cars
+	return D
+
+def Direct_Arena_Potential_Field(origin,mult,markers):
+	gau_marker = Gaussian_2D(mult)
+	gau_s = Gaussian_2D(0.24*mult)
+	gau_center = Gaussian_2D(6*mult)
+	gau_follow = Gaussian_2D(12*mult)
+	gau_car = Gaussian_2D(6*mult)
+	D = Arena_Potential_Field(origin,mult,markers)
+	for xy in markers['xy']:
+		D['add'](-1.0*gau_marker,0.75*(array(xy)))
+	D['add'](4*gau_center,[0,0])
+	D['previous_additions'] = []
+	return D
+
+
+def Furtive_Arena_Potential_Field(origin,mult,markers):
+	gau_marker = Gaussian_2D(mult)
+	gau_s = Gaussian_2D(0.24*mult)
+	gau_center = Gaussian_2D(6*mult)
+	gau_follow = Gaussian_2D(12*mult)
+	gau_car = Gaussian_2D(6*mult)
+	D = Arena_Potential_Field(origin,mult,markers)
+	for xy in markers['xy']:
+		D['add'](-1.0*gau_marker,0.92*(array(xy)))
+	D['add'](4*gau_center,[0,0])
+	D['previous_additions'] = []
+	return D
 
 
 
@@ -117,7 +174,7 @@ def Car(N,car_name,origin,mult,markers):
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Car object.')
 	D['car_name'] = car_name
 	D['potential_field'] = Arena_Potential_Field(origin,mult,markers)
-	D['xy'] = [0,0]
+	#D['xy'] = [0,0]
 	D['runs'] = {}
 	for run_name in N[car_name].keys():
 		D['runs'][run_name] = {}
@@ -128,15 +185,14 @@ def Car(N,car_name,origin,mult,markers):
 			other_run_name = ot['run_name']
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
-
-	"""
-	def _report_position(t):
-
-		return xy, xy_left, xy_right, confidence
-	"""
-	
 	D['positions'] = {}
 	D['near_i'] = 0
+	D['near_t'] = 0
+	def _rewind():
+		D['near_i'] = 0
+		D['near_t'] = 0	
+		D['pts'] = []
+	D['rewind'] = _rewind
 	def _check_trajectory_point(traj,side,i,t):
 		assert(traj['ts'][i] <= t)
 		if traj['ts'][i] == t:
@@ -150,7 +206,6 @@ def Car(N,car_name,origin,mult,markers):
 				return False
 			return True
 		assert(False)
-			
 	def _valid_time_and_index(run_name,t):
 		traj = D['runs'][run_name]['trajectory']
 		if t>traj['ts'][0] and t<traj['ts'][-1]:
@@ -162,12 +217,12 @@ def Car(N,car_name,origin,mult,markers):
 					break
 			if near_t > 0:
 				D['near_i'] = near_i
+				D['near_t'] = near_t
 				for side in ['left','right']:
 					if not _check_trajectory_point(traj,side,near_i,near_t):
 						return False,False
 				return near_t,near_i
 		return False,False
-
 	def _report_camera_positions(run_name,t):
 		near_t,near_i = _valid_time_and_index(run_name,t)
 		if not near_t:
@@ -176,23 +231,39 @@ def Car(N,car_name,origin,mult,markers):
 		positions = []
 		for side in ['left','right']:
 			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
+			D['pts'].append(positions[0])
 		return positions
-
 	D['report_camera_positions'] = _report_camera_positions
 	return D
 
-if True:
+
+
+
+if False:
 	from arena.markers_clockwise import markers_clockwise
 	markers = Markers(markers_clockwise,4*107/100.)
 	Origin = int(2*1000/300.*300)# / 5)
 	Mult = 1000/300.*50# / 5
-	#a = Arena_Potential_Field(Origin,Mult,markers)
-	#figure(2);clf();plot(a['Image']['img'][Origin,:],'o-')
+	a = Arena_Potential_Field(Origin,Mult,markers)
+	a['other_cars']([[-3.2,0],[0,3.2]])
+	mi(a['Image']['img'])
+	figure(2);clf();plot(a['Image']['img'][Origin,:],'o-')
+	pause(0.1)
 	#a['test']()
+
+
+
+
+if False:
+	from arena.markers_clockwise import markers_clockwise
+	markers = Markers(markers_clockwise,4*107/100.)
+	Origin = int(2*1000/300.*300)# / 5)
+	Mult = 1000/300.*50# / 5
 	c = Car(N,'Mr_Black',Origin,Mult,markers)
 	run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
 	T0 = c['runs'][run_name]['trajectory']['ts'][0]
 	Tn = c['runs'][run_name]['trajectory']['ts'][-1]
+	loct = c['runs'][run_name]['list_of_other_car_trajectories']
 	timer = Timer(0)
 	c['near_i'] = 0
 	clf()
@@ -200,8 +271,174 @@ if True:
 		p = c['report_camera_positions'](run_name,t)
 		if p != False:
 			pt_plot(p[0],'r')
-			pt_plot(p[1],'b')
+			pt_plot(p[1],'r')
+		#c['runs'][run_name]['list_of_other_car_trajectories']
 	print timer.time()
 	pause(0.0001)
 	xylim(-4,4,-4,4)
+
+
+
+if False:
+	from arena.markers_clockwise import markers_clockwise
+	markers = Markers(markers_clockwise,4*107/100.)
+	Origin = int(2*1000/300.*300)# / 5)
+	Mult = 1000/300.*50# / 5
+	
+	cars = {}
+	for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
+		cars[car_name] =  Car(N,car_name,Origin,Mult,markers)
+
+	run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
+	T0 = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][0]
+	Tn = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][-1]
+	loct = cars['Mr_Black']['runs'][run_name]['list_of_other_car_trajectories']
+	timer = Timer(0)
+	for car_name in cars:
+		cars[car_name]['rewind']()
+	figure(1,figsize=(12,12))
+	clf()
+	for t in arange(T0,Tn,1/30.):
+		if timer.time() > 15:
+			break
+		p = cars['Mr_Black']['report_camera_positions'](run_name,t)
+		if p != False:
+			pt_plot(p[0],'r')
+			pt_plot(p[1],'r')
+		for l in loct:
+			other_car_name = l[0]
+			other_car_run_name = l[1]
+			p = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
+			if p != False:
+				pt_plot(p[0],'b')
+				pt_plot(p[1],'b')			
+	print timer.time()
+	pause(0.0001)
+	ds = 5
+	xylim(-ds,ds,-ds,ds)
+
+
+
+
+
+
+
+	
+
+
+
+def get_sample_points(pts,angles,pfield,n=3):
+
+    sample_points = []
+    potential_values = []
+
+    heading = normalized_vector_from_pts(pts[-n:,:])
+    heading *= 0.5 # 50 cm, about the length of the car
+    if pts[-n,0] > pts[-1,0]:
+        heading *= -1
+    #if pts[-3,1] > pts[-1,1]:
+    #    heading *= -1
+
+    for a in angles:
+
+        sample_points.append( rotatePoint([0,0],heading,a) )
+    #figure(3)
+    #pts_plot(pts)
+    for k in range(len(sample_points)):
+        f = sample_points[k]
+        #plot([pts[-1,0],pts[-1,0]+f[0]],[pts[-1,1],pts[-1,1]+f[1]])
+    #figure(1)
+    for sp in sample_points:
+        pix = meters_to_pixels(sp[0]+pts[-1,0],sp[1]+pts[-1,1])
+        #plot(pix[0],pix[1],'kx')
+        potential_values.append(pfield[pix[0],pix[1]])
+
+    return sample_points,potential_values
+
+
+def interpret_potential_values(potential_values):
+    min_potential_index = potential_values.index(min(potential_values))
+    max_potential_index = potential_values.index(max(potential_values))
+    middle_index = int(len(potential_values)/2)
+
+    d = 99.0/(1.0*len(potential_values)-1)
+    steer_angles = np.floor(99-arange(0,100,d))
+    dp = potential_values[max_potential_index] - potential_values[min_potential_index]
+    
+    p = min(1,dp/max( (0.6-max(0,potential_values[max_potential_index]-0.8)) ,0.2) )
+    steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
+    return steer
+
+
+
+
+def meters_to_pixels(x,y):
+    return (int(-Mult*x)+Origin),(int(Mult*y)+Origin)
+
+
+
+
+angles = range(-30,31,10)
+
+
+
+if True:
+	from arena.markers_clockwise import markers_clockwise
+	markers = Markers(markers_clockwise,4*107/100.)
+	Origin = int(2*1000/300.*300 / 5)
+	Mult = 1000/300.*50 / 5
+	a = Direct_Arena_Potential_Field(Origin,Mult,markers)
+	a['Image']['img'] = z2o(a['Image']['img'])
+	cars = {}
+	for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
+		cars[car_name] =  Car(N,car_name,Origin,Mult,markers)
+
+	run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
+	T0 = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][0]
+	Tn = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][-1]
+	loct = cars['Mr_Black']['runs'][run_name]['list_of_other_car_trajectories']
+	timer = Timer(0)
+	for car_name in cars:
+		cars[car_name]['rewind']()
+	figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
+	for t in arange(T0+200,Tn,1/5.):
+		#print(t)
+		if timer.time() > 1500:
+			break
+		p = cars['Mr_Black']['report_camera_positions'](run_name,t)
+		other_cars_add_list = []
+
+		if p != False:
+			pass
+			#pt_plot(p[0],'r')
+			#pt_plot(p[1],'r')
+			#other_cars_add_list.append(p[0]) # TEMP
+		
+		for l in loct:
+			other_car_name = l[0]
+			other_car_run_name = l[1]
+			p = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
+			if p != False:
+				#pt_plot(p[0],'b')
+				#pt_plot(p[1],'b')
+				other_cars_add_list.append(p[0])
+				#a['other_cars']([p[0]])
+				pass
+		a['other_cars'](other_cars_add_list)
+		#mi(a['Image']['img']);
+		img = a['Image']['img']
+		width = shape(img)[0]
+		origin = Origin
+		mi(img,1)#[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1)
+		#other_cars_add_list = array(other_cars_add_list)
+		#xy = other_cars_add_list*0
+		#xy[:,0] = other_cars_add_list[:,1]
+		#xy[:,1] = other_cars_add_list[:,0]
+		#pts_plot(a['Image']['floats_to_pixels'](xy))
+
+		pause(0.000001)
+		if len(cars['Mr_Black']['pts']) > 3:
+			sample_points,potential_values = get_sample_points(array(cars['Mr_Black']['pts']),angles,a['Image']['img'],3)
+			print(interpret_potential_values(potential_values))
+	print timer.time()
 
