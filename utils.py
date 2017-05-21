@@ -48,7 +48,7 @@ import serial
 import math
 try:
     import h5py
-
+    from scipy.optimize import curve_fit
 except:
     print("don't have h5py")
 try:
@@ -772,6 +772,73 @@ def length(xy):
 def pythonpaths(paths):
     for p in paths:
         sys.path.append(opjh(p))
+
+
+
+
+def makeGaussian(size, fwhm = 3, center=None):
+    """ Make a square gaussian kernel.
+
+    size is the length of a side of the square
+    fwhm is full-width-half-maximum, which
+    can be thought of as an effective radius.
+    http://stackoverflow.com/questions/7687679/how-to-generate-2d-gaussian-with-python
+
+    """
+
+    x = np.arange(0, size, 1, float)
+    y = x[:,np.newaxis]
+
+    if center is None:
+        x0 = y0 = size // 2
+    else:
+        x0 = center[0]
+        y0 = center[1]
+
+    return np.exp(-4*np.log(2) * ((x-x0)**2 + (y-y0)**2) / fwhm**2)
+
+
+
+
+def iadd(src,dst,xy,neg=False):
+    src_size = []
+    upper_corner = []
+    lower_corner = []
+    for i in [0,1]:
+        src_size.append(shape(src)[i])
+        upper_corner.append(int(xy[i]-src_size[i]/2.0))
+        lower_corner.append(int(xy[i]+src_size[i]/2.0))
+    if neg:
+        dst[upper_corner[0]:lower_corner[0],upper_corner[1]:lower_corner[1]] -= src
+    else:
+        dst[upper_corner[0]:lower_corner[0],upper_corner[1]:lower_corner[1]] += src
+    
+def isub(src,dst,xy):
+    iadd(src,dst,xy,neg=True)
+
+
+
+
+
+def normalized(a, axis=-1, order=2):
+    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
+    l2[l2==0] = 1
+    return a / np.expand_dims(l2, axis)
+
+
+
+def f(x,A,B):
+    return A*x+B
+
+def normalized_vector_from_pts(pts):
+    x = pts[:,0]
+    y = pts[:,1]
+    m,b = curve_fit(f,x,y)[0]
+    heading = normalized([1,m])[0]
+    return heading
+
+
+
 
 
 
