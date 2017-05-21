@@ -29,6 +29,7 @@ framerate = 1. / 30.
 max_v = 4.47  # approximate max speed according to the internet for the axial bomber
 distance_from_boundary_of_circle = 2.  #
 desired_speed = 2.0  # 
+radius_arena = 4.28
 
 def get_state(own_xy, timestep_start, timestep_end):
 
@@ -119,7 +120,7 @@ def get_center_circle_points(own_xys):
     
     goalxys = []
     goal_offset = -(np.pi / 8.0)
-    circle_radius = 4.28 - distance_from_boundary_of_circle  # meter
+    circle_radius = radius_arena - distance_from_boundary_of_circle  # meter
     
     # calculate positions on a circle near the center
     for pos in own_xys:
@@ -196,13 +197,15 @@ def step_from_to(p1, p2, epsilon):
             theta = np.arctan2(p2[1] - p1[1], p2[0] - p1[0])
             return Node((p1[0] + epsilon * np.cos(theta), p1[1] + epsilon * np.sin(theta)), previous_node, None)
 
-XDIM = 640
-YDIM = 480
-WINSIZE = [XDIM, YDIM]
+
 
 def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, timestep):
     
     visualize = False
+    
+    XDIM = 640
+    YDIM = 480
+    WINSIZE = [XDIM, YDIM]
     
     if visualize:
         pygame.init()
@@ -210,15 +213,17 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
         pygame.display.set_caption('RRT      S. LaValle    May 2011')
         white = 255, 240, 200
         black = 20, 20, 40
+        red = 255,0,0
         screen.fill(black)
-    
-    
+    seed = 42
+    np.random.seed(seed)
     numnodes = 5000
     nodes = []
     other_current_xy = []
     epsilon = 0.4
     own_point = Node((own_xy[0], own_xy[1]), None, None)
-    
+    scale_factor = 50
+    shift_factor = 50
     nodes.append(own_point)
 
     # Add the other positions to a short list
@@ -230,29 +235,42 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
     for i in range(numnodes):
         
         next_node = nodes[0]
-        for p in nodes:
-            
-            random_point = Node((np.random.uniform(low=-1.0,high=1.0) * 4.0, np.random.uniform(low=-1.0,high=1.0) * 4.0), None, None)
-            
-            if dist(p, random_point) < dist(next_node, random_point):
-                random_point_safe = True
-                # Check if new point is not too close to obstacle
-                for other_xy in other_current_xy:
-                    if dist(random_point, Node(other_xy, None, None)) < safety_range:
-                        random_point_safe = False
-                        
-                if random_point_safe:
-                    next_node = p
         
-            newnode = step_from_to(next_node, random_point, epsilon)
+        random_point_safe = False
+        while not random_point_safe:
+            random_point = Node((np.random.uniform(low=-1.0,high=1.0) * radius_arena, np.random.uniform(low=-1.0,high=1.0) * radius_arena), None, None)
+            random_point_safe = True
+            # Check if new point is not too close to obstacle
+            for other_xy in other_current_xy:
+                if dist(random_point, Node(other_xy, None, None)) < safety_range:
+                    random_point_safe = False
+                    break
+        
+        for act_node in nodes:
+        
+            if dist(act_node, random_point) < dist(next_node, random_point):
+                next_node = act_node
+                
+        newnode = step_from_to(next_node, random_point, epsilon)
+            
+        # Check if new point is not too close to obstacle
+        newnode_safe = True
+        for other_xy in other_current_xy:
+            if dist(newnode, Node(other_xy, None, None)) < safety_range:
+                # If it is too close, the node will not be appended
+                newnode_safe = False
+                break
+            
+        if not newnode_safe:
+            continue
             
         nodes.append(newnode)
         
         if visualize:
-            scale_factor = 100
-            shift_factor = 100
+          
             vis_point_a = (next_node._point[0]*scale_factor+4*shift_factor,next_node._point[1]*scale_factor+shift_factor)
             vis_point_b = (newnode._point[0]*scale_factor+4*shift_factor,newnode._point[1]*scale_factor+shift_factor)
+            
             pygame.draw.line(screen, white, vis_point_a,vis_point_b)
             pygame.display.update()
 
@@ -278,7 +296,7 @@ def get_safe_path(own_xy, other_xys, goal_xy, safety_range, distance_to_goal, ti
 
 def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal_xy, desired_speed, ideal_distance, min_distance_to_goal, trajectory_length):
     
-    max_allowed_distance_to_obstacle = 0.5 
+    max_allowed_distance_to_obstacle = 0.3
     start_evasion_range = 1.0
     
     safe_path = None
@@ -301,7 +319,11 @@ def get_trajectory_to_goal(own_xy, other_xys, timestep, heading_own, delta, goal
         own_y = own_xy[timestep][1]
         
         # since the direct way is colliding, we plan a different route
-        safe_path = get_safe_path((own_x,own_y), other_xys, (goal_x, goal_y), 0.5, 0.5, timestep)
+        safe_path = get_safe_path((own_x,own_y), other_xys, (goal_x, goal_y), max_allowed_distance_to_obstacle, 0.4, timestep)
+        
+        if safe_path == None:
+            # No safe path could be found, we take the original instead
+            return new_traj, motor_speeds, deltas, safe_path
         
         intermediate_goals = []
         for node in safe_path:
@@ -503,7 +525,7 @@ def get_batch_trajectories(own_xy, other_xys, timestep_start, plot_graphics, end
     min_distance_to_goal = 0.4
     ideal_distance = 2.0  # meter in following and to the boundary
     framerate = (1. / 30.)
-    radius_arena = 4.28
+    
 
     trajectory_length = 30
     resulting_trajectories = []
