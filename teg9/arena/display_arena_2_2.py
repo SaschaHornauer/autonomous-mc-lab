@@ -9,8 +9,9 @@ import arena.arena_display as arena_display
 from arena.objects import Markers
 from arena.markers_clockwise import markers_clockwise
 
-DISPLAY_LEFT = False
-bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+DISPLAY_LEFT = True
+#bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 markers = Markers(markers_clockwise,4*107/100.)
 if 'N' not in locals():
 	print("Loading trajectory data . . .")
@@ -30,11 +31,12 @@ so(N,opjD('N_pruned'))
 
 
 while True:
+
 	CAR_NAME = random.choice(N.keys())
 	RUN_NAME = random.choice(N[CAR_NAME].keys())
 	if len(N[CAR_NAME][RUN_NAME]['other_trajectories']) > 1:
 		break
-		
+
 arena_display.display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEFT)
 
 

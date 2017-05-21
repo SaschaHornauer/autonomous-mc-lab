@@ -33,7 +33,7 @@ def Markers(markers_clockwise,radius):
 			xy = D['xy'][j]
 			D['xy_dic'][m] = xy
 			c = (255,0,0)
-			xp,yp = img['floats_to_pixels'](img,xy)
+			xp,yp = img['floats_to_pixels'](xy)
 			cv2.circle(img['img'],(xp,yp),4,c,-1)
 	D['cv2_draw'] = _cv2_draw
 	return D
@@ -239,87 +239,6 @@ def Car(N,car_name,origin,mult,markers):
 
 
 
-if False:
-	from arena.markers_clockwise import markers_clockwise
-	markers = Markers(markers_clockwise,4*107/100.)
-	Origin = int(2*1000/300.*300)# / 5)
-	Mult = 1000/300.*50# / 5
-	a = Arena_Potential_Field(Origin,Mult,markers)
-	a['other_cars']([[-3.2,0],[0,3.2]])
-	mi(a['Image']['img'])
-	figure(2);clf();plot(a['Image']['img'][Origin,:],'o-')
-	pause(0.1)
-	#a['test']()
-
-
-
-
-if False:
-	from arena.markers_clockwise import markers_clockwise
-	markers = Markers(markers_clockwise,4*107/100.)
-	Origin = int(2*1000/300.*300)# / 5)
-	Mult = 1000/300.*50# / 5
-	c = Car(N,'Mr_Black',Origin,Mult,markers)
-	run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
-	T0 = c['runs'][run_name]['trajectory']['ts'][0]
-	Tn = c['runs'][run_name]['trajectory']['ts'][-1]
-	loct = c['runs'][run_name]['list_of_other_car_trajectories']
-	timer = Timer(0)
-	c['near_i'] = 0
-	clf()
-	for t in arange(T0,Tn,1/30.):
-		p = c['report_camera_positions'](run_name,t)
-		if p != False:
-			pt_plot(p[0],'r')
-			pt_plot(p[1],'r')
-		#c['runs'][run_name]['list_of_other_car_trajectories']
-	print timer.time()
-	pause(0.0001)
-	xylim(-4,4,-4,4)
-
-
-
-if False:
-	from arena.markers_clockwise import markers_clockwise
-	markers = Markers(markers_clockwise,4*107/100.)
-	Origin = int(2*1000/300.*300)# / 5)
-	Mult = 1000/300.*50# / 5
-	
-	cars = {}
-	for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
-		cars[car_name] =  Car(N,car_name,Origin,Mult,markers)
-
-	run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
-	T0 = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][0]
-	Tn = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][-1]
-	loct = cars['Mr_Black']['runs'][run_name]['list_of_other_car_trajectories']
-	timer = Timer(0)
-	for car_name in cars:
-		cars[car_name]['rewind']()
-	figure(1,figsize=(12,12))
-	clf()
-	for t in arange(T0,Tn,1/30.):
-		if timer.time() > 15:
-			break
-		p = cars['Mr_Black']['report_camera_positions'](run_name,t)
-		if p != False:
-			pt_plot(p[0],'r')
-			pt_plot(p[1],'r')
-		for l in loct:
-			other_car_name = l[0]
-			other_car_run_name = l[1]
-			p = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
-			if p != False:
-				pt_plot(p[0],'b')
-				pt_plot(p[1],'b')			
-	print timer.time()
-	pause(0.0001)
-	ds = 5
-	xylim(-ds,ds,-ds,ds)
-
-
-
-
 
 
 
@@ -378,11 +297,18 @@ def meters_to_pixels(x,y):
 
 
 
-angles = range(-30,31,10)
 
 
 
-if True:
+
+
+
+if __name__ == "__main__":
+	angles = range(-30,31,10)
+
+	if 'N' not in locals():
+		print("Loading trajectory data . . .")
+		N = lo(opjD('N_pruned.pkl'))
 	from arena.markers_clockwise import markers_clockwise
 	markers = Markers(markers_clockwise,4*107/100.)
 	Origin = int(2*1000/300.*300 / 5)
@@ -410,6 +336,9 @@ if True:
 
 		if p != False:
 			pass
+			#pix = a['Image']['floats_to_pixels'](p[0])
+			#a['Image']['img'][pix[0]-1:pix[0]+1,pix[1]-1:pix[1]+1] = 0
+
 			#pt_plot(p[0],'r')
 			#pt_plot(p[1],'r')
 			#other_cars_add_list.append(p[0]) # TEMP
@@ -419,8 +348,8 @@ if True:
 			other_car_run_name = l[1]
 			p = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
 			if p != False:
-				#pt_plot(p[0],'b')
-				#pt_plot(p[1],'b')
+				#pix = a['Image']['floats_to_pixels'](p[0])
+				#a['Image']['img'][pix[0]-1:pix[0]+1,pix[1]-1:pix[1]+1] = 5
 				other_cars_add_list.append(p[0])
 				#a['other_cars']([p[0]])
 				pass
@@ -429,7 +358,7 @@ if True:
 		img = a['Image']['img']
 		width = shape(img)[0]
 		origin = Origin
-		mi(img,1)#[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1)
+		mi(img[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1)
 		#other_cars_add_list = array(other_cars_add_list)
 		#xy = other_cars_add_list*0
 		#xy[:,0] = other_cars_add_list[:,1]
@@ -441,4 +370,92 @@ if True:
 			sample_points,potential_values = get_sample_points(array(cars['Mr_Black']['pts']),angles,a['Image']['img'],3)
 			print(interpret_potential_values(potential_values))
 	print timer.time()
+
+
+
+
+
+
+
+
+
+	if False:
+		from arena.markers_clockwise import markers_clockwise
+		markers = Markers(markers_clockwise,4*107/100.)
+		Origin = int(2*1000/300.*300)# / 5)
+		Mult = 1000/300.*50# / 5
+		a = Arena_Potential_Field(Origin,Mult,markers)
+		a['other_cars']([[-3.2,0],[0,3.2]])
+		mi(a['Image']['img'])
+		figure(2);clf();plot(a['Image']['img'][Origin,:],'o-')
+		pause(0.1)
+		#a['test']()
+
+
+
+
+	if False:
+		from arena.markers_clockwise import markers_clockwise
+		markers = Markers(markers_clockwise,4*107/100.)
+		Origin = int(2*1000/300.*300)# / 5)
+		Mult = 1000/300.*50# / 5
+		c = Car(N,'Mr_Black',Origin,Mult,markers)
+		run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
+		T0 = c['runs'][run_name]['trajectory']['ts'][0]
+		Tn = c['runs'][run_name]['trajectory']['ts'][-1]
+		loct = c['runs'][run_name]['list_of_other_car_trajectories']
+		timer = Timer(0)
+		c['near_i'] = 0
+		clf()
+		for t in arange(T0,Tn,1/30.):
+			p = c['report_camera_positions'](run_name,t)
+			if p != False:
+				pt_plot(p[0],'r')
+				pt_plot(p[1],'r')
+			#c['runs'][run_name]['list_of_other_car_trajectories']
+		print timer.time()
+		pause(0.0001)
+		xylim(-4,4,-4,4)
+
+
+
+	if False:
+		from arena.markers_clockwise import markers_clockwise
+		markers = Markers(markers_clockwise,4*107/100.)
+		Origin = int(2*1000/300.*300)# / 5)
+		Mult = 1000/300.*50# / 5
+		
+		cars = {}
+		for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
+			cars[car_name] =  Car(N,car_name,Origin,Mult,markers)
+
+		run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
+		T0 = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][0]
+		Tn = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][-1]
+		loct = cars['Mr_Black']['runs'][run_name]['list_of_other_car_trajectories']
+		timer = Timer(0)
+		for car_name in cars:
+			cars[car_name]['rewind']()
+		figure(1,figsize=(12,12))
+		clf()
+		for t in arange(T0,Tn,1/30.):
+			if timer.time() > 15:
+				break
+			p = cars['Mr_Black']['report_camera_positions'](run_name,t)
+			if p != False:
+				pt_plot(p[0],'r')
+				pt_plot(p[1],'r')
+			for l in loct:
+				other_car_name = l[0]
+				other_car_run_name = l[1]
+				p = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
+				if p != False:
+					pt_plot(p[0],'b')
+					pt_plot(p[1],'b')			
+		print timer.time()
+		pause(0.0001)
+		ds = 5
+		xylim(-ds,ds,-ds,ds)
+
+
 

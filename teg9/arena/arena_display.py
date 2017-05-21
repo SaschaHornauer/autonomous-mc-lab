@@ -11,14 +11,16 @@ from data.utils.general import car_colors as colors
 
 
 def display_arena(N,CAR_NAME,RUN_NAME,markers,bair_car_data_location,DISPLAY_LEFT):
-	#if DISPLAY_LEFT:
-	#	import data.utils.multi_preprocess_pkl_files_1
+
+	if DISPLAY_LEFT:
+		import data.utils.multi_preprocess_pkl_files_1
 
 	Origin = 300
 	Mult = 50
+	E = 10
 	out_img = Image([Origin*2,Origin*2,3],Origin,Mult)
 	bag_folders_dst_rgb1to4_path = opj(bair_car_data_location,'rgb_1to4')
-	bag_folders_dst_meta = opj(bair_car_data_location,'meta')
+	bag_folders_dst_meta_path = opj(bair_car_data_location,'meta')
 	Done = False
 	#markers['cv2_draw'](markers,out_img)
 	markers['cv2_draw'](out_img)

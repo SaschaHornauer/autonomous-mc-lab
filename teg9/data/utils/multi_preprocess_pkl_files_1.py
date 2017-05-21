@@ -1,12 +1,12 @@
 from kzpy3.vis import *
-import rospy
-import rosbag
+#import rospy
+#import rosbag
 import cv2
-from cv_bridge import CvBridge,CvBridgeError
+#from cv_bridge import CvBridge,CvBridgeError
 import threading
 import kzpy3.teg9.data.animate as animate
 
-bridge = CvBridge()
+#bridge = CvBridge()
 
 image_topics = ['left_image','right_image']
 single_value_topics = ['steer','state','motor','encoder','GPS2_lat']
@@ -28,6 +28,7 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False,load_imag
     motor_previous = 49
     bag_pkls = sgg(opj(rgb_1to4_path,'*.bag.pkl'))
     indx = 0
+    print "multi_preprocess_pkl_files_1.py . . ."
     for b in bag_pkls:
         if print_b:
             print b
