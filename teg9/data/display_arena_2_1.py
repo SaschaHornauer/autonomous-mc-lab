@@ -5,6 +5,9 @@ from vis import *
 from data.markers_clockwise import markers_clockwise
 import data.utils.general
 from data.utils.general import car_name_from_run_name
+from data.utils.general import car_colors as colors
+
+import data.arena
 DISPLAY_LEFT = False
 if DISPLAY_LEFT:
 	import data.utils.multi_preprocess_pkl_files_1
@@ -13,133 +16,26 @@ if DISPLAY_LEFT:
 
 
 
+bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+bag_folders_dst_rgb1to4_path = opj(bair_car_data_location,'rgb_1to4')
+bag_folders_dst_meta = opj(bair_car_data_location,'meta')
 
 
 
 
 
-
-###########
-#
-def Image(xyz_sizes,origin,mult,data_type=np.uint8):
-	D = {}
-	D['origin'] = origin
-	D['mult'] = mult
-	D['Purpose'] = 'An image which translates from float coordinates.'
-	D['floats_to_pixels'] = _floats_to_pixels
-	if len(xyz_sizes) == 2:
-		D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
-	elif len(xyz_sizes) == 3:
-		D['img'] = zeros((xyz_sizes[0],xyz_sizes[1],xyz_sizes[2]),data_type)
-	else:
-		assert(False)
-	return D
-
-def _floats_to_pixels(D,xy):
-	xy = array(xy)
-	if len(shape(xy)) == 1:
-		xy[0] *= -D['mult']
-		xy[0] += D['origin']
-		xy[1] *= D['mult']
-		xy[1] += D['origin']
-	else:
-		xy[:,0] *= -D['mult']
-		xy[:,0] += D['origin']
-		xy[:,1] *= D['mult']
-		xy[:,1] += D['origin']
-	return np.ndarray.astype(xy,int)
-
-
-#
-###############
-
-
-###############
-#
-def Markers(markers_clockwise,radius):
-	D = {}
-	D['Purpose'] = 'Markers for the aruco arena.'
-	D['clockwise'] = markers_clockwise
-	D['ids_all'] = []
-	D['angles_dic'] = {}
-	D['angles'] = 2*np.pi*np.arange(len(markers_clockwise))/(1.0*len(markers_clockwise))
-	D['xy'] = []
-	for i in range(len(markers_clockwise)):
-		a = D['angles'][i]
-		D['angles_dic'][markers_clockwise[i]] = a
-		x = radius*np.sin(a)
-		y = radius*np.cos(a)
-		D['xy'].append([x,y])
-	D['xy_dic'] = {}
-	assert(len(markers_clockwise) == len(D['xy']))
-	D['cv2_draw'] = _cv2_draw
-	return D
-
-def _cv2_draw(D,img):
-	for j in range(len(D['clockwise'])):
-		m = D['clockwise'][j]
-		xy = D['xy'][j]
-		D['xy_dic'][m] = xy
-		c = (255,0,0)
-		xp,yp = img['floats_to_pixels'](img,xy)
-		cv2.circle(img['img'],(xp,yp),4,c,-1)
-
-
-#
-###################
-
-markers = Markers(range(96),4*107/100.)
-
+markers = data.arena.Markers(range(96),4*107/100.)
 Origin = 300
 Mult = 50
-
 out_img = Image([Origin*2,Origin*2,3],Origin,Mult)
-
 markers['cv2_draw'](markers,out_img)
 
 
 
 
 
-
-
-
-
-
-"""
-Origin = 300
-Mult = 50
-E = 10
-out_img['img'] = zeros((Origin*2,Origin*2,3),np.uint8)
-marker_ids_all = []
-marker_angles_dic = {}
-marker_angles = 2*np.pi*np.arange(len(markers_clockwise))/(1.0*len(markers_clockwise))
-marker_xys = []
-for i in range(len(markers_clockwise)):
-	a = marker_angles[i]
-	marker_angles_dic[markers_clockwise[i]] = a
-	x = 4*107/100.*np.sin(a)
-	y = 4*107/100.*np.cos(a)
-	marker_xys.append([x,y])
-markers_xy_dic = {}
-assert(len(markers_clockwise) == len(marker_xys))
-def meters_to_pixels(x,y):
-	return (int(-Mult*x)+Origin),(int(Mult*y)+Origin)
-def draw_markers(out_img['img']):
-	for j in range(len(markers_clockwise)):
-		m = markers_clockwise[j]
-		xy = marker_xys[j]
-		markers_xy_dic[m] = xy
-		c = (255,0,0)
-		xp,yp = meters_to_pixels(xy[0],xy[1])
-		cv2.circle(out_img['img'],(xp,yp),4,c,-1)
-"""
-
-
-
-
-
-
+if 'N' not in locals():
+	N = lo(opjD('N.pkl'))
 
 
 
@@ -156,19 +52,13 @@ def plot_trajectory_point(traj,side,i,t,out_img,c):
 			c = (0,20,0)
 		elif traj[side]['timestamp_gap'][i] > 0.1: # missed data points
 			c = (0,10,0,0)
-		print(type(out_img))
-		mi(out_img['img'])
 		cv2.circle(out_img['img'],(traj[side]['x_pix'][i],traj[side]['y_pix'][i]),1,c,-1)
 
 
-#/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta/direct_rewrite_test_30Apr17_12h29m10s_Mr_Black
-if DISPLAY_LEFT:
-	bag_folders_dst_rgb1to4_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/rgb_1to4'
-	bag_folders_dst_meta_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta'# opjD('bair_car_data_new/meta')# '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta'
 
-N = lo(opjD('N.pkl'))
 
-colors = data.utils.general.car_colors
+
+
 
 Done = False
 
@@ -196,17 +86,15 @@ while not Done:
 		T0 = traj_lst[0]['ts'][0]
 		t = T0
 		Tn = traj_lst[0]['ts'][-1]
-
-
 		DT = 1/30.
 		dt = DT
 		timer = Timer(10)
 		PAUSE = False
-
 		out_img['img'] *= 0
-		#draw_markers(out_img['img'])
 		markers['cv2_draw'](markers,out_img)
 		cv2.putText(out_img['img'],RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
+
+
 
 		while t < traj_lst[0]['ts'][-1]:
 
@@ -214,7 +102,6 @@ while not Done:
 				if timer.check():
 					out_img['img'] *= 0
 					markers['cv2_draw'](markers,out_img)
-					#draw_markers(out_img['img'])
 					cv2.putText(out_img['img'],RUN_NAME,(50,2*Origin-50),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255));
 					timer.reset()
 
@@ -230,7 +117,7 @@ while not Done:
 							break
 					if near_t > 0:
 						for side in ['left','right']:
-							plot_trajectory_point(traj,side,near_i,near_t,out_img['img'],colors[car_name])
+							plot_trajectory_point(traj,side,near_i,near_t,out_img,colors[car_name])
 						if ctr < 4 and DISPLAY_LEFT:
 							quadrant = ctr
 							index = traj['data']['t_to_indx'][near_t]

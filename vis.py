@@ -443,10 +443,52 @@ def frames_to_video_with_ffmpeg(input_dir,output_path,img_range=(),rate=30):
 
 
 
+
+
+
 def pt_plot(xy,color='r'):
     plot(xy[0],xy[1],color+'.')
 
 def pts_plot(xys,color='r'):
-    for xy in xys:
-        pt_plot(xy,color)
+    x = xys[:,0]
+    y = xys[:,1]
+    plot(x,y,color+'.')
+
         
+
+###########
+#
+def Image(xyz_sizes,origin,mult,data_type=np.uint8):
+    D = {}
+    D['origin'] = origin
+    D['mult'] = mult
+    D['Purpose'] = 'An image which translates from float coordinates.'
+    D['floats_to_pixels'] = _floats_to_pixels
+    if len(xyz_sizes) == 2:
+        D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
+    elif len(xyz_sizes) == 3:
+        D['img'] = zeros((xyz_sizes[0],xyz_sizes[1],xyz_sizes[2]),data_type)
+    else:
+        assert(False)
+    return D
+
+def _floats_to_pixels(D,xy):
+    xy = array(xy)
+    if len(shape(xy)) == 1:
+        xy[0] *= -D['mult']
+        xy[0] += D['origin']
+        xy[1] *= D['mult']
+        xy[1] += D['origin']
+    else:
+        xy[:,0] *= -D['mult']
+        xy[:,0] += D['origin']
+        xy[:,1] *= D['mult']
+        xy[:,1] += D['origin']
+    return np.ndarray.astype(xy,int)
+#
+###############
+
+
+
+
+
