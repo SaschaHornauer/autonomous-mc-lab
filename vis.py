@@ -446,6 +446,28 @@ def frames_to_video_with_ffmpeg(input_dir,output_path,img_range=(),rate=30):
 
 
 
+
+
+def iadd(src,dst,xy,neg=False):
+    src_size = []
+    upper_corner = []
+    lower_corner = []
+    for i in [0,1]:
+        src_size.append(shape(src)[i])
+        upper_corner.append(int(xy[i]-src_size[i]/2.0))
+        lower_corner.append(int(xy[i]+src_size[i]/2.0))
+    if neg:
+        dst[upper_corner[0]:lower_corner[0],upper_corner[1]:lower_corner[1]] -= src
+    else:
+        dst[upper_corner[0]:lower_corner[0],upper_corner[1]:lower_corner[1]] += src
+    
+def isub(src,dst,xy):
+    iadd(src,dst,xy,neg=True)
+
+
+
+
+
 def pt_plot(xy,color='r'):
     plot(xy[0],xy[1],color+'.')
 
@@ -463,6 +485,19 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
     D['origin'] = origin
     D['mult'] = mult
     D['Purpose'] = 'An image which translates from float coordinates.'
+    def _floats_to_pixels(xy):
+        xy = array(xy)
+        if len(shape(xy)) == 1:
+            xy[0] *= -D['mult']
+            xy[0] += D['origin']
+            xy[1] *= D['mult']
+            xy[1] += D['origin']
+        else:
+            xy[:,0] *= -D['mult']
+            xy[:,0] += D['origin']
+            xy[:,1] *= D['mult']
+            xy[:,1] += D['origin']
+        return np.ndarray.astype(xy,int)
     D['floats_to_pixels'] = _floats_to_pixels
     if len(xyz_sizes) == 2:
         D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
@@ -472,19 +507,7 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
         assert(False)
     return D
 
-def _floats_to_pixels(D,xy):
-    xy = array(xy)
-    if len(shape(xy)) == 1:
-        xy[0] *= -D['mult']
-        xy[0] += D['origin']
-        xy[1] *= D['mult']
-        xy[1] += D['origin']
-    else:
-        xy[:,0] *= -D['mult']
-        xy[:,0] += D['origin']
-        xy[:,1] *= D['mult']
-        xy[:,1] += D['origin']
-    return np.ndarray.astype(xy,int)
+
 #
 ###############
 
@@ -494,6 +517,108 @@ def xylim(a,b,c,d):
 
 
 
+
+
+
+def unit_vector(vector):
+    """http://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+    Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+
+def angle_between(v1, v2):
+    """http://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python
+    Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+    """
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+
+def rotatePoint(centerPoint,point,angle):
+    """http://stackoverflow.com/questions/20023209/function-for-rotating-2d-objects
+    Rotates a point around another centerPoint. Angle is in degrees.
+    Rotation is counter-clockwise"""
+    angle = math.radians(angle)
+    temp_point = point[0]-centerPoint[0] , point[1]-centerPoint[1]
+    temp_point = ( temp_point[0]*math.cos(angle)-temp_point[1]*math.sin(angle) , temp_point[0]*math.sin(angle)+temp_point[1]*math.cos(angle))
+    temp_point = temp_point[0]+centerPoint[0] , temp_point[1]+centerPoint[1]
+    return temp_point
+
+
+
+def rotatePolygon(polygon,theta):
+    """http://stackoverflow.com/questions/20023209/function-for-rotating-2d-objects
+    Rotates the given polygon which consists of corners represented as (x,y),
+    around the ORIGIN, clock-wise, theta degrees"""
+    theta = math.radians(theta)
+    rotatedPolygon = []
+    for corner in polygon :
+        rotatedPolygon.append(( corner[0]*math.cos(theta)-corner[1]*math.sin(theta) , corner[0]*math.sin(theta)+corner[1]*math.cos(theta)) )
+    return rotatedPolygon
+
+
+            
+
+
+def length(xy):
+    return sqrt(xy[0]**2+xy[1]**2)
+
+
+
+
+
+
+def makeGaussian(size, fwhm = 3, center=None):
+    """ Make a square gaussian kernel.
+
+    size is the length of a side of the square
+    fwhm is full-width-half-maximum, which
+    can be thought of as an effective radius.
+    http://stackoverflow.com/questions/7687679/how-to-generate-2d-gaussian-with-python
+
+    """
+
+    x = np.arange(0, size, 1, float)
+    y = x[:,np.newaxis]
+
+    if center is None:
+        x0 = y0 = size // 2
+    else:
+        x0 = center[0]
+        y0 = center[1]
+
+    return np.exp(-4*np.log(2) * ((x-x0)**2 + (y-y0)**2) / fwhm**2)
+
+def Gaussian_2D(width):
+    return makeGaussian(width,width/3.0)
+
+
+
+def normalized(a, axis=-1, order=2):
+    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
+    l2[l2==0] = 1
+    return a / np.expand_dims(l2, axis)
+
+
+
+def f(x,A,B):
+    return A*x+B
+
+def normalized_vector_from_pts(pts):
+    x = pts[:,0]
+    y = pts[:,1]
+    m,b = curve_fit(f,x,y)[0]
+    heading = normalized([1,m])[0]
+    return heading
 
 
 
