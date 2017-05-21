@@ -128,13 +128,58 @@ def Car(N,car_name,origin,mult,markers):
 			other_run_name = ot['run_name']
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
-	return D
+
+	"""
 	def _report_position(t):
 
 		return xy, xy_left, xy_right, confidence
-	D['report_position'] = _report_position
+	"""
+	
 	D['positions'] = {}
+	D['near_i'] = 0
+	def _check_trajectory_point(traj,side,i,t):
+		assert(traj['ts'][i] <= t)
+		if traj['ts'][i] == t:
+			if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
+				return False
+			elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
+				return False
+			elif traj[side]['timestamp_gap'][i] > 0.1: # missed data points
+				return False
+			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
+				return False
+			return True
+		assert(False)
+			
+	def _valid_time_and_index(run_name,t):
+		traj = D['runs'][run_name]['trajectory']
+		if t>traj['ts'][0] and t<traj['ts'][-1]:
+			near_t = -1
+			for i in range(D['near_i'],len(traj['ts'])):
+				if traj['ts'][i-1]<t and traj['ts'][i]>t:
+					near_t = traj['ts'][i]
+					near_i = i
+					break
+			if near_t > 0:
+				D['near_i'] = near_i
+				for side in ['left','right']:
+					if not _check_trajectory_point(traj,side,near_i,near_t):
+						return False,False
+				return near_t,near_i
+		return False,False
 
+	def _report_camera_positions(run_name,t):
+		near_t,near_i = _valid_time_and_index(run_name,t)
+		if not near_t:
+			return False
+		traj = D['runs'][run_name]['trajectory']
+		positions = []
+		for side in ['left','right']:
+			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
+		return positions
+
+	D['report_camera_positions'] = _report_camera_positions
+	return D
 
 if True:
 	from arena.markers_clockwise import markers_clockwise
@@ -144,6 +189,19 @@ if True:
 	#a = Arena_Potential_Field(Origin,Mult,markers)
 	#figure(2);clf();plot(a['Image']['img'][Origin,:],'o-')
 	#a['test']()
-	c = Car(N,'Mr_Orange',Origin,Mult,markers)
-
+	c = Car(N,'Mr_Black',Origin,Mult,markers)
+	run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
+	T0 = c['runs'][run_name]['trajectory']['ts'][0]
+	Tn = c['runs'][run_name]['trajectory']['ts'][-1]
+	timer = Timer(0)
+	c['near_i'] = 0
+	clf()
+	for t in arange(T0,Tn,1/30.):
+		p = c['report_camera_positions'](run_name,t)
+		if p != False:
+			pt_plot(p[0],'r')
+			pt_plot(p[1],'b')
+	print timer.time()
+	pause(0.0001)
+	xylim(-4,4,-4,4)
 
