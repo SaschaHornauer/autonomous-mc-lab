@@ -65,6 +65,7 @@ import getpass
 username = getpass.getuser()
 imread = scipy.misc.imread
 imsave = scipy.misc.imsave
+degrees = np.degrees
 #opj = os.path.join
 gg = glob.glob
 arange = np.arange

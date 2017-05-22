@@ -37,7 +37,7 @@ def Arena_Potential_Field(origin,mult,markers):
 	gau_car = Gaussian_2D(6*mult)
 	for xy in markers['xy']:
 		D['add'](gau_marker,xy)
-		D['add'](-1.0*gau_s,xy)
+		#D['add'](-1.0*gau_s,xy)
 		D['add'](2*gau_marker,1.05*(array(xy)))
 		D['add'](3*gau_marker,1.1*(array(xy)))
 		D['add'](4*gau_marker,1.15*(array(xy)))
@@ -62,8 +62,8 @@ def Arena_Potential_Field(origin,mult,markers):
 		sub_add_list = []
 		for xy in xy_list:
 			if follow:
-				sub_add_list.append([-15/6.5*gau_follow,array(xy)])
-				sub_add_list.append([10/6.5*gau_car,array(xy)])
+				sub_add_list.append([-5/6.5*gau_follow,array(xy)])
+				sub_add_list.append([2/6.5*gau_car,array(xy)])
 			else:
 				sub_add_list.append([5/6.5*gau_car,array(xy)])
 				sub_add_list.append([5/6.5*gau_marker,array(xy)])

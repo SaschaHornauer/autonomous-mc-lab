@@ -13,6 +13,7 @@ def Car(N,car_name,origin,mult,markers):
 	D['car_name'] = car_name
 	D['potential_field'] = Potential_Fields.Arena_Potential_Field(origin,mult,markers)
 	D['runs'] = {}
+	D['n_for_heading'] = 15
 	for run_name in N[car_name].keys():
 		D['runs'][run_name] = {}
 		R = D['runs'][run_name]
@@ -22,15 +23,14 @@ def Car(N,car_name,origin,mult,markers):
 			other_run_name = ot['run_name']
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
-	D['positions'] = {}
-	D['near_i'] = 0
-	D['near_t'] = 0
-
 
 	def _rewind():
-		D['near_i'] = 0
-		D['near_t'] = 0	
-		D['pts'] = []
+		D['state_info'] = {}
+		#D['state_info']['positions'] = {}
+		D['state_info']['near_i'] = 0
+		D['state_info']['near_t'] = 0
+		D['state_info']['pts'] = []
+		D['state_info']['heading'] = None
 	D['rewind'] = _rewind
 
 
@@ -38,6 +38,8 @@ def Car(N,car_name,origin,mult,markers):
 		assert(traj['ts'][i] <= t)
 		if traj['ts'][i] == t:
 			if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
+				return False
+			if traj[side]['t_vel'][i]<0.2: #TEMP
 				return False
 			elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
 				return False
@@ -53,14 +55,14 @@ def Car(N,car_name,origin,mult,markers):
 		traj = D['runs'][run_name]['trajectory']
 		if t>traj['ts'][0] and t<traj['ts'][-1]:
 			near_t = -1
-			for i in range(D['near_i'],len(traj['ts'])):
+			for i in range(D['state_info']['near_i'],len(traj['ts'])):
 				if traj['ts'][i-1]<t and traj['ts'][i]>t:
 					near_t = traj['ts'][i]
 					near_i = i
 					break
 			if near_t > 0:
-				D['near_i'] = near_i
-				D['near_t'] = near_t
+				D['state_info']['near_i'] = near_i
+				D['state_info']['near_t'] = near_t
 				for side in ['left','right']:
 					if not _check_trajectory_point(traj,side,near_i,near_t):
 						return False,False
@@ -76,14 +78,21 @@ def Car(N,car_name,origin,mult,markers):
 		positions = []
 		for side in ['left','right']:
 			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
-			D['pts'].append(positions[0])
+			D['state_info']['pts'].append(positions[0])
+			if len(D['state_info']['pts']) >= D['n_for_heading']:
+				n = D['n_for_heading']
+				D['state_info']['heading'] = normalized_vector_from_pts(D['state_info']['pts'][-n:])
+				if D['state_info']['pts'][-n][0] > D['state_info']['pts'][-1][0]:
+					D['state_info']['heading'] *= -1
+			else:
+				D['state_info']['heading'] = None
 		return positions
 	D['report_camera_positions'] = _report_camera_positions
 
 
 	def _get_left_image(run_name):
 		traj = D['runs'][run_name]['trajectory']
-		index = traj['data']['t_to_indx'][D['near_t']]
+		index = traj['data']['t_to_indx'][D['state_info']['near_t']]
 		img = traj['data']['left'][index]
 		return img
 	D['get_left_image'] = _get_left_image
@@ -100,6 +109,8 @@ def Car(N,car_name,origin,mult,markers):
 				opj(bag_folders_dst_meta_path,run_name),
 				opj(bag_folders_dst_rgb1to4_path,run_name))
 	D['load_image_and_meta_data'] = _load_image_and_meta_data
+
+
 	return D
 
 

@@ -486,19 +486,43 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
     D['mult'] = mult
     D['Purpose'] = 'An image which translates from float coordinates.'
     def _floats_to_pixels(xy):
+        """
         xy = array(xy)
         if len(shape(xy)) == 1:
-            xy[0] *= D['mult']
+            xy[0] *= -D['mult']
             xy[0] += D['origin']
             xy[1] *= D['mult']
             xy[1] += D['origin']
         else:
-            xy[:,0] *= D['mult']
+            xy[:,0] *= -D['mult']
             xy[:,0] += D['origin']
             xy[:,1] *= D['mult']
             xy[:,1] += D['origin']
-        return np.ndarray.astype(xy,int)
+        """
+        xy = array(xy)
+        xyn = 0*xy
+        if len(shape(xy)) == 1:
+            xyn[0] = D['mult'] * xy[0]
+            xyn[0] += D['origin']
+            xyn[1] = D['mult'] * xy[1]
+            xyn[1] += D['origin']
+        else:
+            xyn[:,0] = D['mult'] * xy[:,0]
+            xyn[:,0] += D['origin']
+            xyn[:,1] = D['mult'] * xy[:,1]
+            xyn[:,1] += D['origin']
+        return np.ndarray.astype(xyn,int)
     D['floats_to_pixels'] = _floats_to_pixels
+    def _plot_pts(xy,c='b'):
+        if len(xy) < 1:
+            print('warning, asked to plot empty pts')
+            return
+        xy_pix = D['floats_to_pixels'](xy)
+        if len(shape(xy)) == 1:
+            plot(xy_pix[1],xy_pix[0],c+'.')
+        else:
+            plot(xy_pix[:,1],xy_pix[:,0],c+'.')
+    D['plot_pts'] = _plot_pts
     if len(xyz_sizes) == 2:
         D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
     elif len(xyz_sizes) == 3:
@@ -614,6 +638,7 @@ def f(x,A,B):
     return A*x+B
 
 def normalized_vector_from_pts(pts):
+    pts = array(pts)
     x = pts[:,0]
     y = pts[:,1]
     m,b = curve_fit(f,x,y)[0]
