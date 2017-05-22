@@ -46,6 +46,7 @@ import subprocess
 from pprint import pprint
 import serial
 import math
+import inspect
 try:
     import h5py
     from scipy.optimize import curve_fit
