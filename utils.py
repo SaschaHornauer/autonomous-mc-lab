@@ -40,7 +40,12 @@ import time
 import sys
 import datetime
 import random
-import pickle
+try:
+    import cPickle as pickle
+    print("utils.py: imported cPickle as pickle")
+except:
+    import pickle
+    print("utils.py: importing cPickle failed, using pickle instead.")
 import re
 import subprocess
 from pprint import pprint
