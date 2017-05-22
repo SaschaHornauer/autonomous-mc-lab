@@ -19,7 +19,9 @@ def pretty(d, indent=0):
             #print '\t' * (indent+1) + str(value)
 
 
-file_array = ['/home/picard/2ndDisk/carData/rosbags/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/meta/marker_data.pkl']
+#file_array = ['/home/picard/2ndDisk/carData/rosbags/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/meta/marker_data.pkl']
+file_array = ['/home/picard/2ndDisk/N.pkl']
+
 print '--'
 for i in range(0,len(file_array)):
     print("-----------------")
