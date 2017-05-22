@@ -8,8 +8,12 @@ from vis import *
 import data.utils.general
 from data.utils.general import car_name_from_run_name
 from data.utils.general import car_colors as colors
+import data.utils.animate as animate
 
 
+bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+bag_folders_dst_rgb1to4_path = opj(bair_car_data_location,'rgb_1to4')
+bag_folders_dst_meta_path = opj(bair_car_data_location,'meta')
 
 def Markers(markers_clockwise,radius):
 	D = {}
@@ -234,6 +238,21 @@ def Car(N,car_name,origin,mult,markers):
 			D['pts'].append(positions[0])
 		return positions
 	D['report_camera_positions'] = _report_camera_positions
+	def _get_left_image(run_name):
+		traj = D['runs'][run_name]['trajectory']
+		index = traj['data']['t_to_indx'][D['near_t']]
+		img = traj['data']['left'][index]
+		return img
+	D['get_left_image'] = _get_left_image
+	def _load_image_and_meta_data(run_name):
+		import data.utils.general
+		import data.utils.multi_preprocess_pkl_files_1
+		D['runs'][run_name]['trajectory']['data'] = data.utils.general.get_new_Data_dic()
+		data.utils.multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
+			D['runs'][run_name]['trajectory']['data'],
+				opj(bag_folders_dst_meta_path,run_name),
+				opj(bag_folders_dst_rgb1to4_path,run_name))
+	D['load_image_and_meta_data'] = _load_image_and_meta_data
 	return D
 
 
@@ -304,6 +323,10 @@ def meters_to_pixels(x,y):
 
 
 if __name__ == "__main__":
+	DISPLAY_LEFT = True
+
+		
+
 	angles = range(-30,31,10)
 
 	if 'N' not in locals():
@@ -323,6 +346,7 @@ if __name__ == "__main__":
 	T0 = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][0]
 	Tn = cars['Mr_Black']['runs'][run_name]['trajectory']['ts'][-1]
 	loct = cars['Mr_Black']['runs'][run_name]['list_of_other_car_trajectories']
+	cars['Mr_Black']['load_image_and_meta_data'](run_name)
 	timer = Timer(0)
 	for car_name in cars:
 		cars[car_name]['rewind']()
@@ -368,7 +392,10 @@ if __name__ == "__main__":
 		pause(0.000001)
 		if len(cars['Mr_Black']['pts']) > 3:
 			sample_points,potential_values = get_sample_points(array(cars['Mr_Black']['pts']),angles,a['Image']['img'],3)
-			print(interpret_potential_values(potential_values))
+			steer = interpret_potential_values(potential_values)
+			img = cars['Mr_Black']['get_left_image'](run_name)
+			#mi(img,6,img_title=potential_values)
+			animate.prepare_and_show_or_return_frame(img,steer,0,6,33,2.0,cv2.COLOR_RGB2BGR)
 	print timer.time()
 
 
