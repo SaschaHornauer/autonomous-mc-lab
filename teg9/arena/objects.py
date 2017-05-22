@@ -351,10 +351,13 @@ if __name__ == "__main__":
 	for car_name in cars:
 		cars[car_name]['rewind']()
 	figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
+
+	for car_name in cars:
+		cars[car_name]['rewind']()
 	for t in arange(T0+200,Tn,1/5.):
 		#print(t)
-		if timer.time() > 1500:
-			break
+		#if timer.time() > 1500:
+		#	break
 		p = cars['Mr_Black']['report_camera_positions'](run_name,t)
 		other_cars_add_list = []
 
@@ -365,7 +368,7 @@ if __name__ == "__main__":
 
 			#pt_plot(p[0],'r')
 			#pt_plot(p[1],'r')
-			#other_cars_add_list.append(p[0]) # TEMP
+			other_cars_add_list.append(p[0]) # TEMP
 		
 		for l in loct:
 			other_car_name = l[0]
@@ -374,7 +377,7 @@ if __name__ == "__main__":
 			if p != False:
 				#pix = a['Image']['floats_to_pixels'](p[0])
 				#a['Image']['img'][pix[0]-1:pix[0]+1,pix[1]-1:pix[1]+1] = 5
-				other_cars_add_list.append(p[0])
+				#other_cars_add_list.append(p[0])
 				#a['other_cars']([p[0]])
 				pass
 		a['other_cars'](other_cars_add_list)
@@ -382,7 +385,7 @@ if __name__ == "__main__":
 		img = a['Image']['img']
 		width = shape(img)[0]
 		origin = Origin
-		mi(img[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1)
+		mi(img[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1,img_title=d2s(steer))
 		#other_cars_add_list = array(other_cars_add_list)
 		#xy = other_cars_add_list*0
 		#xy[:,0] = other_cars_add_list[:,1]
@@ -395,8 +398,9 @@ if __name__ == "__main__":
 			steer = interpret_potential_values(potential_values)
 			img = cars['Mr_Black']['get_left_image'](run_name)
 			#mi(img,6,img_title=potential_values)
-			animate.prepare_and_show_or_return_frame(img,steer,0,6,33,2.0,cv2.COLOR_RGB2BGR)
-	print timer.time()
+			animate.prepare_and_show_or_return_frame(img,steer,0,6,66,1.0,cv2.COLOR_RGB2BGR)
+
+	#print timer.time()
 
 
 
