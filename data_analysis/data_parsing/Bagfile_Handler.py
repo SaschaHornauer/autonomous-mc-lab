@@ -1,4 +1,4 @@
-'''
+'''    
 Created on Apr 11, 2017
 
 @author: picard
@@ -6,7 +6,6 @@ Created on Apr 11, 2017
 import rosbag
 from cv_bridge import CvBridge
 import sys
-import pickle
 import os
 
 class Bagfile_Handler(object):
@@ -32,5 +31,8 @@ class Bagfile_Handler(object):
             pass
        
     def get_bag_content(self):
-        topic, msg, timestamp = self.bag_access.next()
+        try:
+            topic, msg, timestamp = self.bag_access.next()
+        except StopIteration:
+            return None, None, None
         return topic, msg, timestamp               
