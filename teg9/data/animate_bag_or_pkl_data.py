@@ -1,13 +1,27 @@
 from kzpy3.vis import *
 import kzpy3.teg9.data.animate as animate
-import rospy
-import rosbag
+
 import cv2
-from cv_bridge import CvBridge,CvBridgeError
+
 import threading
+try:
+    import rospy
+    import rosbag
+    from cv_bridge import CvBridge,CvBridgeError
+except:
+    print("""Failed to import:
 
+    import rospy
+    import rosbag
+    from cv_bridge import CvBridge,CvBridgeError
 
-bridge = CvBridge()
+    """)
+
+try:
+    bridge = CvBridge()
+except:
+    print("Failed: bridge = CvBridge()")
+
 
 image_topics = ['left_image','right_image']
 single_value_topics = ['steer','state','motor','encoder','GPS2_lat']
