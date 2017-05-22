@@ -488,12 +488,12 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
     def _floats_to_pixels(xy):
         xy = array(xy)
         if len(shape(xy)) == 1:
-            xy[0] *= -D['mult']
+            xy[0] *= D['mult']
             xy[0] += D['origin']
             xy[1] *= D['mult']
             xy[1] += D['origin']
         else:
-            xy[:,0] *= -D['mult']
+            xy[:,0] *= D['mult']
             xy[:,0] += D['origin']
             xy[:,1] *= D['mult']
             xy[:,1] += D['origin']

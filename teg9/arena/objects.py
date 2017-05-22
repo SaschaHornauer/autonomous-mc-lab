@@ -304,7 +304,7 @@ def interpret_potential_values(potential_values):
     dp = potential_values[max_potential_index] - potential_values[min_potential_index]
     
     p = min(1,dp/max( (0.6-max(0,potential_values[max_potential_index]-0.8)) ,0.2) )
-    steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
+    steer = 99-int((p*steer_angles[min_potential_index]+(1-p)*49.0))
     return steer
 
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
 	markers = Markers(markers_clockwise,4*107/100.)
 	Origin = int(2*1000/300.*300 / 5)
 	Mult = 1000/300.*50 / 5
-	a = Direct_Arena_Potential_Field(Origin,Mult,markers)
+	a = Play_Arena_Potential_Field(Origin,Mult,markers)
 	a['Image']['img'] = z2o(a['Image']['img'])
 	cars = {}
 	for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
@@ -351,6 +351,10 @@ if __name__ == "__main__":
 	for car_name in cars:
 		cars[car_name]['rewind']()
 	figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
+
+
+
+
 
 	for car_name in cars:
 		cars[car_name]['rewind']()
@@ -368,7 +372,7 @@ if __name__ == "__main__":
 
 			#pt_plot(p[0],'r')
 			#pt_plot(p[1],'r')
-			other_cars_add_list.append(p[0]) # TEMP
+			#other_cars_add_list.append(p[0]) # TEMP
 		
 		for l in loct:
 			other_car_name = l[0]
@@ -377,7 +381,7 @@ if __name__ == "__main__":
 			if p != False:
 				#pix = a['Image']['floats_to_pixels'](p[0])
 				#a['Image']['img'][pix[0]-1:pix[0]+1,pix[1]-1:pix[1]+1] = 5
-				#other_cars_add_list.append(p[0])
+				other_cars_add_list.append(p[0])
 				#a['other_cars']([p[0]])
 				pass
 		a['other_cars'](other_cars_add_list)
@@ -385,7 +389,7 @@ if __name__ == "__main__":
 		img = a['Image']['img']
 		width = shape(img)[0]
 		origin = Origin
-		mi(img[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1,img_title=d2s(steer))
+		mi(img[width/2-origin/2:width/2+origin/2,width/2-origin/2:width/2+origin/2],1)
 		#other_cars_add_list = array(other_cars_add_list)
 		#xy = other_cars_add_list*0
 		#xy[:,0] = other_cars_add_list[:,1]
@@ -396,11 +400,26 @@ if __name__ == "__main__":
 		if len(cars['Mr_Black']['pts']) > 3:
 			sample_points,potential_values = get_sample_points(array(cars['Mr_Black']['pts']),angles,a['Image']['img'],3)
 			steer = interpret_potential_values(potential_values)
-			img = cars['Mr_Black']['get_left_image'](run_name)
+			img = cars['Mr_Black']['get_left_image'](run_name).copy()
+			print steer
 			#mi(img,6,img_title=potential_values)
-			animate.prepare_and_show_or_return_frame(img,steer,0,6,66,1.0,cv2.COLOR_RGB2BGR)
-
+			#animate.prepare_and_show_or_return_frame(img,steer,0,6,66,1.0,cv2.COLOR_RGB2BGR)
+			#apply_rect_to_img(img,steer,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=True)
+			animate.prepare_and_show_or_return_frame(img=img,steer=steer,motor=None,state=6,delay=66,scale=1,color_mode=cv2.COLOR_RGB2BGR)
+			pause(0.06)
 	#print timer.time()
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
