@@ -52,6 +52,7 @@ from pprint import pprint
 import serial
 import math
 import inspect
+import fnmatch
 try:
     import h5py
     from scipy.optimize import curve_fit
@@ -726,6 +727,33 @@ def mean_exclude_outliers(data,n,min_proportion,max_proportion):
 def pythonpaths(paths):
     for p in paths:
         sys.path.append(opjh(p))
+
+
+def find_files_recursively(src,pattern):
+    """
+    https://stackoverflow.com/questions/2186525/use-a-glob-to-find-files-recursively-in-python
+    """
+    files = []
+    folders = {}
+    folders['__src__'] = src
+    ctr = 0
+    timer = Timer(5)
+    if src[-1] != '/':
+        src = src + '/'
+    print src
+    for root, dirnames, filenames in os.walk(src):
+        for filename in fnmatch.filter(filenames, pattern):
+            file = opj(root,filename)
+            #files.append(files)
+            #folder = pname(file).replace(src,'')
+            if folder not in folders:
+                folders[folder] = []
+            folders[folder].append(filename)
+            ctr += 1
+            if timer.check():
+                print(d2s(time_str('Pretty'),ctr,'matches'))
+                timer.reset()
+    return folders
 
 
 
