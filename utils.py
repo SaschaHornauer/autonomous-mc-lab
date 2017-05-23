@@ -608,7 +608,7 @@ def nvidia_smi_continuous(t=0.1):
 
 
 class Timer:
-    def __init__(self, time_s):
+    def __init__(self, time_s=0):
         self.time_s = time_s
         self.start_time = time.time()
     def check(self):
@@ -735,12 +735,12 @@ def find_files_recursively(src,pattern,place=opjh()):
     """
     files = []
     folders = {}
-    folders['__place__'] = place
+    #folders['__place__'] = place
     ctr = 0
     timer = Timer(5)
     if src[-1] != '/':
         src = src + '/'
-    print src
+    print(src)
     for root, dirnames, filenames in os.walk(src):
         for filename in fnmatch.filter(filenames, pattern):
             file = opj(root,filename)
@@ -753,9 +753,13 @@ def find_files_recursively(src,pattern,place=opjh()):
             if timer.check():
                 print(d2s(time_str('Pretty'),ctr,'matches'))
                 timer.reset()
-    return folders
+    data = {}
+    data['place'] = place
+    data['paths'] = folders
+    data['parent_folders'] = [fname(f) for f in folders.keys()]
+    return data
 
 
 
 
-    
+
