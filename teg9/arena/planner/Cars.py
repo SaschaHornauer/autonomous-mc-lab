@@ -73,12 +73,34 @@ def Car(N,car_name,origin,mult,markers):
 	def _report_camera_positions(run_name,t):
 		near_t,near_i = _valid_time_and_index(run_name,t)
 		if not near_t:
+			return []
+		traj = D['runs'][run_name]['trajectory']
+		positions = []
+		for side in ['left','right']:
+			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
+		D['state_info']['pts'].append(array(positions).mean(axis=0))
+
+		if len(D['state_info']['pts']) >= D['n_for_heading']:
+			n = D['n_for_heading']
+			D['state_info']['heading'] = normalized_vector_from_pts(D['state_info']['pts'][-n:])
+			if D['state_info']['pts'][-n][0] > D['state_info']['pts'][-1][0]:
+				D['state_info']['heading'] *= -1
+		else:
+			D['state_info']['heading'] = None
+		return D['state_info']['pts'][-1] #positions
+	D['report_camera_positions'] = _report_camera_positions
+
+	"""
+	def _report_camera_positions(run_name,t):
+		near_t,near_i = _valid_time_and_index(run_name,t)
+		if not near_t:
 			return False
 		traj = D['runs'][run_name]['trajectory']
 		positions = []
 		for side in ['left','right']:
 			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
 			D['state_info']['pts'].append(positions[0])
+
 			if len(D['state_info']['pts']) >= D['n_for_heading']:
 				n = D['n_for_heading']
 				D['state_info']['heading'] = normalized_vector_from_pts(D['state_info']['pts'][-n:])
@@ -88,7 +110,7 @@ def Car(N,car_name,origin,mult,markers):
 				D['state_info']['heading'] = None
 		return positions
 	D['report_camera_positions'] = _report_camera_positions
-
+	"""
 
 	def _get_left_image(run_name):
 		traj = D['runs'][run_name]['trajectory']

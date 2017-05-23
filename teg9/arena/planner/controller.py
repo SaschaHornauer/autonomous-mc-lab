@@ -8,7 +8,7 @@ import arena.planner.Cars as Cars
 
 bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 
-GRAPHICS = False
+GRAPHICS = True
 	
 
 
@@ -91,6 +91,37 @@ def meters_to_pixels(x,y):
 angles = -arange(-45,46,9)
 
 
+
+
+
+
+# https://stackoverflow.com/questions/31735499/calculate-angle-clockwise-between-two-points
+from math import acos
+from math import sqrt
+from math import pi
+def length(v):
+    return sqrt(v[0]**2+v[1]**2)
+def dot_product(v,w):
+   return v[0]*w[0]+v[1]*w[1]
+def determinant(v,w):
+   return v[0]*w[1]-v[1]*w[0]
+def inner_angle(v,w):
+   cosx=dot_product(v,w)/(length(v)*length(w))
+   rad=acos(cosx) # in radians
+   return rad*180/pi # returns degrees
+def angle_clockwise(A, B):
+    inner=inner_angle(A,B)
+    det = determinant(A,B)
+    if det<0: #this is a property of the det. If the det < 0 then B is clockwise of A
+        return inner
+    else: # if the det > 0 then A is immediately clockwise of B
+        return 360-inner
+
+
+
+
+
+
 if __name__ == "__main__":
 
 	if 'INITALIZED' not in locals():
@@ -104,8 +135,10 @@ if __name__ == "__main__":
 		markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 		Origin = int(2*1000/300.*300 / 5)
 		Mult = 1000/300.*50 / 5
+		
 		the_arena = Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)
 		the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
+		mode = 'play'
 
 		cars = {}
 		for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
@@ -124,7 +157,16 @@ if __name__ == "__main__":
 			figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
 
 
-
+	output_data = {}
+	output_data[our_car] = {}
+	output_data[our_car][run_name] = {}
+	output_data[our_car][run_name][mode] = {}
+	output_data[our_car][run_name][mode]['sample_points'] = []
+	output_data[our_car][run_name][mode]['potential_values'] = []
+	output_data[our_car][run_name][mode]['steer'] = []
+	output_data[our_car][run_name][mode]['real_steer'] = []
+	output_data[our_car][run_name][mode]['near_t'] = []
+	output_data[our_car][run_name][mode]['near_i'] = []
 
 	for car_name in cars:
 		cars[car_name]['rewind']()
@@ -142,9 +184,8 @@ if __name__ == "__main__":
 		p = cars[our_car]['report_camera_positions'](run_name,t)
 		other_cars_add_list = []
 		other_cars_point_list = []
-		if p != False:
-			pass
-			pix = the_arena['Image']['floats_to_pixels'](p[0])
+		if len(p) > 0:
+			pix = the_arena['Image']['floats_to_pixels'](p)#[0])
 			p = array(p)
 			xy_our = 1* p
 			our_heading = cars[our_car]['state_info']['heading']
@@ -154,14 +195,22 @@ if __name__ == "__main__":
 				other_car_name = l[0]
 				other_car_run_name = l[1]
 				p = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
-				if p != False:
-					other_cars_point_list.append(p[0])
+				if len(p) > 0:
+					other_cars_point_list.append(p)#[0])
 					if our_heading != None:
-						angle_to_other_car = np.degrees(angle_between(our_heading, array(p[0])-xy_our[0]))
-						if abs(angle_to_other_car) < 40:
-							other_cars_add_list.append(p[0])
+						#angle_to_other_car = angle_clockwise(our_heading, array(p[0])-xy_our[0])
+						#print(d2s('p:',p,'xy_our:',xy_our))
+						angle_to_other_car = angle_clockwise(our_heading, array(p)-xy_our)
+						#distance_to_other_car = length(p[0]-xy_our[0])
+						distance_to_other_car = length(p-xy_our)
+						
+						view_angle = 38
+						if angle_to_other_car > 360-view_angle or angle_to_other_car < view_angle: 
+							print((other_car_name,int(angle_to_other_car),dp(distance_to_other_car,2)))
+							#other_cars_add_list.append(p[0])
+							other_cars_add_list.append(p)
 							no_cars_in_view = False
-			if False:#no_cars_in_view:
+			if no_cars_in_view:
 				continue
 			the_arena['other_cars'](other_cars_add_list)
 			img = the_arena['Image']['img']
@@ -181,7 +230,14 @@ if __name__ == "__main__":
 				sample_points,potential_values = get_sample_points(array(cars[our_car]['state_info']['pts']),angles,the_arena,cars[our_car]['state_info']['heading'])
 				steer = interpret_potential_values(potential_values)
 				real_steer = cars[our_car]['runs'][run_name]['trajectory']['data']['steer'][cars[our_car]['state_info']['near_i']]
-				stats.append([steer,real_steer])
+
+				output_data[our_car][run_name][mode]['sample_points'].append(sample_points)
+				output_data[our_car][run_name][mode]['potential_values'].append(potential_values)
+				output_data[our_car][run_name][mode]['steer'].append(steer)
+				output_data[our_car][run_name][mode]['real_steer'].append(real_steer)
+				output_data[our_car][run_name][mode]['near_t'].append(cars[our_car]['state_info']['near_t'])
+				output_data[our_car][run_name][mode]['near_i'].append(cars[our_car]['state_info']['near_i'])
+
 
 				if GRAPHICS:
 					figure(9)
@@ -202,9 +258,18 @@ if __name__ == "__main__":
 			cars[our_car]['state_info']['pts'] = []
 		
 
+	so(output_data,opjD(our_car+'-'+run_name+'-output_data'))
 
 
 
+def replay_potential_values(pv):
+	ctr = 0
+	for p in pv:
+		if ctr >= 30:
+			clf()
+			ctr = 0
+		plot(p,'r.-');xylim(0,9,0,2);pause(0.01)
+		ctr += 1
 
 
 
