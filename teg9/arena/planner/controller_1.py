@@ -92,12 +92,6 @@ angles = -arange(-45,46,9)
 view_angle = 35
 
 
-def find_index_of_closest(val,lst):
-	d = []
-	for i in range(len(lst)):
-		d.append(abs(lst[i]-val))
-	return d.index(min(d))
-		
 
 
 
@@ -130,41 +124,37 @@ def angle_clockwise(A, B):
 
 if __name__ == "__main__":
 
-
-	DISPLAY_LEFT = True
-	
-	if 'N' not in locals():
-		print("Loading trajectory data . . .")
-		N = lo(opjD('N_pruned.pkl'))
-	markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
-	Origin = int(2*1000/300.*300 / 5)
-	Mult = 1000/300.*50 / 5
-	
-
-	the_arena = Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)
-	mode = the_arena['type']
-	
-	the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
-	if mode == 'Follow_Arena_Potential_Field':
-		the_arena['Image']['img'] *= 0.5
-		the_arena['Image']['img'] += 0.5
-	
 	if 'INITALIZED' not in locals():
 		INITALIZED = True
+		DISPLAY_LEFT = True
+		
+
+		if 'N' not in locals():
+			print("Loading trajectory data . . .")
+			N = lo(opjD('N_pruned.pkl'))
+		markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
+		Origin = int(2*1000/300.*300 / 5)
+		Mult = 1000/300.*50 / 5
+		
+		the_arena = Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)
+		the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
+		mode = 'follow'
+
 		cars = {}
 		for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 			cars[car_name] =  Cars.Car(N,car_name,Origin,Mult,markers)
+
 		run_name = 'direct_rewrite_test_28Apr17_17h23m15s_Mr_Black'
 		our_car = Cars.car_name_from_run_name(run_name)
 		T0 = cars[our_car]['runs'][run_name]['trajectory']['ts'][0]
 		Tn = cars[our_car]['runs'][run_name]['trajectory']['ts'][-1]
 		loct = cars[our_car]['runs'][run_name]['list_of_other_car_trajectories']
 		cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location)
-	
-	for car_name in cars:
-		cars[car_name]['rewind']()
-	if GRAPHICS:			
-		figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
+		timer = Timer(10)
+		for car_name in cars:
+			cars[car_name]['rewind']()
+		if GRAPHICS:			
+			figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
 
 
 	output_data = {}
@@ -177,12 +167,9 @@ if __name__ == "__main__":
 	output_data[run_name][mode]['near_t'] = []
 	output_data[run_name][mode]['near_i'] = []
 
-
-
-
 	for car_name in cars:
 		cars[car_name]['rewind']()
-	timer = Timer(10)
+
 	stats=[]
 	ctr_q = 0
 	t_prev = 0
@@ -196,7 +183,6 @@ if __name__ == "__main__":
 		p = cars[our_car]['report_camera_positions'](run_name,t)
 		other_cars_add_list = []
 		other_cars_point_list = []
-		other_cars_angle_distance_list = []
 		if len(p) > 0:
 			pix = the_arena['Image']['floats_to_pixels'](p)#[0])
 			p = array(p)
@@ -221,9 +207,8 @@ if __name__ == "__main__":
 						
 						
 						if angle_to_other_car > -view_angle and angle_to_other_car < view_angle: 
-							#print((other_car_name,int(angle_to_other_car),dp(distance_to_other_car,2)))
+							print((other_car_name,int(angle_to_other_car),dp(distance_to_other_car,2)))
 							#other_cars_add_list.append(p[0])
-							other_cars_angle_distance_list.append([angle_to_other_car,distance_to_other_car])
 							other_cars_add_list.append(p)
 							no_cars_in_view = False
 			if no_cars_in_view:
@@ -244,11 +229,6 @@ if __name__ == "__main__":
 			pause(0.000001)
 			if cars[our_car]['state_info']['heading'] != None:
 				sample_points,potential_values = get_sample_points(array(cars[our_car]['state_info']['pts']),angles,the_arena,cars[our_car]['state_info']['heading'])
-				if mode == 'Follow_Arena_Potential_Field':
-					for ang,dist in other_cars_angle_distance_list:
-						indx = find_index_of_closest(-ang,angles)
-						if dist > 1.5:
-							potential_values[indx] *= (dist-1.5)/8.0
 				steer = interpret_potential_values(potential_values)
 				real_steer = cars[our_car]['runs'][run_name]['trajectory']['data']['steer'][cars[our_car]['state_info']['near_i']]
 
@@ -262,7 +242,7 @@ if __name__ == "__main__":
 
 				if GRAPHICS:
 					figure(9)
-					if ctr_q > 1:
+					if ctr_q > 10:
 						clf()
 						ctr_q = 0
 					plot(potential_values,'r.-');xylim(0,9,0,2);

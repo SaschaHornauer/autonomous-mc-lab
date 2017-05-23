@@ -58,15 +58,15 @@ def Arena_Potential_Field(origin,mult,markers):
 		print timer.time()
 		print ctr
 	D['test'] = _test
-	def _other_cars(xy_list,follow=False):
+	def _other_cars(xy_list,mode,xy_our):
 		sub_add_list = []
+
 		for xy in xy_list:
-			if follow:
-				sub_add_list.append([-5/6.5*gau_follow,array(xy)])
-				sub_add_list.append([2/6.5*gau_car,array(xy)])
-			else:
-				sub_add_list.append([5/6.5*gau_car,array(xy)])
-				sub_add_list.append([5/6.5*gau_marker,array(xy)])
+			#print(mode,length(xy-xy_our))
+			if mode=='Follow_Arena_Potential_Field' and length(xy-xy_our)>1.5:
+				continue
+			sub_add_list.append([5/6.5*gau_car,array(xy)])
+			sub_add_list.append([5/6.5*gau_marker,array(xy)])
 		D['sub_add'](sub_add_list)
 	D['other_cars'] = _other_cars
 	return D
@@ -74,6 +74,7 @@ def Arena_Potential_Field(origin,mult,markers):
 
 def Play_Arena_Potential_Field(origin,mult,markers):
 	D = Arena_Potential_Field(origin,mult,markers)
+	D['type'] = 'Play_Arena_Potential_Field'
 	gau_center = Gaussian_2D(6*mult)
 	for xy in markers['xy']:
 		D['add'](gau_center,xy)
@@ -82,19 +83,21 @@ def Play_Arena_Potential_Field(origin,mult,markers):
 
 def Follow_Arena_Potential_Field(origin,mult,markers):
 	D = Arena_Potential_Field(origin,mult,markers)
+	D['type'] = 'Follow_Arena_Potential_Field'
 	D['other_cars_parent'] = D['other_cars']
-	def _other_cars(xy_list,follow=False):
-		D['other_cars_parent'](xy_list,follow=True)
+	def _other_cars(xy_list,mode,xy_our):
+		D['other_cars_parent'](xy_list,mode,xy_our)
 	D['other_cars'] = _other_cars
 	return D
 
 def Direct_Arena_Potential_Field(origin,mult,markers):
+	D = Arena_Potential_Field(origin,mult,markers)
+	D['type'] = 'Direct_Arena_Potential_Field'
 	gau_marker = Gaussian_2D(mult)
 	gau_s = Gaussian_2D(0.24*mult)
 	gau_center = Gaussian_2D(6*mult)
 	gau_follow = Gaussian_2D(12*mult)
 	gau_car = Gaussian_2D(6*mult)
-	D = Arena_Potential_Field(origin,mult,markers)
 	for xy in markers['xy']:
 		D['add'](-1.0*gau_marker,0.75*(array(xy)))
 	D['add'](4*gau_center,[0,0])
@@ -103,12 +106,13 @@ def Direct_Arena_Potential_Field(origin,mult,markers):
 
 
 def Furtive_Arena_Potential_Field(origin,mult,markers):
+	D = Arena_Potential_Field(origin,mult,markers)
+	D['type'] = 'Furtive_Arena_Potential_Field'
 	gau_marker = Gaussian_2D(mult)
 	gau_s = Gaussian_2D(0.24*mult)
 	gau_center = Gaussian_2D(6*mult)
 	gau_follow = Gaussian_2D(12*mult)
 	gau_car = Gaussian_2D(6*mult)
-	D = Arena_Potential_Field(origin,mult,markers)
 	for xy in markers['xy']:
 		D['add'](-1.0*gau_marker,0.92*(array(xy)))
 	D['add'](4*gau_center,[0,0])
