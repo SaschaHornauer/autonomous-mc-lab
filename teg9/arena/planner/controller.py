@@ -141,7 +141,7 @@ if __name__ == "__main__":
 	Mult = 1000/300.*50 / 5
 	
 
-	the_arena = Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)
+	the_arena = Potential_Fields.Furtive_Arena_Potential_Field(Origin,Mult,markers)
 	mode = the_arena['type']
 	
 	the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
