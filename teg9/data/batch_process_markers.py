@@ -148,13 +148,29 @@ May23_a = ['/media/karlzipser/ExtraDrive3/from_Mr_Orange/Mr_Orange_4_car_24April
 
 
 
+May24_a = ['/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_4_car_24April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_rewrite_test_20_21April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_Fern_15April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_21March2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_11April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_14April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_15April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_4_car_24April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Orange/Mr_Orange_4_car_24April2017/processsed'
+    '/media/karlzipser/ExtraDrive3/from_Mr_Orange/Mr_Orange_11_13April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Silver/Mr_Silver_Fern_11April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_4_car_24April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_14April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_15April2017/processsed',
+    '/media/karlzipser/ExtraDrive3/Mr_Blue_11May2017/processsed']
 
 
 
 
 if True:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
-    multi_process_bag_folders(May23_a,meta_path,100)
+    multi_process_bag_folders(May24_a,meta_path,100)
 
 
 
