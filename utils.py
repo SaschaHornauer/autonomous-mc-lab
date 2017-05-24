@@ -739,7 +739,7 @@ def find_files_recursively(src,pattern,place='',FILES_ONLY=False,DIRS_ONLY=False
     timer = Timer(5)
     if src[-1] != '/':
         src = src + '/'
-    print(src)
+    print(d2s('src =',src,'pattern =',pattern))
     for root, dirnames, filenames in os.walk(src):
         assert(not(FILES_ONLY and DIRS_ONLY))
         if FILES_ONLY:
