@@ -137,10 +137,24 @@ Mr_Mixed =['/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2
 
 
 
+May23_a = ['/media/karlzipser/ExtraDrive3/from_Mr_Orange/Mr_Orange_4_car_24April2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_4_car_24April2017/processed',
+'/media/karlzipser/ExtraDrive3/Mr_Blue_11May2017/processed',
+'/media/karlzipser/ExtraDrive2/Mr_Orange_10May2017/processed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_14April2017/processsed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_11April2017/processsed',
+'/media/karlzipser/ExtraDrive3/from_Mr_Orange/Mr_Orange_11_13April2017/processsed'
+]
 
-if False:
+
+
+
+
+
+
+if True:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
-    multi_process_bag_folders(Mr_Mixed,meta_path,100)
+    multi_process_bag_folders(May23_a,meta_path,100)
 
 
 
@@ -160,7 +174,7 @@ if False:
         so(opj(bag_folders_meta_path,a,'trajectory.pkl'),M[car_name][a])
         #unix('rm '+opj(bag_folders_meta_path,a,'cubic_splines.pkl'))
 
-if True:
+if False:
     import kzpy3.teg9.data.utils.get_trajectory_points as get_trajectory_points
 
     CS_("Process trajectory.pkl files.",fname(__file__))
@@ -188,7 +202,7 @@ if True:
     sample all cubic splines with timestamps of given run.
     save all timestamp synched splines in given run's meta folder
     """)
-
+"""
 heights = {'Mr_Yellow':1, 'Mr_Silver':2, 'Mr_Blue':3, 'Mr_Orange':4, 'Mr_Black':5}
 Origin = 300
 Mult = 50
@@ -247,3 +261,4 @@ for car_name in M.keys():
         N[car_name][run_name]['other_trajectories'] = M[car_name][run_name]['other_trajectories']
 so(N,opjD('N.pkl'))
 
+"""

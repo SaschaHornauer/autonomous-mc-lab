@@ -40,7 +40,8 @@ for r in runs:
 pprint(locations)
 
 
-
+marker_processing_necessary = []
+ready_for_marker_processing = []
 for r in sorted(runs.keys()):
     ns = []
     for file_pattern,file_key in info:
@@ -50,11 +51,15 @@ for r in sorted(runs.keys()):
             #print(d2s('\t',file_key,len(runs[r][file_key])))
             #print runs[r][file_key]
         ns.append(n)
+    if ns[3:5] == [0,0]:
+        marker_processing_necessary.append(r)
     if min(ns[0:5]) and ns[6]>0:
         c = 'white'
     elif ns[3:6]==[0,0,0] and min(ns[:3])>0 and ns[-1]>0:
+        ready_for_marker_processing.append(r)
         c = 'yellow'
     else:
         c = 'red'
     cprint(d2n(ns,'\t',r),c)
 
+pprint(marker_processing_necessary)

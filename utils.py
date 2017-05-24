@@ -729,22 +729,27 @@ def pythonpaths(paths):
         sys.path.append(opjh(p))
 
 
-def find_files_recursively(src,pattern,place=opjh()):
+def find_files_recursively(src,pattern,place='',FILES_ONLY=False,DIRS_ONLY=False):
     """
     https://stackoverflow.com/questions/2186525/use-a-glob-to-find-files-recursively-in-python
     """
     files = []
     folders = {}
-    #folders['__place__'] = place
     ctr = 0
     timer = Timer(5)
     if src[-1] != '/':
         src = src + '/'
     print(src)
     for root, dirnames, filenames in os.walk(src):
-        for filename in fnmatch.filter(filenames, pattern):
+        assert(not(FILES_ONLY and DIRS_ONLY))
+        if FILES_ONLY:
+            use_list = filenames
+        elif DIRS_ONLY:
+            use_list = dirnames
+        else:
+            use_list = filenames+dirnames
+        for filename in fnmatch.filter(use_list, pattern):
             file = opj(root,filename)
-            #files.append(files)
             folder = pname(file).replace(place,'')
             if folder not in folders:
                 folders[folder] = []
