@@ -19,13 +19,8 @@ def Car(N,car_name,origin,mult,markers):
 		R = D['runs'][run_name]
 		R['trajectory'] = N[car_name][run_name]['self_trajectory']
 		R['list_of_other_car_trajectories'] = []
-		"""
-			for ot in N[car_name][run_name]['other_trajectories']:
-				other_run_name = ot['run_name']
-				other_car_name = car_name_from_run_name(other_run_name)
-				R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
-		"""		
-		for other_run_name in N[car_name][run_name]['other_trajectories']:
+		for ot in N[car_name][run_name]['other_trajectories']:
+			other_run_name = ot['run_name']
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
 
@@ -134,8 +129,7 @@ def Car(N,car_name,origin,mult,markers):
 		data.utils.multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
 			D['runs'][run_name]['trajectory']['data'],
 				opj(bag_folders_dst_meta_path,run_name),
-				opj(bag_folders_dst_rgb1to4_path,run_name),
-				print_b=True)
+				opj(bag_folders_dst_rgb1to4_path,run_name))
 	D['load_image_and_meta_data'] = _load_image_and_meta_data
 
 
