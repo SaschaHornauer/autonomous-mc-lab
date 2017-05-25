@@ -51,15 +51,11 @@ for r in sorted(runs.keys()):
             #print(d2s('\t',file_key,len(runs[r][file_key])))
             #print runs[r][file_key]
         ns.append(n)
-    if ns[3:5] == [0,0]:
-        marker_processing_necessary.append(r)
-    if min(ns[0:5]) and ns[6]>0:
-        c = 'white'
-    else:# ns[4:6]==[0,0] and min(ns[:3])>0 and ns[-1]>0:
-        #ready_for_marker_processing.append(r)
-        c = 'yellow'
-    #else:
-     #   c = 'red'
+    c = 'white'
+    for i in [0,1,2,3]:
+        if ns[i] == 0:
+            c = 'yellow'
+            break
     cprint(d2n(ns,'\t',r),c)
 
 pprint(marker_processing_necessary)

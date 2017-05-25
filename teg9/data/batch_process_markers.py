@@ -227,7 +227,16 @@ May24_f = ['/media/karlzipser/bair_car_data_14/Mr_Yellow_Fern_15April2017/new',
 
 
 
-
+May24_g = ['/media/karlzipser/bdd_data_11a/Mr_Yellow_Fern_11April2017/processed',
+'/media/karlzipser/bdd_data_11a/Mr_Yellow_30April2017/new',
+'/media/karlzipser/bdd_data_11a/Mr_Yellow_14May2017/processed',
+'/media/karlzipser/bdd_data_11a/Mr_Silver_28April2017/new',
+'/media/karlzipser/bdd_data_11a/Mr_Silver_20to25April2017/processed',
+'/media/karlzipser/bdd_data_11a/Mr_Orange_30April2017/new',
+'/media/karlzipser/bdd_data_11a/Mr_Orange_10May2017/new',
+'/media/karlzipser/bdd_data_11a/Mr_Blue_30April2017/new',
+'/media/karlzipser/bdd_data_11a/Mr_Blue_11May2017/new',
+'/media/karlzipser/bdd_data_11a/Mr_Black_30April2017/new']
 
 
 
@@ -243,7 +252,7 @@ May24_f = ['/media/karlzipser/bair_car_data_14/Mr_Yellow_Fern_15April2017/new',
 
 if True:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
-    multi_process_bag_folders(May24_f,meta_path,100)
+    multi_process_bag_folders(May24_g,meta_path,100)
 
 
 
