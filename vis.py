@@ -512,7 +512,17 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
             xyn[:,1] = D['mult'] * xy[:,1]
             xyn[:,1] += D['origin']
         return np.ndarray.astype(xyn,int)
+    def _pixel_to_float(xy):
+        xy = array(xy)
+        xyn = 0.0*xy
+        assert(len(shape(xy)) == 1)
+        xyn[0] = xy[0] - D['origin']
+        xyn[0] /= (1.0*D['mult'])
+        xyn[1] = xy[1] - D['origin']
+        xyn[1] /= (1.0*D['mult'])
+        return np.ndarray.astype(xyn,float)
     D['floats_to_pixels'] = _floats_to_pixels
+    D['pixel_to_float'] = _pixel_to_float
     def _plot_pts(xy,c='b'):
         if len(xy) < 1:
             print('warning, asked to plot empty pts')
@@ -540,6 +550,29 @@ def xylim(a,b,c,d):
     ylim(c,d)
 
 
+
+
+# https://stackoverflow.com/questions/31735499/calculate-angle-clockwise-between-two-points
+from math import acos
+from math import sqrt
+from math import pi
+def length(v):
+    return sqrt(v[0]**2+v[1]**2)
+def dot_product(v,w):
+   return v[0]*w[0]+v[1]*w[1]
+def determinant(v,w):
+   return v[0]*w[1]-v[1]*w[0]
+def inner_angle(v,w):
+   cosx=dot_product(v,w)/(length(v)*length(w))
+   rad=acos(cosx) # in radians
+   return rad*180/pi # returns degrees
+def angle_clockwise(A, B):
+    inner=inner_angle(A,B)
+    det = determinant(A,B)
+    if det<0: #this is a property of the det. If the det < 0 then B is clockwise of A
+        return inner
+    else: # if the det > 0 then A is immediately clockwise of B
+        return 360-inner
 
 
 
