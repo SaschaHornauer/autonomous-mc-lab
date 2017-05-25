@@ -250,15 +250,19 @@ May24_g = ['/media/karlzipser/bdd_data_11a/Mr_Yellow_Fern_11April2017/processed'
 
 
 
-if True:
+if False:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
     multi_process_bag_folders(May24_g,meta_path,100)
 
 
 
+
+
+
 if False:
     CS_("Process marker_data.pkl files to get cubic spline trajectories.",fname(__file__))
-    bag_folders_path = opjD('bair_car_data_new')
+    #bag_folders_path = opjD('bair_car_data_new')
+    bag_folders_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
     bag_folders_meta_path = opj(bag_folders_path,'meta')
     aruco_runs = []
     marker_data_files = sggo(bag_folders_meta_path,'*','marker_data.pkl')
@@ -266,17 +270,31 @@ if False:
         aruco_runs.append(fname(pname(m)))
     M = {}
     for a in aruco_runs:
-        raw_marker_data_to_cubic_splines.process_run_data(a,bag_folders_meta_path,M)
-        car_name = raw_marker_data_to_cubic_splines.car_name_from_run_name(a)
-        cprint(M[car_name][a].keys(),'yellow')
-        so(opj(bag_folders_meta_path,a,'trajectory.pkl'),M[car_name][a])
+        if len(gg(opj(bag_folders_meta_path,a,'trajectory.pkl'))) > 0:
+            print(d2s(a,'already processed.'))
+            continue
+        try:
+            raw_marker_data_to_cubic_splines.process_run_data(a,bag_folders_meta_path,M)
+            car_name = raw_marker_data_to_cubic_splines.car_name_from_run_name(a)
+            cprint(M[car_name][a].keys(),'yellow')
+            so(opj(bag_folders_meta_path,a,'trajectory.pkl'),M[car_name][a])
         #unix('rm '+opj(bag_folders_meta_path,a,'cubic_splines.pkl'))
+        except Exception as e:
+            print("********** Exception ***********************")
+            print(e.message, e.args)
+            cprint(d2s(a,"not processed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"),'red','on_yellow')
+
+
 
 if False:
-    import kzpy3.teg9.data.utils.get_trajectory_points as get_trajectory_points
+    CS_("""
+    load trajectories
+    """)
+    import kzpy3.teg9.arena.get_trajectory_points as get_trajectory_points
 
     CS_("Process trajectory.pkl files.",fname(__file__))
-    bag_folders_path = opjD('bair_car_data_new')
+    #bag_folders_path = opjD('bair_car_data_new')
+    bag_folders_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
     bag_folders_meta_path = opj(bag_folders_path,'meta')
     aruco_runs = []
     trajectory_files = sggo(bag_folders_meta_path,'*','trajectory.pkl')
@@ -300,63 +318,76 @@ if False:
     sample all cubic splines with timestamps of given run.
     save all timestamp synched splines in given run's meta folder
     """)
-"""
-heights = {'Mr_Yellow':1, 'Mr_Silver':2, 'Mr_Blue':3, 'Mr_Orange':4, 'Mr_Black':5}
-Origin = 300
-Mult = 50
-dt = 1/30.0
+
+if False:
+    
+    heights = {'Mr_Yellow':1, 'Mr_Silver':2, 'Mr_Blue':3, 'Mr_Orange':4, 'Mr_Black':5}
+    Origin = 300
+    Mult = 50
+    dt = 1/30.0
 
 
 
-for ref_run_name in aruco_runs:
+    for ref_run_name in aruco_runs:
+        if True:#try:
+            for side in ['left']:
+                clf()
+                car_name = get_trajectory_points.car_name_from_run_name(ref_run_name)
+                R = M[car_name][ref_run_name][side]['raw_time_stamps']
+                R0,Rn = R[0],R[-1]
+                M[car_name][ref_run_name]['self_trajectory'] = get_trajectory_points.get_xp_pts(M,ref_run_name,R,Mult,Origin,dt)
+                M[car_name][ref_run_name]['other_trajectories'] = []
+                ref_car_name = car_name
+                plot([R[0],R[-1]],[heights[car_name],heights[car_name]],marker='.',linestyle='--',color='r')
+                title(ref_run_name)
+            cases = []
+            for car_name in M.keys():
+                for run_name in M[car_name]:
+                    if run_name != ref_run_name:
+                        for side in ['left']:
+                            T = M[car_name][run_name][side]['time_stamps']
+                            t0,tn = T[0],T[-1]
+                            case = False
+                            if (R0<t0 and Rn>t0):
+                                case = 1
+                            elif (R0<tn and Rn>tn):
+                                case = 2
+                            elif (R0>t0 and Rn<tn):
+                                case = 3
+                            if case:
+                                cases.append(case)
+                                plot([T[0],T[-1]],[heights[car_name],heights[car_name]],marker='.',linestyle='--',color='b')
+                                other_trajectories_modified_timestamps = []
+                                for r in R:
+                                    if r >= t0 and r <= Rn:
+                                        other_trajectories_modified_timestamps.append(r)
+                                #traj = get_trajectory_points.get_xp_pts(M,run_name,other_trajectories_modified_timestamps,Mult,Origin,dt)
+                                M[ref_car_name][ref_run_name]['other_trajectories'].append(run_name) #traj)
+                    else:
+                        print('found ref run')
+            print cases
+            ylim(0.5,5.5)
+            pause(0.001)
+        #except Exception as e:
+        #    print("********** Exception ***********************")
+        #    print(e.message, e.args)
+        #    cprint(d2s(a,"not processed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"),'red','on_yellow')
 
-    for side in ['left']:
-        clf()
-        car_name = get_trajectory_points.car_name_from_run_name(ref_run_name)
-        R = M[car_name][ref_run_name][side]['raw_time_stamps']
-        R0,Rn = R[0],R[-1]
-        M[car_name][ref_run_name]['self_trajectory'] = get_trajectory_points.get_xp_pts(M,ref_run_name,R,Mult,Origin,dt)
-        M[car_name][ref_run_name]['other_trajectories'] = []
-        ref_car_name = car_name
-        plot([R[0],R[-1]],[heights[car_name],heights[car_name]],marker='.',linestyle='--',color='r')
-        title(ref_run_name)
-    cases = []
+
+    N = {}
     for car_name in M.keys():
+        N[car_name] = {}
         for run_name in M[car_name]:
-            if run_name != ref_run_name:
-                for side in ['left']:
-                    T = M[car_name][run_name][side]['time_stamps']
-                    t0,tn = T[0],T[-1]
-                    case = False
-                    if (R0<t0 and Rn>t0):
-                        case = 1
-                    elif (R0<tn and Rn>tn):
-                        case = 2
-                    elif (R0>t0 and Rn<tn):
-                        case = 3
-                    if case:
-                        cases.append(case)
-                        plot([T[0],T[-1]],[heights[car_name],heights[car_name]],marker='.',linestyle='--',color='b')
-                        other_trajectories_modified_timestamps = []
-                        for r in R:
-                            if r >= t0 and r <= Rn:
-                                other_trajectories_modified_timestamps.append(r)
-                        traj = get_trajectory_points.get_xp_pts(M,run_name,other_trajectories_modified_timestamps,Mult,Origin,dt)
-                        M[ref_car_name][ref_run_name]['other_trajectories'].append(traj)
-            else:
-                print('found ref run')
-    print cases
-    ylim(0.5,5.5)
-    pause(0.001)
-   # raw_input('?')
+            N[car_name][run_name] = {}
+            N[car_name][run_name]['self_trajectory'] = M[car_name][run_name]['self_trajectory']
+            N[car_name][run_name]['other_trajectories'] = M[car_name][run_name]['other_trajectories']
+    so(N,opjD('N_'+time_str()+'.pkl'))
 
-N = {}
-for car_name in M.keys():
-    N[car_name] = {}
-    for run_name in M[car_name]:
-        N[car_name][run_name] = {}
-        N[car_name][run_name]['self_trajectory'] = M[car_name][run_name]['self_trajectory']
-        N[car_name][run_name]['other_trajectories'] = M[car_name][run_name]['other_trajectories']
-so(N,opjD('N.pkl'))
+    
 
-"""
+if False:
+    n_runs = 0
+    for car in N.keys():
+        for run in N[car].keys():
+            n_runs += 1
+    print n_runs

@@ -57,12 +57,16 @@ def get_xp_pts(M,run_name,timestamps,Mult,Origin,dt):
 		pts[side]['timestamp_gap'] = timestamp_spline(M,run_name,side)(pts['ts'])
 		pts[side]['x_pix'] = (-Mult*array(pts[side]['x'])+Origin).astype(int)
 		pts[side]['y_pix'] = (Mult*array(pts[side]['y'])+Origin).astype(int)
+		plot(pts[side]['x'],pts[side]['y'],'o');xylim(-5,5,-5,5)
 		A=pts[side]['x'].copy()
 		B=pts[side]['y'].copy()
-		C=A*0
-		C[1:] = sqrt((A[1:]-A[:-1])**2+(B[1:]-B[:-1])**2)
+		C=A*0.0
+		print(d2s('A',type(A),shape(A)))
+		print(d2s('B',type(B),shape(B)))
+		print(d2s('C',type(C),shape(C)))
+		C[1:] = np.sqrt((A[1:]-A[:-1])**2+(B[1:]-B[:-1])**2)
 		pts[side]['t_vel'] = C / dt
-	pts['camera_separation'] = sqrt((pts['left']['x']-pts['right']['x'])**2 + (pts['left']['y']-pts['right']['y'])**2)
+	pts['camera_separation'] = np.sqrt((pts['left']['x']-pts['right']['x'])**2 + (pts['left']['y']-pts['right']['y'])**2)
 	pts['run_name'] = run_name
 	return pts
 	
