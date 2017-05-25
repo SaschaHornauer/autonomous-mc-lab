@@ -13,24 +13,54 @@ GRAPHICS = True
 
 
 def get_sample_points(pts,angles,pfield,heading):
+
     sample_points = []
     potential_values = []
+
+
     heading *= 0.5 # 50 cm, about the length of the car
+    h_color = 'yellow'
+    #if pts[-n,0] > pts[-1,0]:
+    #    heading *= -1
+    #    h_color = 'red'
+        #print "heading negated"
+    #cprint(d2s(dp(heading[0],2),dp(heading[0],2)),h_color)
+    #if pts[-3,1] > pts[-1,1]:
+    #    heading *= -1
+
     for the_arena in angles:
+
         sample_points.append( rotatePoint([0,0],heading,the_arena) )
+    #figure(3)
+    #pts_plot(pts)
     for k in range(len(sample_points)):
         f = sample_points[k]
+        #plot([pts[-1,0],pts[-1,0]+f[0]],[pts[-1,1],pts[-1,1]+f[1]])
+    #figure(1)
     for sp in sample_points:
     	if GRAPHICS:
     		pfield['Image']['plot_pts'](array(sp)+array(pts[-1,:]),'g')
         pix = pfield['Image']['floats_to_pixels']([sp[0]+pts[-1,0],sp[1]+pts[-1,1]])
+        #plot(pix[0],pix[1],'kx')
         potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
+
     return sample_points,potential_values
 
 
 
 
+def _interpret_potential_values(potential_values):
+    min_potential_index = potential_values.index(min(potential_values))
+    max_potential_index = potential_values.index(max(potential_values))
+    middle_index = int(len(potential_values)/2)
 
+    d = 99.0/(1.0*len(potential_values)-1)
+    steer_angles = np.floor(99-arange(0,100,d))
+    dp = potential_values[max_potential_index] - potential_values[min_potential_index]
+    
+    p = min(1,dp/max( (0.6-max(0,potential_values[max_potential_index]-0.8)) ,0.2) )
+    steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
+    return steer
 
 
 def interpret_potential_values(potential_values):
@@ -43,13 +73,14 @@ def interpret_potential_values(potential_values):
 	potential_values = z2o(potential_values) * pmax
 	if GRAPHICS:
 		figure(9);plot(potential_values,'bo-')
+
 	d = 99.0/(1.0*len(potential_values)-1)
 	steer_angles = np.floor(99-arange(0,100,d))
+
 	p = min(pmax/0.8,1.0)
+
 	steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
 	return steer
-
-
 
 
 def meters_to_pixels(x,y):
@@ -70,14 +101,27 @@ def find_index_of_closest(val,lst):
 
 
 
-
-
-
-
-
-
-
-
+# https://stackoverflow.com/questions/31735499/calculate-angle-clockwise-between-two-points
+from math import acos
+from math import sqrt
+from math import pi
+def length(v):
+    return sqrt(v[0]**2+v[1]**2)
+def dot_product(v,w):
+   return v[0]*w[0]+v[1]*w[1]
+def determinant(v,w):
+   return v[0]*w[1]-v[1]*w[0]
+def inner_angle(v,w):
+   cosx=dot_product(v,w)/(length(v)*length(w))
+   rad=acos(cosx) # in radians
+   return rad*180/pi # returns degrees
+def angle_clockwise(A, B):
+    inner=inner_angle(A,B)
+    det = determinant(A,B)
+    if det<0: #this is a property of the det. If the det < 0 then B is clockwise of A
+        return inner
+    else: # if the det > 0 then A is immediately clockwise of B
+        return 360-inner
 
 
 
@@ -97,11 +141,11 @@ if __name__ == "__main__":
 	Mult = 1000/300.*50 / 5
 	
 
-	the_arena = Potential_Fields.Follow_Arena_Potential_Field(Origin,Mult,markers)
+	the_arena = Potential_Fields.Furtive_Arena_Potential_Field(Origin,Mult,markers)
 	mode = the_arena['type']
 	
-	#the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
-	if mode == 'Play_Arena_Potential_Field':
+	the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
+	if mode == 'Follow_Arena_Potential_Field':
 		the_arena['Image']['img'] *= 0.5
 		the_arena['Image']['img'] += 0.5
 	
@@ -221,13 +265,13 @@ if __name__ == "__main__":
 					if ctr_q > 1:
 						clf()
 						ctr_q = 0
-					plot(potential_values,'r.-');xylim(0,10,0,1);
+					plot(potential_values,'r.-');xylim(0,9,0,2);
 					ctr_q += 1
 					img = cars[our_car]['get_left_image'](run_name).copy()
 					img = cars[our_car]['get_left_image'](run_name).copy()
 					k = animate.prepare_and_show_or_return_frame(img=img,steer=steer,motor=None,state=1,delay=1,scale=2,color_mode=cv2.COLOR_RGB2BGR,window_title='plan')
 					img = cars[our_car]['get_left_image'](run_name).copy()
-					#k = animate.prepare_and_show_or_return_frame(img=img,steer=real_steer,motor=None,state=6,delay=1,scale=2,color_mode=cv2.COLOR_RGB2BGR,window_title='real')
+					k = animate.prepare_and_show_or_return_frame(img=img,steer=real_steer,motor=None,state=6,delay=1,scale=2,color_mode=cv2.COLOR_RGB2BGR,window_title='real')
 					if k == ord('q'):
 						break
 

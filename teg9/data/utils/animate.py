@@ -1,13 +1,14 @@
 from kzpy3.vis import *
 
 
-
-def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode): #,collision):
+def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode,window_title='animate'): #,collision):
     bar_color = [0,0,0]
     if state == 1:
         bar_color = [0,0,255]
     elif state == 6:
         bar_color = [255,0,0]
+    elif state == 3:
+        bar_color = [200,55,0]
     elif state == 5:
         bar_color = [255,255,0]
     elif state == 7:
@@ -15,6 +16,7 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
     elif state == 2:
         bar_color = [100,100,100]
     else:
+        print state
         bar_color = [0,0,0]
     if steer != None:
         apply_rect_to_img(img,steer,0,99,bar_color,bar_color,0.9,0.1,center=True,reverse=True,horizontal=True)
@@ -26,9 +28,8 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
         scale_img = cv2.resize(img, (0,0), fx=scale, fy=scale)
         return scale_img
     else:
-        k = mci(img,delay,'animate',scale)
+        k = mci(img,delay,window_title,scale)
         return k  
-
 
 
 def animate_with_key_control(A):

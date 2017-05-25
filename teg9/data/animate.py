@@ -2,7 +2,7 @@ from kzpy3.vis import *
 
 
 
-def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode): #,collision):
+def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mode,window_title='animate'): #,collision):
     bar_color = [0,0,0]
     if state == 1:
         bar_color = [0,0,255]
@@ -29,7 +29,7 @@ def prepare_and_show_or_return_frame(img,steer,motor,state,delay,scale,color_mod
         scale_img = cv2.resize(img, (0,0), fx=scale, fy=scale)
         return scale_img
     else:
-        k = mci(img,delay,'animate',scale)
+        k = mci(img,delay,window_title,scale)
         return k  
 
 

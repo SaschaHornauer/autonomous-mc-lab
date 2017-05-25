@@ -40,13 +40,19 @@ import time
 import sys
 import datetime
 import random
-import pickle
+try:
+    import cPickle as pickle
+    print("utils.py: imported cPickle as pickle")
+except:
+    import pickle
+    print("utils.py: importing cPickle failed, using pickle instead.")
 import re
 import subprocess
 from pprint import pprint
 import serial
 import math
 import inspect
+import fnmatch
 try:
     import h5py
     from scipy.optimize import curve_fit
@@ -65,6 +71,7 @@ import getpass
 username = getpass.getuser()
 imread = scipy.misc.imread
 imsave = scipy.misc.imsave
+degrees = np.degrees
 #opj = os.path.join
 gg = glob.glob
 arange = np.arange
@@ -601,7 +608,7 @@ def nvidia_smi_continuous(t=0.1):
 
 
 class Timer:
-    def __init__(self, time_s):
+    def __init__(self, time_s=0):
         self.time_s = time_s
         self.start_time = time.time()
     def check(self):
@@ -722,6 +729,42 @@ def pythonpaths(paths):
         sys.path.append(opjh(p))
 
 
+def find_files_recursively(src,pattern,place='',FILES_ONLY=False,DIRS_ONLY=False):
+    """
+    https://stackoverflow.com/questions/2186525/use-a-glob-to-find-files-recursively-in-python
+    """
+    files = []
+    folders = {}
+    ctr = 0
+    timer = Timer(5)
+    if src[-1] != '/':
+        src = src + '/'
+    print(d2s('src =',src,'pattern =',pattern))
+    for root, dirnames, filenames in os.walk(src):
+        assert(not(FILES_ONLY and DIRS_ONLY))
+        if FILES_ONLY:
+            use_list = filenames
+        elif DIRS_ONLY:
+            use_list = dirnames
+        else:
+            use_list = filenames+dirnames
+        for filename in fnmatch.filter(use_list, pattern):
+            file = opj(root,filename)
+            folder = pname(file).replace(place,'')
+            if folder not in folders:
+                folders[folder] = []
+            folders[folder].append(filename)
+            ctr += 1
+            if timer.check():
+                print(d2s(time_str('Pretty'),ctr,'matches'))
+                timer.reset()
+    data = {}
+    data['place'] = place
+    data['paths'] = folders
+    data['parent_folders'] = [fname(f) for f in folders.keys()]
+    return data
 
 
-    
+
+
+

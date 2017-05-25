@@ -486,19 +486,53 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
     D['mult'] = mult
     D['Purpose'] = 'An image which translates from float coordinates.'
     def _floats_to_pixels(xy):
+        """
         xy = array(xy)
         if len(shape(xy)) == 1:
-            xy[0] *= D['mult']
+            xy[0] *= -D['mult']
             xy[0] += D['origin']
             xy[1] *= D['mult']
             xy[1] += D['origin']
         else:
-            xy[:,0] *= D['mult']
+            xy[:,0] *= -D['mult']
             xy[:,0] += D['origin']
             xy[:,1] *= D['mult']
             xy[:,1] += D['origin']
-        return np.ndarray.astype(xy,int)
+        """
+        xy = array(xy)
+        xyn = 0*xy
+        if len(shape(xy)) == 1:
+            xyn[0] = D['mult'] * xy[0]
+            xyn[0] += D['origin']
+            xyn[1] = D['mult'] * xy[1]
+            xyn[1] += D['origin']
+        else:
+            xyn[:,0] = D['mult'] * xy[:,0]
+            xyn[:,0] += D['origin']
+            xyn[:,1] = D['mult'] * xy[:,1]
+            xyn[:,1] += D['origin']
+        return np.ndarray.astype(xyn,int)
+    def _pixel_to_float(xy):
+        xy = array(xy)
+        xyn = 0.0*xy
+        assert(len(shape(xy)) == 1)
+        xyn[0] = xy[0] - D['origin']
+        xyn[0] /= (1.0*D['mult'])
+        xyn[1] = xy[1] - D['origin']
+        xyn[1] /= (1.0*D['mult'])
+        return np.ndarray.astype(xyn,float)
     D['floats_to_pixels'] = _floats_to_pixels
+    D['pixel_to_float'] = _pixel_to_float
+    def _plot_pts(xy,c='b'):
+        if len(xy) < 1:
+            print('warning, asked to plot empty pts')
+            return
+        xy_pix = D['floats_to_pixels'](xy)
+        if len(shape(xy)) == 1:
+            plot(xy_pix[1],xy_pix[0],c+'.')
+        else:
+            plot(xy_pix[:,1],xy_pix[:,0],c+'.')
+    D['plot_pts'] = _plot_pts
     if len(xyz_sizes) == 2:
         D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
     elif len(xyz_sizes) == 3:
@@ -516,6 +550,29 @@ def xylim(a,b,c,d):
     ylim(c,d)
 
 
+
+
+# https://stackoverflow.com/questions/31735499/calculate-angle-clockwise-between-two-points
+from math import acos
+from math import sqrt
+from math import pi
+def length(v):
+    return sqrt(v[0]**2+v[1]**2)
+def dot_product(v,w):
+   return v[0]*w[0]+v[1]*w[1]
+def determinant(v,w):
+   return v[0]*w[1]-v[1]*w[0]
+def inner_angle(v,w):
+   cosx=dot_product(v,w)/(length(v)*length(w))
+   rad=acos(cosx) # in radians
+   return rad*180/pi # returns degrees
+def angle_clockwise(A, B):
+    inner=inner_angle(A,B)
+    det = determinant(A,B)
+    if det<0: #this is a property of the det. If the det < 0 then B is clockwise of A
+        return inner
+    else: # if the det > 0 then A is immediately clockwise of B
+        return 360-inner
 
 
 
@@ -614,6 +671,7 @@ def f(x,A,B):
     return A*x+B
 
 def normalized_vector_from_pts(pts):
+    pts = array(pts)
     x = pts[:,0]
     y = pts[:,1]
     m,b = curve_fit(f,x,y)[0]
