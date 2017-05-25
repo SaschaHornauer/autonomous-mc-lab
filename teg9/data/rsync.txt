@@ -3,3 +3,4 @@
  rsync -rav /media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017 /media/karlzipser/model_car_data_26Feb2017/
 
 
+rsync -rav '/home/karlzipser/Desktop/bair_car_data_new/meta/' '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta/'

@@ -101,7 +101,8 @@ def preprocess_bagfiles(A,path,visualize):
 
 
 
-meta_path = '/home/karlzipser/Desktop/bair_car_data_new/meta'
+#meta_path = '/home/karlzipser/Desktop/bair_car_data_new/meta'
+meta_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta'
 
 Mr_Black = ['/media/karlzipser/ExtraDrive1/Mr_Black_25April2017/processed', 
             '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed', 
@@ -165,12 +166,84 @@ May24_a = ['/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_4_car_24April20
     '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_15April2017/processsed',
     '/media/karlzipser/ExtraDrive3/Mr_Blue_11May2017/processsed']
 
+May24_b = ['/media/karlzipser/ExtraDrive1/Mr_Black_25April2017/processed','/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed','/media/karlzipser/ExtraDrive1/Mr_Black_30April2017/processed']
+
+
+
+May24_c = ['/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_rewrite_test_20_21April2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_Fern_15April2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_21March2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Black/Mr_Black_4_car_24April2017']
+for i in range(len(May24_c)):
+    May24_c[i] = opj(May24_c[i],'processed')
+
+May24_d = ['/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_4_car_24April2017' ,
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_11April2017' ,
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_14April2017' ,
+    '/media/karlzipser/ExtraDrive3/from_Mr_Blue/Mr_Blue_Fern_15April2017' ]
+for i in range(len(May24_d)):
+    May24_d[i] = opj(May24_d[i],'processed')
+
+
+May24_e = ['/media/karlzipser/ExtraDrive3/from_Mr_Silver/Mr_Silver_Fern_11April2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_4_car_24April2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_11April2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_14April2017',
+    '/media/karlzipser/ExtraDrive3/from_Mr_Yellow/Mr_Yellow_Fern_15April2017']
+for i in range(len(May24_e)):
+    May24_e[i] = opj(May24_e[i],'processed')
+
+
+
+
+
+
+
+
+
+
+
+
+
+May24_f = ['/media/karlzipser/bair_car_data_14/Mr_Yellow_Fern_15April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Yellow_28April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Yellow_25April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Yellow_4_car_24April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Orange_28April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Orange_25April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Orange_4_car_24Apri2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Blue_Fern_15April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Blue_Fern_14April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Blue_28April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Blue_25April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Blue_4_car_24April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Black_Fern_15April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Black_28April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Black_25April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Black_4_car_24April2017/new',
+    '/media/karlzipser/bair_car_data_14/Mr_Orange_15April2017/new']
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 if True:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
-    multi_process_bag_folders(May24_a,meta_path,100)
+    multi_process_bag_folders(May24_f,meta_path,100)
 
 
 
