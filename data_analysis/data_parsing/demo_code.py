@@ -6,7 +6,7 @@ Created on May 14, 2017
 import cv2
 from cv_bridge import CvBridge
 
-from Bagfile_Handler import *
+from kzpy3.data_analysis.data_parsing.Bagfile_Handler import Bagfile_Handler
 
 
         

@@ -6,7 +6,6 @@ Created on May 18, 2017
 import os 
 import cPickle as pickle
 import random
-from teg9.data.utils.get_trajectory_points import car_name_from_run_name
 from timeit import default_timer as timer
 import sys
 

@@ -3,7 +3,7 @@ Created on May 15, 2017
 
 @author: Sascha Hornauer
 '''
-from Trajectory_From_Pkl import *
+from data_parsing.Trajectory_From_Pkl import *
 import os
 import cPickle as pickle
 from aruco_tools.mode import behavior
@@ -11,6 +11,7 @@ from kzpy3.vis import apply_rect_to_img
 import sys
 import rospy
 from operator import add
+import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 from data_parsing.Image_Bagfile_Handler import Bagfile_Handler
