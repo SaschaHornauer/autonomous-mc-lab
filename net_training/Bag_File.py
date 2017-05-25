@@ -29,14 +29,13 @@ def load_images(bag_file_path,color_mode="rgb8",include_flip=True):
     if not PKL:
         for side in sides:
             bag_img_dic[side] = {}
-        bag = rosbag.Bag(bag_file_path)
         
         topic, msg, timestamp = bag_handler.get_bag_content()
-        while msg != None:
-            topic, msg, timestamp = bag_handler.get_bag_content()
+        while msg != None:            
             timestamp = round(timestamp.to_sec(),3)
-            img = bridge.imgmsg_to_cv2(msg.data,color_mode)
+            img = bridge.imgmsg_to_cv2(msg,color_mode)
             bag_img_dic[topic_name_map[topic]][timestamp] = img
+            topic, msg, timestamp = bag_handler.get_bag_content()
     else:
         bag_img_dic = load_obj(bag_file_path)
 
@@ -49,56 +48,53 @@ def load_images(bag_file_path,color_mode="rgb8",include_flip=True):
     return bag_img_dic
 
 
-
 def save_images(bag_file_src_path,bag_file_dst_path):
-    try:
-        bag_img_dic = load_images(bag_file_src_path,color_mode="rgb8",include_flip=False)
-        for side in bag_img_dic:
-            for t in bag_img_dic[side]:
-                img = bag_img_dic[side][t]
-                bag_img_dic[side][t] = cv2.resize(img,None,fx=0.25,fy=0.25,interpolation=cv2.INTER_AREA)
-        print "Bag_File.load_images:: saving " + opj(bag_file_dst_path)
-        save_obj(bag_img_dic,opj(bag_file_dst_path))
-    except Exception as e:
-        print e.message, e.args    
+    
+    bag_img_dic = load_images(bag_file_src_path,color_mode="rgb8",include_flip=False)
+    for side in bag_img_dic:
+        for t in bag_img_dic[side]:
+            img = bag_img_dic[side][t]
+            bag_img_dic[side][t] = cv2.resize(img,None,fx=0.25,fy=0.25,interpolation=cv2.INTER_AREA)
+    print "Bag_File.load_images:: saving " + os.path.join(bag_file_dst_path)
+    save_obj(bag_img_dic,os.path.join(bag_file_dst_path))
 
 
 def bag_folder_save_images(bag_folder_src_path,bag_folder_dst_path):
     unix('mkdir -p '+bag_folder_dst_path)
-    bag_file_paths = sorted(glob.glob(opj(bag_folder_src_path,'*.bag')))
+    bag_file_paths = sorted(glob.glob(os.path.join(bag_folder_src_path,'*.bag')))
     for bf in bag_file_paths:
-        bag_file_dst_path = opj(bag_folder_dst_path)
-        bag_file_dst_path = opj(bag_file_dst_path,fname(bf)+'.pkl')
+        bag_file_dst_path = os.path.join(bag_folder_dst_path)
+        bag_file_dst_path = os.path.join(bag_file_dst_path,fname(bf)+'.pkl')
         print bag_file_dst_path
         save_images(bf,bag_file_dst_path)
 
 
 def bag_folders_save_images(bag_folders_src_path,bag_folders_dst_path):
-    bag_folders_paths = sorted(glob.glob(opj(bag_folders_src_path,'*')))
-    ef = sgg(opj(bag_folders_dst_path,'*'))
+    bag_folders_paths = sorted(glob.glob(os.path.join(bag_folders_src_path,'*')))
+    ef = sorted(os.path.join(bag_folders_dst_path,'*'),key=natural_keys)
     existing_folders = []
     for e in ef:
         existing_folders.append(fname(e))
     for bfp in bag_folders_paths:
         if fname(bfp) not in existing_folders:
-            bag_folder_save_images(bfp,opj(bag_folders_dst_path,fname(bfp)))
+            bag_folder_save_images(bfp,os.path.join(bag_folders_dst_path,fname(bfp)))
         else:
             cprint('Excluding '+bfp,'green','on_blue')
 
 
 def bag_folders_transfer_meta(bag_folders_src_path,bag_folders_dst_path):
     #bag_folders_src_path,bag_folders_dst_path='/media/karlzipser/bair_car_data_6/bair_car_data','/home/karlzipser/Desktop/bair_car_data/meta/'
-    bag_folders_paths = sgg(opj(bag_folders_src_path,'*'))
-    for bfp in bag_folders_paths:
-        unix('mkdir -p '+opj(bag_folders_dst_path,fname(bfp)))
-        meta_dirs = sorted(glob.glob(opj(bfp,'.pre*')))
-        for m in meta_dirs:
-            data = sorted(glob.glob(opj(m,'left*')))
-            data += sorted(glob.glob(opj(m,'pre*')))
+    bag_folders_paths = sorted(os.listdir(bag_folders_src_path),key=natural_keys)
+    for bag_folder_path in bag_folders_paths:
+        unix('mkdir -p '+os.path.join(bag_folders_dst_path,fname(bag_folder_path)))
+        meta_dirs = sorted(glob.glob(os.path.join(bag_folder_path,'.pre*')))
+        for meta_dir in meta_dirs:
+            data = sorted(glob.glob(os.path.join(meta_dir,'left*')))
+            data += sorted(glob.glob(os.path.join(meta_dir,'pre*')))
             for d in data:
-                cprint(opj(opj(bag_folders_dst_path,fname(bfp))),'yellow')
-                unix_str = d2s('scp ',d,opj(bag_folders_dst_path,fname(bfp)))
-                if len(gg(opj(bag_folders_dst_path,fname(bfp),fname(d)))) == 0: # test this first
+                cprint(os.path.join(os.path.join(bag_folders_dst_path,fname(bag_folder_path))),'yellow')
+                unix_str = d2s('scp ',d,os.path.join(bag_folders_dst_path,fname(bag_folder_path)))
+                if len(glob.glob(os.path.join(bag_folders_dst_path,fname(bag_folder_path),fname(d)))) == 0: # test this first
                     cprint(unix_str,'red')
                     unix(unix_str)
                 else:
