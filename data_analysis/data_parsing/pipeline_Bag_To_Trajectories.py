@@ -13,7 +13,6 @@ import threading
 from cv_bridge import CvBridge, CvBridgeError
 
 from Angle_Dict_Creator import get_angles_and_distance
-from paramiko.transport import _active_threads
 
 change_stuff = False
 
