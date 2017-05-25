@@ -10,7 +10,22 @@ bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 
 GRAPHICS = True
 	
+"""
 
+follow speed modulated by distance_to_other_car
+speed/gradient modulated by heading and distance to wall to give ahead of time turning and also stopping. Consider sampling
+different proportions of direct and play, for example.
+furtive speed modulated by distance to its grove, higher toward middle, lower in groove
+play speed higher in middle
+
+need distance to other cars, heading relative to radius vector
+√ tune system so 99 is in right place.
+
+
+output:
+
+steer / motor / gradient values / other cars in view? /
+"""
 
 def get_sample_points(pts,angles,pfield,heading):
     sample_points = []
@@ -52,20 +67,12 @@ def interpret_potential_values(potential_values):
 
 
 
-def meters_to_pixels(x,y):
-    return (int(-Mult*x)+Origin),(int(Mult*y)+Origin)
-
-
 
 angles = -arange(-45,46,9)
 view_angle = 35
 
 
-def find_index_of_closest(val,lst):
-	d = []
-	for i in range(len(lst)):
-		d.append(abs(lst[i]-val))
-	return d.index(min(d))
+
 		
 
 
@@ -92,18 +99,15 @@ if __name__ == "__main__":
 	if 'N' not in locals():
 		print("Loading trajectory data . . .")
 		N = lo(opjD('N_pruned.pkl'))
-	markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
-	Origin = int(2*1000/300.*300 / 5)
-	Mult = 1000/300.*50 / 5
+		markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
+		Origin = int(2*1000/300.*300 / 5)
+		Mult = 1000/300.*50 / 5
 	
 
 	the_arena = Potential_Fields.Follow_Arena_Potential_Field(Origin,Mult,markers)
 	mode = the_arena['type']
 	
-	#the_arena['Image']['img'] = z2o(the_arena['Image']['img'])
-	if mode == 'Play_Arena_Potential_Field':
-		the_arena['Image']['img'] *= 0.5
-		the_arena['Image']['img'] += 0.5
+
 	
 	if 'INITALIZED' not in locals():
 		INITALIZED = True
@@ -120,7 +124,7 @@ if __name__ == "__main__":
 	for car_name in cars:
 		cars[car_name]['rewind']()
 	if GRAPHICS:			
-		figure(1,figsize=(12,12));clf();ds = 5;xylim(-ds,ds,-ds,ds)
+		figure(1,figsize=(4,4));clf();ds = 5;xylim(-ds,ds,-ds,ds)
 
 
 	output_data = {}
@@ -130,9 +134,11 @@ if __name__ == "__main__":
 	output_data[run_name][mode]['potential_values'] = []
 	output_data[run_name][mode]['steer'] = []
 	output_data[run_name][mode]['real_steer'] = []
+	output_data[run_name][mode]['motor'] = []
+	output_data[run_name][mode]['real_motor'] = []
 	output_data[run_name][mode]['near_t'] = []
 	output_data[run_name][mode]['near_i'] = []
-
+	output_data[run_name][mode]['other_cars_in_view'] = False
 
 
 
@@ -143,22 +149,20 @@ if __name__ == "__main__":
 	ctr_q = 0
 	t_prev = 0
 	for t in arange(T0+210,Tn,1/30.):
-		#print(t-t_prev)
 		t_prev = t
 		if timer.check():
 			print(time_str('Pretty'))
 			timer.reset()
-		#	break
 		p = cars[our_car]['report_camera_positions'](run_name,t)
 		other_cars_add_list = []
 		other_cars_point_list = []
 		other_cars_angle_distance_list = []
 		if len(p) > 0:
-			pix = the_arena['Image']['floats_to_pixels'](p)#[0])
+			pix = the_arena['Image']['floats_to_pixels'](p)
 			p = array(p)
 			xy_our = 1* p
 			our_heading = cars[our_car]['state_info']['heading']
-			p_mod = p#0*p
+			p_mod = p
 			no_cars_in_view = True
 			for l in loct:
 				other_car_name = l[0]
@@ -203,8 +207,8 @@ if __name__ == "__main__":
 				if mode == 'Follow_Arena_Potential_Field':
 					for ang,dist in other_cars_angle_distance_list:
 						indx = find_index_of_closest(-ang,angles)
-						if dist > 1.5:
-							potential_values[indx] *= (dist-1.5)/8.0
+						if dist > 1:
+							potential_values[indx] *= (dist-1)/8.0
 				steer = interpret_potential_values(potential_values)
 				real_steer = cars[our_car]['runs'][run_name]['trajectory']['data']['steer'][cars[our_car]['state_info']['near_i']]
 

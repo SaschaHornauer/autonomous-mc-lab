@@ -110,7 +110,7 @@ def Arena_Potential_Field(origin,mult,markers):
 				xyf = D['Image']['pixel_to_float']((x,y))
 				l = length((xyf[0],xyf[1]))
 				if l < 5:
-					D['Image']['img'][x][y] = 1.0*f(l,a,b,c,d,e)
+					D['Image']['img'][x][y] = 0.75*f(l,a,b,c,d,e)
 	D['fill_in_potential_field'] = _fill_in_potential_field
 	return D
 

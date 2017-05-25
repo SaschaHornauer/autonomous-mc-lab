@@ -766,5 +766,9 @@ def find_files_recursively(src,pattern,place='',FILES_ONLY=False,DIRS_ONLY=False
 
 
 
-
+def find_index_of_closest(val,lst):
+    d = []
+    for i in range(len(lst)):
+        d.append(abs(lst[i]-val))
+    return d.index(min(d))
 
