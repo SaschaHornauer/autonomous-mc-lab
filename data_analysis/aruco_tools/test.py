@@ -20,7 +20,7 @@ def pretty(d, indent=0):
 
 
 #file_array = ['/home/picard/2ndDisk/carData/rosbags/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/meta/marker_data.pkl']
-file_array = ['/home/picard/2ndDisk/N.pkl']
+file_array = ['/home/picard/rosbags/rgb_1to4/direct_rewrite_test_28Apr17_17h50m34s_Mr_Black/bair_car_2017-04-28-18-01-34_22.bag.pkl']
 
 print '--'
 for i in range(0,len(file_array)):
@@ -31,11 +31,12 @@ for i in range(0,len(file_array)):
     while True:
         try:
             mylist = pickle.load( file )
-            pretty(mylist)
+            #pretty(mylist)
+            print mylist['right'][1493427712.061]                         
+                                  
         except Exception as ex:
             print ex
             break
-
 
 
 

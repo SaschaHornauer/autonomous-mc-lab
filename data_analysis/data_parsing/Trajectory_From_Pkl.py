@@ -7,7 +7,7 @@ import os
 import cPickle as pickle
 import numpy as np
 from operator import add, div
-from trajectory_generator import collision_scanner
+from kzpy3.data_analysis.data_parsing import collision_scanner
 from trajectory_generator import evasion_generator_bicycle as evasion_generator
 from aruco_tools.mode import *
 from trajectory_generator.trajectory_tools import *
