@@ -9,9 +9,9 @@ import arena.planner.Cars as Cars
 #######################################
 #
 #bair_car_data_location = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
-#bair_car_data_location = '//media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
+bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
 #bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
-bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+#bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
 trajectory_data_location = opjD('N.pkl')
 
 angles = -arange(-45,46,9)
@@ -148,10 +148,18 @@ if __name__ == "__main__":
 	#our_car = random.choice(N.keys())
 	#run_name = random.choice(N[our_car].keys())
 
-	for our_car in ['Mr_Blue']: #cars.keys():
+	for our_car in ['Mr_Black']: #cars.keys():
 		for run_name in cars[our_car]['runs'].keys():
 			output_data = {}
+			output_name = opjD(run_name+'.output_data.pkl')
 			output_data[run_name] = {}
+			if len(gg(output_name)) > 0:
+				print(output_name+' exists, continuing.')
+				time.sleep(1)
+				continue
+			else:
+				print("Working on: "+output_name)
+				time.sleep(1)
 			try:
 
 				print(d2n(our_car,'\n\t',run_name))
@@ -296,8 +304,8 @@ if __name__ == "__main__":
 				print(our_car,run_name)
 				print(e.message, e.args)						
 
-			so(output_data,opjD(run_name+'.output_data'))
-			print('saved '+opjD(run_name+'.output_data'))
+			so(output_data,output_name)
+			print('saved '+output_name)
 			print(output_data[run_name].keys())
 			print_stars()
 
