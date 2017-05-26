@@ -15,6 +15,8 @@ from cprint import *
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate
+from kzpy3.teg9.arena.markers_clockwise import markers_clockwise
+import kzpy3.teg9.arena.get_trajectory_points as get_trajectory_points
 CubicSpline = scipy.interpolate.CubicSpline
 pause = plt.pause
  
@@ -38,10 +40,16 @@ def process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers):
 
             color_mode = "rgb8"
             topic_list = []
+            topic_map = {}
+            
             for camera_side in ['left', 'right']:
                 topic_list.append('/bair_car/zed/' + camera_side + '/image_rect_color')
+                topic_map['/bair_car/zed/' + camera_side + '/image_rect_color'] = camera_side
                 
             for topic, message, timestamp  in bag.read_messages(topics=topic_list):
+                
+                camera_side = topic_map[topic]
+                
                 timestamp = round(timestamp.to_sec(), 3)
                 angles_to_markers[camera_side][timestamp] = {}
                 img = bridge.imgmsg_to_cv2(message, color_mode)
@@ -57,7 +65,7 @@ def create_marker_data(abs_bagfolder_name, meta_path_name):
 
     # Check if a meta directory exists and create it otherwise
     if os.path.isdir(abs_bagfolder_name):
-        if 'meta' in os.listdir(abs_bagfolder_name):
+        if meta_path_name in os.listdir(abs_bagfolder_name):
             print "Meta directory exists"
         else:
             os.mkdir(os.path.join(abs_bagfolder_name, meta_path_name))
@@ -232,18 +240,15 @@ def load_obj(name ):
 
 lo = load_obj
 
-CA = plt.close('all')
-
-def process_run_data(run_name,bag_folders_dst_meta_path,M):
+def process_run_data(run_name,marker_pkl_path,M):
     
     car_name = car_name_from_run_name(run_name)
     if car_name not in M:
         M[car_name] = {}
     if run_name not in M[car_name]:
         M[car_name][run_name] = run_name
-        mdp_path = opj(bag_folders_dst_meta_path,run_name,'marker_data.pkl')
-        print('Loading ' + mdp_path)
-        marker_data_pkl = lo(mdp_path)
+        print('Loading ' + str(marker_pkl_path))
+        marker_data_pkl = lo(marker_pkl_path)
         print('processing marker data.')
         M[car_name][run_name] = {}
         for side in ['left','right']:
@@ -260,7 +265,7 @@ def process_run_data(run_name,bag_folders_dst_meta_path,M):
                     M[car_name][run_name][side]['median_distance_to_markers'].append(median_distance_to_markers)
             M[car_name][run_name][side]['x_smooth'] = mean_exclude_outliers(M[car_name][run_name][side]['x_avg'],60,0.33,0.66)
             M[car_name][run_name][side]['y_smooth'] = mean_exclude_outliers(M[car_name][run_name][side]['y_avg'],60,0.33,0.66)
-            CA()
+            plt.close('all')
             M[car_name][run_name][side]['cs_x'] = get_cubic_spline(M[car_name][run_name][side]['time_stamps'],M[car_name][run_name][side]['x_smooth'])
             M[car_name][run_name][side]['cs_y'] = get_cubic_spline(M[car_name][run_name][side]['time_stamps'],M[car_name][run_name][side]['y_smooth'])
             del M[car_name][run_name][side]['raw_marker_data']
@@ -275,58 +280,148 @@ def search_for_file(root_path,filename):
 def list_immediate_directories(root_path):
     return [os.path.join(root_path,o) for o in os.listdir(root_path) if os.path.isdir(os.path.join(root_path,o))]
     
-def marker_pkl_to_trajectories_pkl(root_folder_name):
+def markers_pkl_to_trajectories_pkl(root_folder_name):
     print "Process marker_data.pkl files to get cubic spline trajectories."
     
-    bag_folders_meta_path = root_folder_name
     
     run_foldernames = list_immediate_directories(root_folder_name)
     
-    M = {}
+    
     for run_foldername in run_foldernames:
+        M = {}
+        
+        if os.path.isfile(os.path.join(run_foldername,'trajectory.pkl')):
+            print(str(root_folder_name) + ' already processed.')
+            return
+        
         
         marker_data_file = search_for_file(run_foldername,'marker_data.pkl')
         if len(marker_data_file) > 1:
             print "Warning: More than one marker_data.pkl file found in run folder . Possibly wrong root folder selected. Select a folder where the immediate sub-folders are the folders of each individual car, which contain the bag files."
             raise ValueError("Wrong path given")
         else:
-            run_name = os.path.split(marker_data_file[0])[0]
-        if os.path.isfile(os.path.join(os.path.split(marker_data_file)[0],'trajectory.pkl')):
-            print(str(marker_data_file) + ' already processed.')
-            continue
+            marker_data_file = marker_data_file[0]
         
-        try:
-            process_run_data(run_name,root_folder_name,M)
-            car_name = car_name_from_run_name(run_name)
-            cprint(M[car_name][run_name].keys(),'yellow')
-            so(opj(bag_folders_meta_path,aruco_run,'trajectory.pkl'),M[car_name][aruco_run])
-        #unix('rm '+opj(bag_folders_meta_path,aruco_run,'cubic_splines.pkl'))
-        except Exception as e:
-            print("********** Exception ***********************")
-            print(e.message, e.args)
-            cprint(d2s(aruco_run,"not processed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"),'red','on_yellow')
+        run_name = os.path.split(run_foldername)[1]
+            
+#        try:
+        process_run_data(run_name,marker_data_file,M)
+        car_name = car_name_from_run_name(run_name)
+        cprint.warn(M[car_name][run_name].keys())
+        
+#        except Exception as e:
+#         print("********** Exception ***********************")
+#         print(e.message, e.args)
+#         cprint(run_name + "not processed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",'red')
 
-        
+        pickle.dump(M[car_name][run_name], open(os.path.join(run_foldername,'trajectory.pkl'),'wb'),-1)
         
 if __name__ == '__main__':
     
-    
-    # Get bag files of a specific run
-    
-    # # Works on a run folder, which is a folder with all the run folders of a specific day
-    # # of experiments 
-    
+    global markers_xy_dic
+
+    marker_angles_dic = {}
+    marker_angles = 2*np.pi*np.arange(len(markers_clockwise))/(1.0*len(markers_clockwise))
+    marker_xys = []
+    for i in range(len(markers_clockwise)):
+        a = marker_angles[i]
+        marker_angles_dic[markers_clockwise[i]] = a
+        x = 4*107/100.*np.sin(a)
+        y = 4*107/100.*np.cos(a)
+        marker_xys.append([x,y])
+    markers_xy_dic = {}
+    assert(len(markers_clockwise) == len(marker_xys))
+    for i in range(len(markers_clockwise)):
+        m = markers_clockwise[i]
+        xy = marker_xys[i]
+        markers_xy_dic[m] = xy
+
     root_folder_name = sys.argv[1]
     #start = timer()
-    #process_run_folder(run_folder_name, 'meta')
+    #process_run_folder(root_folder_name, 'meta')
     #end = timer()
     #print end - start
-    marker_pkl_to_trajectories_pkl(root_folder_name)
+    markers_pkl_to_trajectories_pkl(root_folder_name)
     
-    # Go over all the files of the run and generate common trajectories
+    print ("""
+    load trajectories
+    """)
+    print ("Process trajectory.pkl files." )
     
-    # Supply a good data format for the trajectories
-    
-    
+    run_names = list_immediate_directories(root_folder_name)
+    trajectory_dict = {}
+ 
+    for run_name in run_names:
+        pkl_file_name = search_for_file(root_folder_name, 'trajectory.pkl')[0]
+        car_name = get_trajectory_points.car_name_from_run_name(run_name)
+        if car_name not in trajectory_dict:
+            trajectory_dict[car_name] = {}
+        trajectory_dict[car_name][run_name] = pickle.load(open(pkl_file_name,'rb'))
+        print('loaded '+car_name+' '+run_name)
+ 
+         
+    print("""
+    choose a run
+    assert less than two hours long
+    find all other runs that are overlapping in time
+    sample all cubic splines with timestamps of given run.
+    save all timestamp synched splines in given run's meta folder
+    """)
+ 
+    heights = {'Mr_Yellow':1, 'Mr_Silver':2, 'Mr_Blue':3, 'Mr_Orange':4, 'Mr_Black':5}
+    Origin = 300
+    Mult = 50
+    dt = 1/30.0
+ 
+    for ref_run_name in run_names:
+        if True:#try:
+            for side in ['left']:
+                plt.clf()
+                car_name = get_trajectory_points.car_name_from_run_name(ref_run_name)
+                R = trajectory_dict[car_name][ref_run_name][side]['raw_time_stamps']
+                R0,Rn = R[0],R[-1]
+                trajectory_dict[car_name][ref_run_name]['self_trajectory'] = get_trajectory_points.get_xp_pts(trajectory_dict,ref_run_name,R,Mult,Origin,dt)
+                trajectory_dict[car_name][ref_run_name]['other_trajectories'] = []
+                ref_car_name = car_name
+                plot([R[0],R[-1]],[heights[car_name],heights[car_name]],marker='.',linestyle='--',color='r')
+                plt.title(ref_run_name)
+            cases = []
+            for car_name in trajectory_dict.keys():
+                for run_name in trajectory_dict[car_name]:
+                    if run_name != ref_run_name:
+                        for side in ['left']:
+                            T = trajectory_dict[car_name][run_name][side]['time_stamps']
+                            t0,tn = T[0],T[-1]
+                            case = False
+                            if (R0<t0 and Rn>t0):
+                                case = 1
+                            elif (R0<tn and Rn>tn):
+                                case = 2
+                            elif (R0>t0 and Rn<tn):
+                                case = 3
+                            if case:
+                                cases.append(case)
+                                plot([T[0],T[-1]],[heights[car_name],heights[car_name]],marker='.',linestyle='--',color='b')
+                                other_trajectories_modified_timestamps = []
+                                for r in R:
+                                    if r >= t0 and r <= Rn:
+                                        other_trajectories_modified_timestamps.append(r)
+                                #traj = get_trajectory_points.get_xp_pts(M,run_name,other_trajectories_modified_timestamps,Mult,Origin,dt)
+                                trajectory_dict[ref_car_name][ref_run_name]['other_trajectories'].append(run_name) #traj)
+                    else:
+                        print('found ref run')
+            print cases
+            plt.ylim(0.5,5.5)
+            pause(0.001)
+ 
+    all_trajectories_dict = {}
+    for car_name in trajectory_dict.keys():
+        all_trajectories_dict[car_name] = {}
+        for run_name in trajectory_dict[car_name]:
+            all_trajectories_dict[car_name][run_name] = {}
+            all_trajectories_dict[car_name][run_name]['self_trajectory'] = trajectory_dict[car_name][run_name]['self_trajectory']
+            all_trajectories_dict[car_name][run_name]['other_trajectories'] = trajectory_dict[car_name][run_name]['other_trajectories']
+    pickle.dump(all_trajectories_dict,open(os.path.join(root_folder_name,('trajectories.pkl')),'wb'),-1)
+ 
     
 

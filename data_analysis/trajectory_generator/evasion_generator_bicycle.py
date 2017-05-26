@@ -3,14 +3,12 @@ Created on May 8, 2017
 
 @author: Sascha Hornauer
 '''
-from omgtools import *
+
 from scipy.ndimage import gaussian_filter1d
 from kzpy3.data_analysis.trajectory_generator.trajectory_tools import *
 import cv2
 import sys
 import matplotlib.pyplot as plt
-from trajectory_generator.collision_scanner import get_close_encounters
-from omgtools.problems.point2point import FreeEndPoint2point
 from aruco_tools.dynamic_model import *
 from operator import add
 import copy
