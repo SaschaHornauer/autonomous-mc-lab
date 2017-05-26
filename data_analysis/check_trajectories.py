@@ -23,12 +23,13 @@ def animate(resulting_trajectories):
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
     
-    bagfile_name = '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    #bagfile_name = '/media/karlzipser/ExtraDrive1/Mr_Black_28April2017/processed/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #'/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
     #bagfile_name = '/home/picard/2ndDisk/carData/rosbags/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
     
+    bagfile_name = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-23-52_1.bag'
 
     bagfile_handler = Bagfile_Handler(bagfile_name)
     paused_video = False
@@ -39,7 +40,7 @@ def animate(resulting_trajectories):
         
     for cars, modes in resulting_trajectories:
                  
-        blue_circle = resulting_trajectories[('Mr_Black', modes)]
+        blue_circle = resulting_trajectories[('Mr_Blue', modes)]
         
         if (modes == behavior.follow):
             for i in range(0, len(blue_circle)):
@@ -125,7 +126,8 @@ if __name__ == '__main__':
     
     home = os.path.expanduser("~")
     #pickle_path = home + '/kzpy3/teg9/trajectories.pkl'
-    pickle_path = home + '/2ndDisk/N.pkl'
+    #pickle_path = home + '/2ndDisk/N.pkl'
+    pickle_path = '/home/picard/2ndDisk/carData/run_28apr/trajectories.pkl'
  
     t1 = 1493425694.71 + 5
     t2 = 1493425899.676476 - 100
