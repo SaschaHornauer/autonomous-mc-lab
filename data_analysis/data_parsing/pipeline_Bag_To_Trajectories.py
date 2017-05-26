@@ -33,7 +33,7 @@ the run folders with bagfiles in its sub folders, one trajectories.pkl file will
 be generated with all trajectories. 
 
 The file is a copy and combination of several other files in teg9 and strives
-towards convenience to use and to improve clarity. Especially the last goal is
+towards being convenient to use and to improve clarity. Especially the last goal is
 missed by a long shot. This file can evolve to be more simplistic and understandable,
 though right now it is more important to be able to use it to find collisions
 fast.
