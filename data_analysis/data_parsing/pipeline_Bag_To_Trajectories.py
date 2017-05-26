@@ -27,6 +27,18 @@ from Angle_Dict_Creator import get_angles_and_distance
 
 change_stuff = False
 
+'''
+With this module a folder can be used as a command line parameter and from all
+the run folders with bagfiles in its sub folders, one trajectories.pkl file will
+be generated with all trajectories. 
+
+The file is a copy and combination of several other files in teg9 and strives
+towards convenience to use and to improve clarity. Especially the last goal is
+missed by a long shot. This file can evolve to be more simplistic and understandable,
+though right now it is more important to be able to use it to find collisions
+fast.
+''' 
+
 
 def process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers):
     
