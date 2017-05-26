@@ -82,8 +82,8 @@ i_label_abbreviations = {aruco_ring:'ar_r',mostly_human:'mH',mostly_caffe:'mC',o
 I = {}
 
 #bair_car_data_path = opjD('bair_car_data_new')
-#bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
-bair_car_data_path = opjD('bair_car_data_Main_Dataset')
+bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+#bair_car_data_path = opjD('bair_car_data_Main_Dataset')
 
 
 
@@ -274,7 +274,9 @@ def function_set_plot_time_range(t0=-999,t1=-999):
 	if t0 < 0:
 		t0 = tsZero[0]
 		t1 = tsZero[-1]
-	figure(r+' stats')
+	#figure(r+' stats')
+	figure('stats')
+	clf()
 	plt.subplot(5,1,1)
 	plt.xlim(t0,t1)
 	plt.xlim(t0,t1)
@@ -295,7 +297,7 @@ if False: # trying to fix problem
 			I[B_]['data']['state'][i] = 0
 
 
-def function_visualize_run(j=None,do_load_images=True,do_CA=True):
+def function_visualize_run(j=None,do_load_images=True,do_CA=False):
 	"""
 	function_visualize_run()
 		VR
@@ -328,14 +330,15 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=True):
 			dt = 0.3
 		dts_hist.append(dt)
 
-	figure(r+' stats',figsize=(7,8))
+	#figure(r+' stats',figsize=(7,8))
+	figure('stats',figsize=(7,8))
 	clf()
 	plt.subplot(5,1,1)
 	plt.ylim(-1,8)
 	plt.xlim(tsZero[0],tsZero[-1])
 	plt.ylabel('state')
 	plot(gZero,0.0*array(B['data']['good_start_timestamps']),'gx')
-	plot(tsZero,B['data']['encoder'],'r')
+	#plot(tsZero,B['data']['encoder'],'r')
 	plot(tsZero,B['data']['state'],'k')
 	
 	plt.subplot(5,1,2)
@@ -404,7 +407,8 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=True):
 		I[steer] = steer_
 		I[motor] = motor_
 		I[state] = state_
-		preview_fig = r+' previews'
+		#preview_fig = r+' previews'
+		preview_fig = 'previews'
 
 		figure(preview_fig)
 		clf()
