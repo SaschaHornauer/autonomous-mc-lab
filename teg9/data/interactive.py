@@ -306,6 +306,8 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=False):
 		CA()
 	if j != None:
 		SR(j)
+	else:
+		CR()
 	global I
 	r = I[run_]
 	#Bag_Folder_filename = gg(opj(I[meta_path],r,'Bag_Folder*'))[0]
@@ -316,7 +318,7 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=False):
 	if I[B_] == None:
 		cprint('ERROR, first neet to set run (SR)')
 		return
-	CR()
+	
 	ts = np.array(B['data']['raw_timestamps'])
 	tsZero = ts - ts[0]
 	dts = B['data']['raw_timestamp_deltas']
@@ -423,7 +425,7 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=False):
 			if t > T0 + ctr * dT:
 				if t in left_images_:
 					ctr += 1
-					mi(left_images_[t],preview_fig,[N,N,ctr],do_clf=False)
+					mi(left_images_[t],preview_fig,[N,N,ctr],do_clf=False);pause(0.01)
 					if ctr == N/2:
 						plt.title(img_title)
 		pause(0.01)
@@ -714,28 +716,34 @@ def load_hdf5_steer_hist(path,dst_path):
 
 
 
+LR() # If this is not done first, other things don't work properly.
 
 
-if False:
-	for i in range(160):
-		SR(i)
-		SL(only_states_1_and_6_good,True)
+if True:
 
-
-if False:
-	if True: # This needs to be made more general!
-		for i in range(65): #[18,19,20,21,23,24,26,27,28,29]:#range(21):
-			S5(i,flip=False)
-			S5(flip=True)
-
-if False:
 	for i in range(len(I[runs])):
-		if I[run_labels][I[runs][i]][reject_run] == False:
-			print i
-			S5(i,flip=False)
-			S5(flip=True)
+		try:
+			VR(i,do_load_images=False)
+			r = I[runs][i]
+			ks = sorted(I[run_labels][r])
+			labeled = False
+			for k in ks:
+				if I[run_labels][r][k]:
+					labeled = True
+			if labeled and I[run_labels][I[runs][i]][reject_run] == False:
+				cprint(d2s(i,') accept',r),'yellow')
+				S5(i,flip=False)
+				S5(flip=True)
+			else:
+				cprint(d2s(i,') reject',r),'red')
 
-	if True:
+		except Exception as e:
+			print("********** Exception ***********************")
+			print(e.message, e.args)
+			cprint('Failure in for i in range(len(I[runs])): loop','blue')
+
+
+	if False:
 		hdf5s = sgg(opj(bair_car_data_path,'hdf5/runs/*.hdf5'))
 		ctr = 0
 		for h in hdf5s:
@@ -745,7 +753,7 @@ if False:
 
 
 
-	if True:
+	if False:
 
 		if True:
 			run_codes = {}
