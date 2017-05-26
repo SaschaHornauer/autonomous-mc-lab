@@ -15,6 +15,7 @@ camera_sides = ['left','right']
 
 
 def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False,load_images=True):
+    assert(load_images==True)
     for topic in image_topics + single_value_topics:
         if topic not in A:
             A[topic] = []
@@ -27,6 +28,7 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False,load_imag
     steer_previous = 49
     motor_previous = 49
     bag_pkls = sgg(opj(rgb_1to4_path,'*.bag.pkl'))
+    assert(len(bag_pkls) > 0)
     indx = 0
     print "multi_preprocess_pkl_files_1.py . . ."
     for b in bag_pkls:
@@ -81,7 +83,7 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False,load_imag
             except:
                 A['encoder'].append(0)
 
-    A['acc_xz_dst'] = sqrt(array(A['acc_x'])**2 + array(A['acc_z'])**2)
+    A['acc_xz_dst'] = np.sqrt(array(A['acc_x'])**2 + array(A['acc_z'])**2)
     A['collisions'] = 0*array(A['steer'])
 
 
