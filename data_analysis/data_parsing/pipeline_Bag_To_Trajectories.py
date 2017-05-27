@@ -364,7 +364,7 @@ if __name__ == '__main__':
     trajectory_dict = {}
  
     for run_name in run_names:
-        pkl_file_name = search_for_file(root_folder_name, 'trajectory.pkl')[0]
+        pkl_file_name = search_for_file(os.path.join(root_folder_name,run_name), 'trajectory.pkl')[0]
         car_name = get_trajectory_points.car_name_from_run_name(run_name)
         if car_name not in trajectory_dict:
             trajectory_dict[car_name] = {}
