@@ -16,12 +16,12 @@ print_timer = Timer(5)
 if True:
 	MODEL = 'z2_color'
 	print(MODEL)
-	bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017' #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
+	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
 	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
 	weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
-	gpu = 1
+	gpu = 0
 
 if False:
 	MODEL = 'z2_color_small_ip1'
@@ -272,6 +272,7 @@ if DISPLAY:
 	figure('steer',figsize=(3,2))
 	figure('loss',figsize=(3,2))
 	figure('high low steer histograms',figsize=(2,1))
+	histogram_plot_there = True
 	clf()
 	plt.hist(array(low_steer)[:,2],bins=range(0,100))
 	plt.hist(array(high_steer)[:,2],bins=range(0,100))
@@ -285,61 +286,54 @@ while True:
 			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
 		Solver.put_data_into_model(data,Solver.solver,b)
 
-	Solver.solver.step(1)
-	if not DISPLAY:
-		if print_timer.check():
-			print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
-			print(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]))
-			print(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]))
-			print_timer.reset()
+	Solver.solver.step(1) # The training step. Everything below is for display.
 
-	if DISPLAY:
-		# The training step. Everything below is for display.
-		rate_ctr += 1
-		if rate_timer.check():
-			print(d2s('rate =',dp(rate_ctr/rate_timer_interval,2),'Hz'))
-			rate_timer.reset()
-			rate_ctr = 0
-		a = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
-		loss.append(np.sqrt(a * a).mean())
-		if len(loss) >= 10000/Solver.batch_size:
-			loss10000.append(array(loss[-10000:]).mean())
-			loss = []
+	rate_ctr += 1
+	if rate_timer.check():
+		print(d2s('rate =',dp(rate_ctr/rate_timer_interval,2),'Hz'))
+		rate_timer.reset()
+		rate_ctr = 0
+	a = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
+
+	loss.append(np.sqrt(a * a).mean())
+
+	if len(loss) >= 10000/Solver.batch_size:
+		loss10000.append(array(loss[-10000:]).mean())
+		loss = []
+		if DISPLAY:
 			figure('loss');clf()
-			lm = min(len(loss10000),100)
+			lm = min(len(loss10000),300)
 			plot(loss10000[-lm:])
-			print(d2s('loss10000 =',loss10000[-1]))
-		if print_timer.check():
-			print(data['name'])
-			print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
+			if histogram_plot_there:
+				plt.close('high low steer histograms')
+				histogram_plot_there = False
+		print(d2s('loss10000 =',loss10000[-1]))
+	if print_timer.check():
+		
+		print(data['name'])
+		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
 
-			if Solver.solver.net.blobs['metadata'].data[0,2,0,0] > 0:
-				print 'follow'
-			if Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0:
-				print 'direct'
-			if Solver.solver.net.blobs['metadata'].data[0,4,0,0] > 0:
-				print 'play'
-			if Solver.solver.net.blobs['metadata'].data[0,5,0,0] > 0:
-				print 'furtive'
+		if Solver.solver.net.blobs['metadata'].data[0,2,0,0] > 0:
+			print 'follow'
+		if Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0:
+			print 'direct'
+		if Solver.solver.net.blobs['metadata'].data[0,4,0,0] > 0:
+			print 'play'
+		if Solver.solver.net.blobs['metadata'].data[0,5,0,0] > 0:
+			print 'furtive'
 
-			cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
-			cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
-			
-			figure('steer')
-			clf()
-			
+		cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
+		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
+		
+		if DISPLAY:
+			figure('steer');clf()
 			t = Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
 			o = Solver.solver.net.blobs['ip2'].data[-1,:]
 			ylim(-0.05,1.05);xlim(0,len(t))
 			plot([-1,60],[0.49,0.49],'k');plot(o,'og'); plot(t,'or'); plt.title(data['name'])
-			
-			#print(shape(Solver.solver.net.blobs['steer_motor_target_data'].data))
-			#print Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
-			#print Solver.solver.net.blobs['ip2'].data[-1,:]
+			mi_or_cv2_animate(data['left'],delay=33);pause(0.001)
 
-			mi_or_cv2_animate(data['left'],delay=33)
-			pause(0.001)
-			print_timer.reset()
+		print_timer.reset()
 
 
 

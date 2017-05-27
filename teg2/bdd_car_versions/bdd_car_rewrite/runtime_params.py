@@ -62,19 +62,15 @@ if computer_name == 'Mr_Orange':
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_Silver':
-
 	#motor_gain = 1.0
 	pass
 if computer_name == 'Mr_Blue':
 	#PID_min_max = [1.5,2.5]
 	#motor_gain = 1.0
-
 	pass
 if computer_name == 'Mr_Yellow':
 	#PID_min_max = [1,2]
 	#motor_gain = 0.9
-	Follow = 1.
-	Direct = 0.
 	pass
 if computer_name == 'Mr_Black':
 	#PID_min_max = [1.5,2.5]
@@ -95,9 +91,9 @@ if computer_name == 'Mr_Purple':
 if computer_name == 'Mr_LightBlue':
 	#motor_gain = 1.0
 	pass
-if computer_name == 'Mr_Blue_Original':
-	motor_gain = 0.5
-	pass
+#if computer_name == 'Mr_Blue_Original':
+#	motor_gain = 0.5
+#	pass
 
 
 #

@@ -79,3 +79,15 @@ markers['cv2_draw'](markers,img)
 
 
 
+def pretty(d, indent=0):
+	ctr = 0
+	for key, value in d.iteritems():
+		if ctr < 4:
+			print '\t' * indent + str(key)
+		elif ctr == 4:
+			print '\t' * indent + '...'
+		ctr += 1
+		if isinstance(value, dict):
+			pretty(value, indent+1)
+		else:
+			print '\t' * (indent+1) + str(value)
