@@ -21,8 +21,8 @@ except KeyError:
 #
 for i in range(5):
 	print('*************' + computer_name + '***********')
-Direct = 0.
-Follow = 1.
+Direct = 1.
+Follow = 0.
 Play = 0.
 Furtive = 0.
 Caf = 0.0
@@ -39,7 +39,7 @@ weights_file_path = opjh('/media/ubuntu/rosbags/caffe_models/z2_color_aruco_pote
 
 verbose = False
 use_caffe = True
-steer_gain = 1.0
+steer_gain = 1.25
 motor_gain = 1.0
 acc2rd_threshold = 150
 
