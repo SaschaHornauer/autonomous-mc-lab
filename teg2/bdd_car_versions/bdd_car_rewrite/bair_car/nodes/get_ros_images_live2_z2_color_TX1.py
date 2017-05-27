@@ -190,7 +190,7 @@ try:
 						if caf_steer < 0:
 							caf_steer = 0
 
-
+						print caf_steer
 
 						
 						if state in [3,6,10]:			
