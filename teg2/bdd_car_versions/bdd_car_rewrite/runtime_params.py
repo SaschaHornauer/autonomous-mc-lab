@@ -39,7 +39,7 @@ weights_file_path = opjh('/media/ubuntu/rosbags/caffe_models/z2_color_aruco_pote
 
 verbose = False
 use_caffe = True
-steer_gain = 1.25
+steer_gain = 1.0
 motor_gain = 1.0
 acc2rd_threshold = 150
 
