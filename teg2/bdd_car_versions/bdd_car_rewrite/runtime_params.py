@@ -21,7 +21,7 @@ except KeyError:
 #
 for i in range(5):
 	print('*************' + computer_name + '***********')
-Direct = 0.
+Direct = 1.
 Follow = 1.
 Play = 0.
 Furtive = 0.
