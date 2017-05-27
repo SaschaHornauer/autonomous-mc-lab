@@ -4,10 +4,11 @@
 import kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params as rp
 
 
-print "get_ros_images_live2..."
+
 #from kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params import *
 #import aruco_code
 from kzpy3.utils import *
+print "get_ros_images_live2..."
 # aruco code
 #import aruco_code
 # aruco code
