@@ -184,13 +184,14 @@ def get_data_considering_high_low_steer():
 
 
 
-
+counter_dic = {}
+counts = 0
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	global ctr_low
 	global ctr_high
 	global low_steer
 	global high_steer
-
+	global counts
 	if ctr_low >= len_low_steer:
 		ctr_low = -1
 	if ctr_high >= len_high_steer:
@@ -252,7 +253,11 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 			data['labels']['play'] = True
 
 		data['steer'] = array(data['steer'])*0.0 + Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'][timestamp]
- 
+		ctr_name = d2s(run_name,behavioral_mode,timestamp)
+		if ctr_name not in counter_dic:
+			counter_dic[ctr_name] = 0
+ 		counter_dic[d2s(run_name,behavioral_mode,timestamp)] += 1
+ 		counts += 1
 	return data
 
 
@@ -321,7 +326,7 @@ while True:
 			print 'play'
 		if Solver.solver.net.blobs['metadata'].data[0,5,0,0] > 0:
 			print 'furtive'
-
+		print(d2s('len(counter_dic),counts',(len(counter_dic),counts)))
 		cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
 		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
 		
