@@ -180,8 +180,8 @@ try:
 						#print(aruco_steer)
 						#print(aruco_motor)
 
-						caf_motor = int((caf_motor-49.) * motor_gain + 49)
-						caf_steer = int((caf_steer-49.) * steer_gain + 49)
+						#caf_motor = int((caf_motor-49.) * motor_gain + 49)
+						#caf_steer = int((caf_steer-49.) * steer_gain + 49)
 
 						caf_steer = int((caf_steer+caf_steer_previous)/2.0)
 						caf_steer_previous = caf_steer
