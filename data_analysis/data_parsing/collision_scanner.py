@@ -28,18 +28,24 @@ def get_close_encounters(all_xys_with_timestamps,list_of_timestamps):
         
         own_xys = own_xys_and_timestamps['trajectory']
                 
+        other_xys_per_car = []
+                
         for other_carname in all_xys_with_timestamps:
             if other_carname != own_carname:
                 
                 other_xys_and_timestamps = all_xys_with_timestamps[other_carname]
         
-                other_xys = other_xys_and_timestamps['trajectory']
+                other_xys = np.transpose(other_xys_and_timestamps['trajectory'])
                 
-                encounter_own_other_xy[(own_carname,other_carname)], encounter_timesteps_per_car[(own_carname,other_carname)], triangle_fov = get_close_encounters_with_own(own_xys, other_xys, list_of_timestamps) 
+                other_xys_per_car.append(other_xys)
                 
-                triangle_list.append(triangle_fov)
-                print "Checking " + str((own_carname,other_carname))
+        encounter_own_xy, encounter_timesteps_per_car[own_carname], triangle_fov = get_close_encounters_in_list(own_xys, other_xys_per_car, 0,len(list_of_timestamps)) 
         
+        encounter_own_other_xy[own_carname],
+        
+        triangle_list.append(triangle_fov)
+        print "Checking " + str((own_carname,other_carname))
+
      
     return encounter_own_other_xy, encounter_timesteps_per_car, triangle_list
 
@@ -176,9 +182,6 @@ if __name__ == '__main__':
     print "Finished in " + str(timer()-start)
     
     
-    
-    
-    
     #for own_carname in trajectories_dict:
     own_carname = 'Mr_Black'
     #for other_carname in trajectories_dict:
@@ -186,13 +189,13 @@ if __name__ == '__main__':
     xy_of_encounter = []
     for encounter in encounter_xys:
     
-        for encounter_point in encounter_xys[encounter].iteritems():
-            xy_of_encounter.append((encounter_point[1].x,encounter_point[1].y))
+        print encounter
+        #for encounter_point in encounter_xys[encounter].iteritems():
+        #    xy_of_encounter.append((encounter_point[1].x,encounter_point[1].y))
 
             
-            
-    plot_xys = np.transpose(xy_of_encounter)
-    plt.plot(plot_xys[0],plot_xys[1],'.',color='b')
+    #plot_xys = np.transpose(xy_of_encounter)
+    #plt.plot(plot_xys[0],plot_xys[1],'.',color='b')
             
 #         # Draw triangles 
 #         for triangle_key in triangle_fov:
@@ -207,7 +210,7 @@ if __name__ == '__main__':
 #               
 #             plt.axes().set_aspect('equal', 'datalim')
              
-    plt.show()
+   # plt.show()
     
 
  
