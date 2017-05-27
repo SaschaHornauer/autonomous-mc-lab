@@ -9,9 +9,41 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
+from collections import defaultdict
 import sys
+from timeit import default_timer as timer
 
-def get_close_encounters(own_xys, other_xys, list_of_timestamps):
+
+
+
+def get_close_encounters(all_xys_with_timestamps,list_of_timestamps):
+    
+    encounter_timesteps_per_car = {}
+    triangle_list = []
+    encounter_own_other_xy= {}
+    
+    for own_carname in all_xys_with_timestamps:
+        
+        own_xys_and_timestamps = all_xys_with_timestamps[own_carname]
+        
+        own_xys = own_xys_and_timestamps['trajectory']
+                
+        for other_carname in all_xys_with_timestamps:
+            if other_carname != own_carname:
+                
+                other_xys_and_timestamps = all_xys_with_timestamps[other_carname]
+        
+                other_xys = other_xys_and_timestamps['trajectory']
+                
+                encounter_own_other_xy[(own_carname,other_carname)], encounter_timesteps_per_car[(own_carname,other_carname)], triangle_fov = get_close_encounters_with_own(own_xys, other_xys, list_of_timestamps) 
+                
+                triangle_list.append(triangle_fov)
+                print "Checking " + str((own_carname,other_carname))
+        
+     
+    return encounter_own_other_xy, encounter_timesteps_per_car, triangle_list
+
+def get_close_encounters_with_own(own_xys, other_xys, list_of_timestamps):
     '''
     own and other xy coordinates are expected in the following format:
     
@@ -23,6 +55,7 @@ def get_close_encounters(own_xys, other_xys, list_of_timestamps):
         
     encounter_list = []
     triangle_points = {}
+    encounter_xys = {}
 
     smooth_over_list_of_timestamps = 3
     own_xys = np.transpose(own_xys)
@@ -38,10 +71,10 @@ def get_close_encounters(own_xys, other_xys, list_of_timestamps):
             
         if(triangle_fov.isInside(point_xy)):
             encounter_list.append(list_of_timestamps[t])
+            encounter_xys[triangle_fov] = point_xy
             triangle_points[str(list_of_timestamps[t])]=triangle_fov
-            print(t)
         
-    return encounter_list, triangle_points
+    return encounter_xys, encounter_list, triangle_points
 
 def get_close_encounters_in_list(own_xys,other_xys,start_timestep, end_timestep):
     # Get triangle in front of the vehicle ( THIS IS A SIMPLIFICATION ) 
@@ -105,46 +138,77 @@ def get_fov_one_camera(xy, heading, fov_angle, distance):
     return Triangle(to_point(a), to_point(b), to_point(c))
 
 if __name__ == '__main__':
-#     home = os.path.expanduser("~")
-#     pickle_file = pickle.load(open(home + '/kzpy3/teg9/trajectories.pkl', "rb"))
-# 
-#     t1 = 1493425694.71+5
-#     t2 = 1493425899.676476 - 100
-#     timestamps = np.arange(t1,t2,1/30.)
-#     
-#     show_only_encounters = False
-#     
-#     xy_black = [pickle_file['Mr_Black']['left'][0](timestamps),pickle_file['Mr_Black']['left'][1](timestamps)]
-#     xy_blue  = [pickle_file['Mr_Blue']['left'][0](timestamps),pickle_file['Mr_Blue']['left'][1](timestamps)]
-#     
-#     encounters, triangle_fov = get_close_encounters(xy_black, xy_blue, timestamps)
-#     
-#     plt.figure('top',figsize=(6,6)) 
-# 
-#     if show_only_encounters:
-#         timestamps = encounters
-#     
-#     print ("Encounters at " + str(timestamps))
-#     color = 'black'
-#     for car in ['Mr_Black','Mr_Blue']:
-#         for side in ['left','right']:
-#             x = pickle_file[car][side][0](timestamps)
-#             y = pickle_file[car][side][1](timestamps)
-#             plt.plot(x,y,'.',color=color)
-#         color = 'blue'
-# 
-#     # Draw triangles 
-#     for triangle_key in triangle_fov:
-#          
-#         triangle = triangle_fov[triangle_key]
-#         
-#         a = triangle.a
-#         b = triangle.b
-#         c = triangle.c
-#          
-#         plt.plot((a.x,b.x,c.x,a.x), (a.y,b.y,c.y,a.y), 'r')
-#          
-#         plt.axes().set_aspect('equal', 'datalim')
-#         
-#     plt.show()
-    pass
+    
+    trajectories_path = sys.argv[1]
+    trajectories_dict = pickle.load(open(trajectories_path, "rb"))
+    
+   
+    #print trajectories_dict['Mr_Black']['/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black']['self_trajectory']['left']['x']
+
+
+    show_only_encounters = False
+    plt.figure('top',figsize=(6,6))
+    xy_positions = defaultdict(lambda: defaultdict(dict))
+    
+    # Timestamps from the last car are taken. In the future it would be good to check
+    # if the timestamps differ for different cars
+    timestamps = None
+    xy_by_timestamp = {}
+
+    for carname in trajectories_dict:
+        for run_name in trajectories_dict[carname]:
+        
+            # Right now there is only one runname and this loop is used to get its name
+            
+            left_x = trajectories_dict[carname][run_name]['self_trajectory']['left']['x']
+            left_y = trajectories_dict[carname][run_name]['self_trajectory']['left']['y']
+            
+            right_x = trajectories_dict[carname][run_name]['self_trajectory']['right']['x']
+            right_y = trajectories_dict[carname][run_name]['self_trajectory']['right']['y']
+            
+            mid_xy = (((right_x+left_x)/2.),((left_y + right_y)/2.))
+            timestamps = trajectories_dict[carname][run_name]['self_trajectory']['ts']
+            
+        xy_positions[carname] = {'trajectory' : mid_xy,'timestamps' : timestamps}
+            
+    start = timer()
+    encounter_xys, encounters, triangle_list = get_close_encounters(xy_positions,timestamps)
+    print "Finished in " + str(timer()-start)
+    
+    
+    
+    
+    
+    #for own_carname in trajectories_dict:
+    own_carname = 'Mr_Black'
+    #for other_carname in trajectories_dict:
+    other_carname = 'Mr_Silver'   
+    xy_of_encounter = []
+    for encounter in encounter_xys:
+    
+        for encounter_point in encounter_xys[encounter].iteritems():
+            xy_of_encounter.append((encounter_point[1].x,encounter_point[1].y))
+
+            
+            
+    plot_xys = np.transpose(xy_of_encounter)
+    plt.plot(plot_xys[0],plot_xys[1],'.',color='b')
+            
+#         # Draw triangles 
+#         for triangle_key in triangle_fov:
+#           
+#             triangle = triangle_fov[triangle_key]
+#              
+#             a = triangle.a
+#             b = triangle.b
+#             c = triangle.c
+#               
+#             plt.plot((a.x,b.x,c.x,a.x), (a.y,b.y,c.y,a.y), 'r')
+#               
+#             plt.axes().set_aspect('equal', 'datalim')
+             
+    plt.show()
+    
+
+ 
+
