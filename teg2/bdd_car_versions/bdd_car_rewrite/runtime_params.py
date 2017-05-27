@@ -22,9 +22,9 @@ except KeyError:
 for i in range(5):
 	print('*************' + computer_name + '***********')
 Direct = 0.
-Follow = 0.
+Follow = 1.
 Play = 0.
-Furtive = 1.
+Furtive = 0.
 Caf = 0.0
 Racing = 0.0
 Location =  'local' # 'local' #'Smyth_tape'
