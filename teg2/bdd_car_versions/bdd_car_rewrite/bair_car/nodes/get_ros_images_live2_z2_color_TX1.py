@@ -104,6 +104,7 @@ try:
 		
 		
 		if state in [3,5,6,7,10]:
+			print "HERE!!!!!!!!"
 			if rp.use_caffe:
 				if solver == None:
 					solver = setup_solver(rp.solver_file_path)
