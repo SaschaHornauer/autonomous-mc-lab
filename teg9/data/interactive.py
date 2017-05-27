@@ -110,7 +110,7 @@ def function_help():
 	cprint('\nINTERACTIVE LABELS:')
 	tab_list_print(i_labels)
 HE = function_help
-
+HE() # do this here so that we are reminded of this feature
 
 
 
@@ -224,7 +224,7 @@ def function_list_runs(rng=None,auto_direct_labelling=False):
 		#print I[run_labels][r][direct]
 	
 LR = function_list_runs
-#LR()
+LR() # If this is not done first, other things don't work properly.
 
 
 
@@ -716,34 +716,36 @@ def load_hdf5_steer_hist(path,dst_path):
 
 
 
-LR() # If this is not done first, other things don't work properly.
 
 
-if True:
 
-	for i in range(len(I[runs])):
-		try:
-			VR(i,do_load_images=False)
-			r = I[runs][i]
-			ks = sorted(I[run_labels][r])
-			labeled = False
-			for k in ks:
-				if I[run_labels][r][k]:
-					labeled = True
-			if labeled and I[run_labels][I[runs][i]][reject_run] == False:
-				cprint(d2s(i,') accept',r),'yellow')
-				S5(i,flip=False)
-				S5(flip=True)
-			else:
-				cprint(d2s(i,') reject',r),'red')
+if False:
+	if False:
+		CS_("Goal: create normal and flip hdf5 segements.")
+		for i in range(len(I[runs])):
+			try:
+				VR(i,do_load_images=False)
+				r = I[runs][i]
+				ks = sorted(I[run_labels][r])
+				labeled = False
+				for k in ks:
+					if I[run_labels][r][k]:
+						labeled = True
+				if labeled and I[run_labels][I[runs][i]][reject_run] == False:
+					cprint(d2s(i,') accept',r),'yellow')
+					S5(i,flip=False)
+					S5(flip=True)
+				else:
+					cprint(d2s(i,') reject',r),'red')
 
-		except Exception as e:
-			print("********** Exception ***********************")
-			print(e.message, e.args)
-			cprint('Failure in for i in range(len(I[runs])): loop','blue')
+			except Exception as e:
+				print("********** Exception ***********************")
+				print(e.message, e.args)
+				cprint('Failure in for i in range(len(I[runs])): loop','blue')
 
 
 	if False:
+		CS_("Goal: create steer hist lists.")
 		hdf5s = sgg(opj(bair_car_data_path,'hdf5/runs/*.hdf5'))
 		ctr = 0
 		for h in hdf5s:
@@ -755,7 +757,8 @@ if True:
 
 	if False:
 
-		if True:
+		if False:
+			CS_("Goal: compile run codes.")
 			run_codes = {}
 			steer_hists = sgg(opj(bair_car_data_path,'hdf5/segment_metadata/*.state_hist_list.pkl'))
 			ctr = 0
@@ -772,7 +775,8 @@ if True:
 			save_obj(run_codes,opj(bair_car_data_path,'hdf5/segment_metadata/run_codes'))
 
 
-		if True:
+		if False:
+			CS_("Goal: compile low_steer and high_steer.")
 			low_steer = []
 			high_steer = []
 			low_steer_files = sgg(opj(bair_car_data_path,'hdf5/segment_metadata/*.low_steer.pkl'))
@@ -791,15 +795,3 @@ if True:
 			save_obj(low_steer,opj(bair_car_data_path,'hdf5/segment_metadata/low_steer'))
 			save_obj(high_steer,opj(bair_car_data_path,'hdf5/segment_metadata/high_steer'))
 
-
-if False:
-	for l in I[run_labels]:
-		print I[run_labels][l]['reject_run']
-		if I[run_labels][l]['reject_run'] == False:
-			I[run_labels][l][aruco_ring] = True
-			I[run_labels][l][direct] = True
-
-if False:
-	for i in range(len(I[runs])):
-		if I[run_labels][I[runs][i]][reject_run] == True:
-			print i

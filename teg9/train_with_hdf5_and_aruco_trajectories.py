@@ -7,16 +7,16 @@ TEG = 'teg9'
 CAF = 'caf8'
 DISPLAY = True
 
-ignore = ['reject_run','left','out1_in2','Smyth','racing'] # runs with these labels are ignored
-require_one = [] # at least one of this type of run lable is required
-use_states = [1]
+ignore = ['reject_run','left','out1_in2','Smyth','racing','local','Tilden','campus'] # runs with these labels are ignored
+require_one = ['aruco_ring'] # at least one of this type of run lable is required
+use_states = [1,3,5,6,7]
 rate_timer_interval = 5.
 print_timer = Timer(5)
 
 if True:
 	MODEL = 'z2_color'
 	print(MODEL)
-	bair_car_data_path = opjD('bair_car_data_new') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017' #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
 	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
 	weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
@@ -47,13 +47,53 @@ if False:
 if False:
 	MODEL = 'z1_color'
 	print(MODEL)
-	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
+	bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
 	weights_file_path = most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))),['caffemodel'])
 	N_FRAMES = 1 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
 
 
+
+
+
+
+
+
+if False:
+	CS_('load aruco trajectory data')
+	Aruco_Steering_Trajectories = {}
+	aruco_data_location = opjD('output_data')
+	for o in sggo(aruco_data_location,'*.output_data.pkl'):
+		ast = lo(o)
+		for run_name in ast.keys():	
+			print(run_name)
+			if run_name not in Aruco_Steering_Trajectories:
+				Aruco_Steering_Trajectories[run_name] = {}
+			for mode in ast[run_name].keys():
+				print('\t'+mode)
+				if mode not in Aruco_Steering_Trajectories[run_name]:
+					Aruco_Steering_Trajectories[run_name][mode] = {}
+				timestamps = ast[run_name][mode]['near_t']
+				steer = ast[run_name][mode]['steer']
+				assert(len(timestamps) == len(steer))
+				Aruco_Steering_Trajectories[run_name][mode]['timestamps'] = timestamps
+				Aruco_Steering_Trajectories[run_name][mode]['steer'] = steer
+
+	for run_name in Aruco_Steering_Trajectories.keys():
+		flip = 'flip_'+run_name
+		Aruco_Steering_Trajectories[flip]= {}
+		for mode in Aruco_Steering_Trajectories[run_name]:
+			if mode not in Aruco_Steering_Trajectories[flip]:
+				Aruco_Steering_Trajectories[flip][mode] = {}
+			Aruco_Steering_Trajectories[flip][mode]['timestamps'] = Aruco_Steering_Trajectories[run_name][mode]['timestamps']
+			Aruco_Steering_Trajectories[flip][mode]['steer'] = list(99-array(Aruco_Steering_Trajectories[run_name][mode]['timestamps']))
+
+
+	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
+
+if True:
+	Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories.pkl'))
 
 
 
@@ -139,6 +179,63 @@ def get_data_considering_high_low_steer():
 
 
 
+
+
+def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
+	global ctr_low
+	global ctr_high
+	global low_steer
+	global high_steer
+
+	if ctr_low >= len_low_steer:
+		ctr_low = -1
+	if ctr_high >= len_high_steer:
+		ctr_high = -1
+	if ctr_low == -1:
+		random.shuffle(low_steer) # shuffle data before using (again)
+		ctr_low = 0
+	if ctr_high == -1:
+		random.shuffle(high_steer)
+		ctr_high = 0
+		
+	if random.random() < 0.5: # len_high_steer/(len_low_steer+len_high_steer+0.0): # with some probability choose a low_steer element
+		choice = low_steer[ctr_low]
+		ctr_low += 1
+	else:
+		choice = high_steer[ctr_high]
+		ctr_high += 1
+	run_code = choice[3]
+	seg_num = choice[0]
+	offset = choice[1]
+
+
+	run_name = get_data_with_hdf5.Segment_Data['run_codes'][run_code]
+	if run_name not in Aruco_Steering_Trajectories.keys():
+		#print('Run name '+run_name+' not in Aruco_Steering_Trajectories')
+		return None
+
+	#print 'here!'
+	seg_num_str = str(seg_num)
+	aruco_matches = []
+	for i in range(N_FRAMES):
+		timestamp = get_data_with_hdf5.Segment_Data['runs'][run_name]['segments'][seg_num_str]['left_timestamp'][offset+i]
+		behavioral_mode = 'Follow_Arena_Potential_Field'
+		#print Aruco_Steering_Trajectories[run_name].keys()
+		#print run_name
+		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['timestamps']:
+			aruco_matches.append(timestamp)
+		if len(aruco_matches) < 1:
+			return None
+	#print aruco_matches
+	data = get_data_with_hdf5.get_data(run_code,seg_num,offset,N_STEPS,offset+0,N_FRAMES,ignore=ignore,require_one=require_one)
+
+	return data
+
+
+
+
+
+
 def array_to_int_list(a):
 	l = []
 	for d in a:
@@ -156,49 +253,12 @@ if DISPLAY:
 	plt.hist(array(high_steer)[:,2],bins=range(0,100))
 	figure(1)
 
-
-
-
-
-
-
-
-
-
-import multiprocessing
-import os
-import time
-
-the_queue = multiprocessing.Queue()
-
-
-
-def worker_main(queue):
-    print os.getpid(),"working"
-    while True:
-        queue.put(get_data_considering_high_low_steer())
-
-
-the_pool = multiprocessing.Pool(4, worker_main,(the_queue,))
-
-
-
-
-
-
-
-
-
-
-
-
 while True:
 
 	for b in range(Solver.batch_size):
 		data = None
 		while data == None:
-			if not the_queue.empty():
-				data = the_queue.get()
+			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
 		Solver.put_data_into_model(data,Solver.solver,b)
 
 	Solver.solver.step(1)
