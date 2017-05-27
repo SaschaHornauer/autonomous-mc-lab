@@ -55,7 +55,9 @@ if False:
 
 
 
-
+"""
+def sample_dic:
+"""
 
 
 
@@ -77,19 +79,21 @@ if False:
 				timestamps = ast[run_name][mode]['near_t']
 				steer = ast[run_name][mode]['steer']
 				assert(len(timestamps) == len(steer))
-				Aruco_Steering_Trajectories[run_name][mode]['timestamps'] = timestamps
-				Aruco_Steering_Trajectories[run_name][mode]['steer'] = steer
-
+				Aruco_Steering_Trajectories[run_name][mode]['new_steer'] = {}
+				for t,s in zip(timestamps,steer):
+					Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t] = s
 	for run_name in Aruco_Steering_Trajectories.keys():
+		if 'flip_' in run_name:
+			del Aruco_Steering_Trajectories[run_name]
+			continue
 		flip = 'flip_'+run_name
 		Aruco_Steering_Trajectories[flip]= {}
 		for mode in Aruco_Steering_Trajectories[run_name]:
-			if mode not in Aruco_Steering_Trajectories[flip]:
-				Aruco_Steering_Trajectories[flip][mode] = {}
-			Aruco_Steering_Trajectories[flip][mode]['timestamps'] = Aruco_Steering_Trajectories[run_name][mode]['timestamps']
-			Aruco_Steering_Trajectories[flip][mode]['steer'] = list(99-array(Aruco_Steering_Trajectories[run_name][mode]['timestamps']))
-
-
+			#if mode not in Aruco_Steering_Trajectories[flip]:
+			Aruco_Steering_Trajectories[flip][mode] = {}
+			Aruco_Steering_Trajectories[flip][mode]['new_steer'] = {}
+			for t in Aruco_Steering_Trajectories[run_name][mode]['new_steer'].keys():
+				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
 if True:
@@ -217,18 +221,38 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	#print 'here!'
 	seg_num_str = str(seg_num)
 	aruco_matches = []
-	for i in range(N_FRAMES):
+	for i in [0]:#range(N_FRAMES):
 		timestamp = get_data_with_hdf5.Segment_Data['runs'][run_name]['segments'][seg_num_str]['left_timestamp'][offset+i]
-		behavioral_mode = 'Follow_Arena_Potential_Field'
+		behavioral_mode = np.random.choice(
+			['Direct_Arena_Potential_Field',
+ 			'Furtive_Arena_Potential_Field',
+ 			'Follow_Arena_Potential_Field',
+ 			'Play_Arena_Potential_Field'])
 		#print Aruco_Steering_Trajectories[run_name].keys()
 		#print run_name
-		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['timestamps']:
+		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'].keys():
 			aruco_matches.append(timestamp)
 		if len(aruco_matches) < 1:
 			return None
 	#print aruco_matches
 	data = get_data_with_hdf5.get_data(run_code,seg_num,offset,N_STEPS,offset+0,N_FRAMES,ignore=ignore,require_one=require_one)
+	if data != None:
+		data['states'][0] = 1
+		data['labels']['follow'] = False
+		data['labels']['direct'] = False
+		data['labels']['play'] = False
+		data['labels']['furtive'] = False
+		if behavioral_mode == 'Direct_Arena_Potential_Field':
+			data['labels']['direct'] = True
+		if behavioral_mode == 'Furtive_Arena_Potential_Field':
+			data['labels']['furtive'] = True
+		if behavioral_mode == 'Follow_Arena_Potential_Field':
+			data['labels']['follow'] = True
+		if behavioral_mode == 'Play_Arena_Potential_Field':
+			data['labels']['play'] = True
 
+		data['steer'] = array(data['steer'])*0.0 + Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'][timestamp]
+ 
 	return data
 
 
@@ -286,8 +310,17 @@ while True:
 			plot(loss10000[-lm:])
 			print(d2s('loss10000 =',loss10000[-1]))
 		if print_timer.check():
-
+			print(data['name'])
 			print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
+
+			if Solver.solver.net.blobs['metadata'].data[0,2,0,0] > 0:
+				print 'follow'
+			if Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0:
+				print 'direct'
+			if Solver.solver.net.blobs['metadata'].data[0,4,0,0] > 0:
+				print 'play'
+			if Solver.solver.net.blobs['metadata'].data[0,5,0,0] > 0:
+				print 'furtive'
 
 			cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
 			cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
