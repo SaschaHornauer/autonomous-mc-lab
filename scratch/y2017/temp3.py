@@ -10,7 +10,6 @@ def zaccess(d,alst):
 		d = d[sorted(d.keys())[a]]
 	return d
 
-v = zaccess(d,[1,0,0]);print v
 
 
 
@@ -57,7 +56,7 @@ def zlst_to_str(lst,truncate=True,decimal_places=2,show_ends=2,depth=0,range_lst
 
 
 
-def zdic_to_str(d,range_lst,depth=0):
+def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
 
 	dic_str_lst = []
 
@@ -66,18 +65,31 @@ def zdic_to_str(d,range_lst,depth=0):
 	this_range = range_lst[0]
 	
 	if type(this_range) == int:
-		if this_range == -1:
-			this_range = [0,len(sorted_keys)]
-		elif this_range == -2:
-			this_range = [0,len(sorted_keys)]
-			range_lst = range_lst + [-2]
+		if this_range < 0:
+			neg_two = False
+			if this_range == -2:
+				neg_two = True
+			if dic_truncate:
+				this_range = [0,min(dic_show_ends,len(sorted_keys))]
+			else:
+				this_range = [0,len(sorted_keys)]
+			if neg_two:
+				range_lst = range_lst + [-2]
 		else:
 			this_range = [this_range,this_range+1]
 
 	if this_range[0] > 0:
 		dic_str_lst.append(d2n('\t'*depth,'0) ...'))
 
+	#truncated = False
 	for i in range(this_range[0],this_range[1]):
+		#if dic_truncate:
+		#	if this_range[1] > 2*dic_show_ends:
+		#		if i > this_range[0]+dic_show_ends and i < this_range[1]-dic_show_ends:
+		#			if not truncated:
+		#				dic_str_lst.append(d2n('\t'*depth,'...'))
+		#				truncated = True
+		#			continue
 		if i >= len(sorted_keys):
 			return
 		key = sorted_keys[i]
@@ -88,7 +100,7 @@ def zdic_to_str(d,range_lst,depth=0):
 		if isinstance(value,dict):
 			#if max_depth_lst[0] > depth:
 			if len(range_lst) > 1:
-				dic_str_lst.append( zdic_to_str(value,range_lst[1:],depth=depth+1) )
+				dic_str_lst.append( zdic_to_str(value,range_lst[1:],depth=depth+1,dic_show_ends=dic_show_ends,dic_truncate=dic_truncate) )
 			else:
 				dic_str_lst.append(d2n('\t'*(depth+1),'...'))
 		else:
@@ -138,5 +150,15 @@ d['c'] = 'C'
 
 
 dic_str = zdic_to_str(d,[-2]);print dic_str
+
+
+if False:
+	figure('trajectories',figsize=(8,8))
+	N = lo(opjD('N'))
+	for i in range(len(zaccess(N,[1]).keys())):
+		x=zaccess(N,[1,i,1,1,2])
+		y=zaccess(N,[1,i,1,1,4])
+		clf();xylim(-5,5,-5,5)
+		plot(x,y,'o');pause(2)
 
 
