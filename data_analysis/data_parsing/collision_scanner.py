@@ -13,6 +13,8 @@ from collections import defaultdict
 import sys
 from timeit import default_timer as timer
 
+distance = 8 # m
+fov_angle = 66.0 # deg
 
 def get_fov_one_camera(xy, heading, fov_angle, distance):
     '''
@@ -34,15 +36,38 @@ def get_fov_one_camera(xy, heading, fov_angle, distance):
     return Triangle(to_point(a), to_point(b), to_point(c))
 
 
-def get_encounter_xy(timestamps_n_trajectories):
+def get_encounter_xy(own_car_name, own_timestamps_n_trajectories, trajectories_dict):
+    
+    global distance
+    global fov_angle
+    
+    encounter_xy = defaultdict(lambda: defaultdict(dict))
+    for car_name in trajectories_dict:
+        
+        if car_name != own_car_name:
+        
+            for run_name in trajectories_dict[car_name]:
+                timestamped_other_trajs = get_timestamped_trajectories(car_name, run_name, trajectories_dict)
+                
+                for timestamp in timestamped_other_trajs:
+                    
+                    if own_timestamps_n_trajectories[timestamp]
     
     
-    
-    
-    
-    pass
 
-
+def get_timestamped_trajectories(car_name,run_name,traj_dictionary):
+    
+    left_x = trajectories_dict[car_name][run_name]['self_trajectory']['left']['x']
+    left_y = trajectories_dict[car_name][run_name]['self_trajectory']['left']['y']
+    
+    right_x = trajectories_dict[car_name][run_name]['self_trajectory']['right']['x']
+    right_y = trajectories_dict[car_name][run_name]['self_trajectory']['right']['y']
+    
+    mid_xy = (((right_x+left_x)/2.),((left_y + right_y)/2.))
+    timestamps = trajectories_dict[car_name][run_name]['self_trajectory']['ts']
+    
+    return dict(zip(timestamps,zip(mid_xy[0],mid_xy[1])))
+    
 if __name__ == '__main__':
     
     trajectories_path = sys.argv[1]
@@ -56,25 +81,17 @@ if __name__ == '__main__':
     # Timestamps from the last car are taken. In the future it would be good to check
     # if the timestamps differ for different cars
     
-    encounters_cars_timesteps_xy = {}
+    encounters_cars_timesteps_xy = defaultdict(lambda: defaultdict(dict))
 
-    for carname in trajectories_dict:
-        for run_name in trajectories_dict[carname]:
-            print trajectories_dict[carname][run_name]['self_trajectory']['left']['x']
+    for own_car_name in trajectories_dict:
+        for run_name in trajectories_dict[own_car_name]:
         
             # Right now there is only one runname and this loop is used to get its name
-            
-            left_x = trajectories_dict[carname][run_name]['self_trajectory']['left']['x']
-            left_y = trajectories_dict[carname][run_name]['self_trajectory']['left']['y']
-            
-            right_x = trajectories_dict[carname][run_name]['self_trajectory']['right']['x']
-            right_y = trajectories_dict[carname][run_name]['self_trajectory']['right']['y']
-            
-            mid_xy = (((right_x+left_x)/2.),((left_y + right_y)/2.))
-            timestamps = trajectories_dict[carname][run_name]['self_trajectory']['ts']
-            
-            own_timestamps_n_trajectories = dict(zip(timestamps,zip(mid_xy[0],mid_xy[1])))
+                       
+            own_timestamps_n_trajectories = get_timestamped_trajectories(own_car_name, run_name, trajectories_dict) 
     
-            encounters_cars_timesteps_xy[carname][run_name] = get_encounter_xy(own_timestamps_n_trajectories, trajectories_dict)
+            # Returns a dict which maps carnames to timestamps and positions if those positions
+            # are in sight of the own car
+            encounters_cars_timesteps_xy[own_car_name][run_name] = get_encounter_xy(own_car_name, own_timestamps_n_trajectories, trajectories_dict)
 
     
