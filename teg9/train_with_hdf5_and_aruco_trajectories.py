@@ -17,8 +17,8 @@ if True:
 	MODEL = 'z2_color'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
-	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
-	weights_file_path = opjh('caffe_models/z2_color.caffemodel')
+	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 0
@@ -183,7 +183,7 @@ def get_data_considering_high_low_steer():
 
 
 
-
+loss_dic = {}
 counter_dic = {}
 counts = 0
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
@@ -253,10 +253,10 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 			data['labels']['play'] = True
 
 		data['steer'] = array(data['steer'])*0.0 + Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'][timestamp]
-		ctr_name = d2s(run_name,behavioral_mode,timestamp)
-		if ctr_name not in counter_dic:
-			counter_dic[ctr_name] = 0
- 		counter_dic[d2s(run_name,behavioral_mode,timestamp)] += 1
+ 		data['id'] = (run_name,behavioral_mode,timestamp,run_code,seg_num,offset)
+		if data['id'] not in counter_dic:
+			counter_dic[data['id']] = 0
+ 		counter_dic[data['id']] += 1
  		counts += 1
 	return data
 
@@ -298,9 +298,10 @@ while True:
 		print(d2s('rate =',dp(rate_ctr/rate_timer_interval,2),'Hz'))
 		rate_timer.reset()
 		rate_ctr = 0
-	a = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
-
-	loss.append(np.sqrt(a * a).mean())
+	the_loss = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
+	the_loss = np.sqrt(the_loss * the_loss).mean()
+	loss.append(the_loss)
+	loss_dic[data['id']] = the_loss
 
 	if len(loss) >= 10000/Solver.batch_size:
 		loss10000.append(array(loss[-10000:]).mean())
