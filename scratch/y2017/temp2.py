@@ -3,7 +3,7 @@
 
 
 
-def zp(d,depth,range_lst):#,max_depth_lst):
+def zp(d,range_lst,depth=0):#,max_depth_lst):
 
 	sorted_keys = sorted(d.keys())
 	
@@ -34,7 +34,7 @@ def zp(d,depth,range_lst):#,max_depth_lst):
 		if isinstance(value,dict):
 			#if max_depth_lst[0] > depth:
 			if len(range_lst) > 1:
-				zp(value,depth+1,range_lst[1:])#,max_depth_lst[1:])
+				zp(value,range_lst[1:],depth=depth+1)#,max_depth_lst[1:])
 			else:
 				cprint(d2n('\t'*(depth+1),'...'),'yellow')
 		else:
@@ -48,11 +48,25 @@ d = {}
 d['a'] = 'A'
 d['b'] = {}
 d['b']['B1'] = {}
-d['b']['B1']['b1'] = ['C']
+d['b']['B1']['b1'] = 'b11'
 d['b']['B2'] = 'b2'
 d['c'] = 'C'
 
 
-zp(d,0,[[1,2],[0,0]])
-print()
-zp(d,0,[[0,3]])
+zp(d,[[1,2],[0,0]])
+print('')
+zp(d,[[0,3]])
+print('')
+alst = [0,0,0]
+zp(d,alst)
+
+
+def zaccess(d,alst):
+	for a in alst:
+		#print a,d
+		if type(d) != dict:
+			break
+		d = d[sorted(d.keys())[a]]
+	return d
+
+v = zaccess(d,[1,0,0]);print v
