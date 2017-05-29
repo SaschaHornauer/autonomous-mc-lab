@@ -159,7 +159,7 @@ def Direct_Arena_Potential_Field(origin,mult,markers):
 			D['add'](-1.0*gau_marker,0.75*(array(xy)))
 		D['add'](4*gau_center,[0,0])
 	D['previous_additions'] = []
-	a = 0.65
+	a = 0.85
 	b = (-1+a)**2
 	c = 0.75
 	d = 1/2.0
@@ -181,7 +181,7 @@ def Furtive_Arena_Potential_Field(origin,mult,markers):
 			D['add'](-1.0*gau_marker,0.92*(array(xy)))
 		D['add'](4*gau_center,[0,0])
 	D['previous_additions'] = []
-	a = 0.85#a = 0.93
+	a = 0.93
 	b = (-1+a)**2
 	c = 2.0
 	d = 1/1.5

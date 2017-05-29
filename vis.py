@@ -525,7 +525,7 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
     D['pixel_to_float'] = _pixel_to_float
     def _plot_pts(xy,c='b'):
         if len(xy) < 1:
-            print('warning, asked to plot empty pts')
+            #print('warning, asked to plot empty pts')
             return
         xy_pix = D['floats_to_pixels'](xy)
         if len(shape(xy)) == 1:

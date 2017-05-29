@@ -10,17 +10,15 @@ import arena.planner.Cars as Cars
 #
 #bair_car_data_location = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
-
-bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
-#bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
-
+#bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
 trajectory_data_location = opjD('N.pkl')
 
 angles = -arange(-45,46,9)
 view_angle = 35
 
 DISPLAY_LEFT = True
-GRAPHICS = True
+GRAPHICS = False
 
 markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 Origin = int(2*1000/300.*300 / 5)
@@ -116,8 +114,7 @@ def summarize_N_other_trajectories(N,car_name,run_name):
 
 		
 
-heading_prev = 0
-near_t_prev = 0
+
 
 
 
@@ -131,17 +128,17 @@ if __name__ == "__main__":
 		N = lo(trajectory_data_location)
 
 	
-	if 'the_arenas' not in locals():
+	#if 'the_arena' not in locals():
 	#	the_arena = Potential_Fields.Direct_Arena_Potential_Field(Origin,Mult,markers)
 	#	mode = the_arena['type']
-		print("Creating arenas . . .")
-		the_arenas = [Potential_Fields.Direct_Arena_Potential_Field(Origin,Mult,markers)]#,
-			#Potential_Fields.Follow_Arena_Potential_Field(Origin,Mult,markers),
-			#Potential_Fields.Furtive_Arena_Potential_Field(Origin,Mult,markers),
-			#Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)]
+	
+	the_arenas = [Potential_Fields.Direct_Arena_Potential_Field(Origin,Mult,markers),
+		Potential_Fields.Follow_Arena_Potential_Field(Origin,Mult,markers),
+		Potential_Fields.Furtive_Arena_Potential_Field(Origin,Mult,markers),
+		Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)]
 
 	
-	#if 'INITALIZED' not in locals():
+	#if True: #'INITALIZED' not in locals():
 	INITALIZED = True
 	cars = {}
 	for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
@@ -158,7 +155,7 @@ if __name__ == "__main__":
 			output_data[run_name] = {}
 			if len(gg(output_name)) > 0:
 				print(output_name+' exists, continuing.')
-				#time.sleep(1)
+				time.sleep(1)
 				continue
 			else:
 				print("Working on: "+output_name)
@@ -200,7 +197,7 @@ if __name__ == "__main__":
 					for car_name in cars:
 						cars[car_name]['rewind']()
 					if GRAPHICS:			
-						plt.figure(1,figsize=(4,4));clf();ds = 5;xylim(-ds,ds,-ds,ds)
+						figure(1,figsize=(4,4));clf();ds = 5;xylim(-ds,ds,-ds,ds)
 
 
 
@@ -284,27 +281,7 @@ if __name__ == "__main__":
 								output_data[run_name][mode]['near_t'].append(cars[our_car]['state_info']['near_t'])
 								output_data[run_name][mode]['near_i'].append(cars[our_car]['state_info']['near_i'])
 
-								heading = cars[our_car]['state_info']['heading']
-								near_t = cars[our_car]['state_info']['near_t']
-								if near_t - near_t_prev < 0.1:
-									dheading = heading - heading_prev
-									if np.degrees(angle_between(heading,heading_prev)) > 45:
-										print_stars()
-										print('Heading warning!!!')
-										print_stars()
-										heading = heading_prev
-										#heading_warning_lst.append()
-								else:
-									dheading = None
 
-								heading_prev = heading
-								near_t_prev = near_t
-								figure('heading',figsize=(3,3));plt.title(d2s(dheading));clf();xylim(-2,2,-2,2);#;raw_input('here!')
-								#plot([0,heading[1]],[0,heading[0]],'r')
-								plot([0,heading[1]],[0,-heading[0]],'g');pause(0.01)
-								
-
-								#plot([0,-heading[1]],[0,heading[0]],'b')
 								if GRAPHICS:
 									figure(9)
 									if ctr_q > 1:
