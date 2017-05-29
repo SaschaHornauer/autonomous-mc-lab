@@ -42,40 +42,48 @@ def get_encounter_xy(own_car_name, own_timestamps_n_trajectories, trajectories_d
     global distance
     global fov_angle
     
+    
     encounter_xy = defaultdict(lambda: defaultdict(dict))
     
-    for timestamp in own_timestamps_n_trajectories:
+    # The whole method worked though very slow so a few 
+    # tweaks are made to increase the speed
+    
+    own_xy_values = []
+    timestamps = []
+    timestamped_other_trajs = {}
+    
+    
+    # First create a quickly accessible list of own positions
+    for (timestamp,coord) in own_timestamps_n_trajectories:
+        own_xy_values.append(coord)
+        timestamps.append(timestamp)
+    
+    # There is a bug here
+    for car_name in trajectories_dict:
+        for run_name in trajectories_dict[car_name]:
+            timestamped_other_trajs[car_name] = get_timestamped_trajectories(car_name, run_name, trajectories_dict)
+    
+    for i in range(len(own_timestamps_n_trajectories)):
         
         smooth_diff = 10
+        own_xy = own_timestamps_n_trajectories[i][1]
         
-        own_xy = own_timestamps_n_trajectories[timestamp]
+        if smooth_diff+i > len(own_timestamps_n_trajectories):
+            return None
         
-        start_index = own_timestamps_n_trajectories.keys().index(timestamp)
-        own_xy_values = []
-        
-        keys = own_timestamps_n_trajectories.keys()[start_index:start_index+smooth_diff]
-        for key in keys:
-            own_xy_values.append(own_timestamps_n_trajectories[key])
-        
-        heading = get_heading(own_xy_values)
+        heading = get_heading(own_xy_values[i:i+smooth_diff])
         fov_triangle = get_fov_triangle(own_xy, heading, fov_angle, distance)
         
-        for car_name in trajectories_dict:
+        for car_name in timestamped_other_trajs:
             
             if car_name != own_car_name:
-            
-                for run_name in trajectories_dict[car_name]:
-                    timestamped_other_trajs = get_timestamped_trajectories(car_name, run_name, trajectories_dict)
+                for (timestamp,other_xy) in timestamped_other_trajs[car_name]:
                     
-                    if timestamp in timestamped_other_trajs:
-                        
-                        other_xy = timestamped_other_trajs[timestamp]
-                        
-                        if fov_triangle.isInside(Point(other_xy[0],other_xy[1])):
-                            encounter_xy[car_name][run_name] = {'timestamp':timestamp,'pos_xy':other_xy}
-                            print "At " + str(start_index)
-                    else:
-                        continue
+                    if fov_triangle.isInside(Point(other_xy[0],other_xy[1])):
+                        encounter_xy[car_name] = {'timestamp':timestamp,'pos_xy':other_xy}
+                        print "At " + str(timestamp)
+                else:
+                    continue
     
 
 def get_timestamped_trajectories(car_name,run_name,traj_dictionary):
@@ -89,7 +97,7 @@ def get_timestamped_trajectories(car_name,run_name,traj_dictionary):
     mid_xy = (((right_x+left_x)/2.),((left_y + right_y)/2.))
     timestamps = trajectories_dict[car_name][run_name]['self_trajectory']['ts']
     
-    return dict(zip(timestamps,zip(mid_xy[0],mid_xy[1])))
+    return zip(timestamps,zip(mid_xy[0],mid_xy[1]))
     
 if __name__ == '__main__':
     
