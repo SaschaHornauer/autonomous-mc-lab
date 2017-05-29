@@ -14,9 +14,9 @@ import sys
 from timeit import default_timer as timer
 
 distance = 8 # m
-fov_angle = 66.0 # deg
+fov_angle = 110.0 # deg
 
-def get_fov_one_camera(xy, heading, fov_angle, distance):
+def get_fov_triangle(xy, heading, fov_angle, distance):
     '''
     returns the field of view as triangle, based on a sequence of
     coordinates. It will always regard the last coordinates in that list
@@ -36,6 +36,7 @@ def get_fov_one_camera(xy, heading, fov_angle, distance):
     return Triangle(to_point(a), to_point(b), to_point(c))
 
 
+
 def get_encounter_xy(own_car_name, own_timestamps_n_trajectories, trajectories_dict):
     
     global distance
@@ -51,7 +52,19 @@ def get_encounter_xy(own_car_name, own_timestamps_n_trajectories, trajectories_d
                 
                 for timestamp in timestamped_other_trajs:
                     
-                    if own_timestamps_n_trajectories[timestamp]
+                    
+                    
+                    own_xy = own_timestamps_n_trajectories[timestamp] 
+                    
+                    smooth_diff = 10
+                    
+                    own_xys_over_steps = own_timestamps_n_trajectories[timestamp:timestamp+smooth_diff]
+                    
+                    heading = get_heading(own_xys_over_steps)
+                    
+                    fov_triangle = get_fov_triangle(own_xy, heading, fov_angle, distance)
+                    if fov_triangle.isInside(Point(own_xy[0],own_xy[1])):
+                        print "Horray"
     
     
 
