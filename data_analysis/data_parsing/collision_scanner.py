@@ -234,7 +234,28 @@ if __name__ == '__main__':
     
     # encounters_cars_timesteps_xy = defaultdict(lambda: defaultdict(dict))
     col_scanner = Collision_Scanner()
-    horray = col_scanner.get_encounters(trajectories_dict)
+    encounter_situations = col_scanner.get_encounters(trajectories_dict)
     
-    print horray
+    own_xy = []
+    other_xy = []
+    
+    for own_carname in encounter_situations:
+        for other_carname in encounter_situations[own_carname]:
+            for entry in encounter_situations[own_carname][other_carname]:
+                own_xy.append(entry['own_xy'])
+                other_xy.append(entry['other_ts_xy'][1])
+
+    from_index = 0
+    to_index = 100 
+
+    plt.xlim(-5, 5)
+    plt.ylim(-5, 5)
+    plt.ion()
+    for i in range(len(other_xy)):
         
+        old_pos_own = plt.plot(own_xy[i][0], own_xy[i][1],'ro')
+        old_pos_other = plt.plot(other_xy[i][0], other_xy[i][1],'bo')
+        plt.show()
+        plt.pause(1/30.)
+        old_pos_own.pop(0).remove()
+        old_pos_other.pop(0).remove()
