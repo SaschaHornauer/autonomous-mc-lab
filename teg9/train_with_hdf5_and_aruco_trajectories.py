@@ -257,7 +257,7 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 		high_loss_key_ctr += 1
 		
 
-		high_loss_key = random.choice(high_loss_dic.keys())
+		#high_loss_key = random.choice(high_loss_dic.keys())
 		behavioral_mode = high_loss_key[1]
 		run_code = high_loss_key[3]
 		seg_num = high_loss_key[4]
@@ -347,7 +347,7 @@ while True:
 				plt.close('high low steer histograms')
 				histogram_plot_there = False
 		print(d2s('loss10000 =',loss10000[-1]))
-	if print_timer.check() and the_loss >= loss_threshold and Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0:
+	if print_timer.check() and Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0: # and the_loss >= loss_threshold 
 		
 		print(data['name'])
 		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
