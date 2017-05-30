@@ -232,7 +232,7 @@ def ip_layer_set(top,bottom,num_output,weight_filler_type,std=0):
 	p = p + '\n#\n############################################################\n\n'
 	return p
 
-def euclidean(top,bottom1,bottom2):
+def euclidean(top,bottom1,bottom2,loss_weight=1):
 	p = """
 layer {
 \tname: "TOP"
@@ -240,12 +240,13 @@ layer {
 \tbottom: "BOTTOM1"
 \tbottom: "BOTTOM2"
 \ttop: "TOP"
-\tloss_weight: 1
+\tloss_weight: LOSS_WEIGHT
 }
 	"""
 	p = p.replace("TOP",top)
 	p = p.replace("BOTTOM1",bottom1)
 	p = p.replace("BOTTOM2",bottom2)
+	p = p.replace("LOSS_WEIGHT",str(loss_weight))
 	return p
 
 def scale(top,bottom,scale,bias):

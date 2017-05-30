@@ -24,6 +24,17 @@ if True:
 	gpu = 1
 
 if False:
+	MODEL = 'z2_color_aruco'
+	print(MODEL)
+	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
+	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
+	N_FRAMES = 2 # how many timesteps with images.
+	N_STEPS = 10 # how many timestamps with non-image data
+	gpu = 1
+
+
+if False:
 	MODEL = 'z2_color_small_ip1'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_Main_Dataset') # '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'#opjD('bair_car_data_new')
@@ -351,7 +362,7 @@ while True:
 				plt.close('high low steer histograms')
 				histogram_plot_there = False
 		print(d2s('loss10000 =',loss10000[-1]))
-	if print_timer.check() and Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0 and the_loss >= 0.1:#loss_threshold:
+	if print_timer.check():# and Solver.solver.net.blobs['metadata'].data[0,2,0,0] > 0 and the_loss > 0.1:#loss_threshold:
 		
 		print(data['name'])
 		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])

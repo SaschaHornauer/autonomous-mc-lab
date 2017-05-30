@@ -1,16 +1,18 @@
-# /home/karlzipser/kzpy3/caf8/z2_color
-# Tuesday, 30 May 2017, 08:31:29 AM
-# /home/karlzipser/kzpy3/caf8/z2_color
-# Tuesday, 30 May 2017, 08:31:29 AM
+# /home/karlzipser/kzpy3/caf8/z2_color_aruco
+# Tuesday, 30 May 2017, 12:17:02 PM
+# /home/karlzipser/kzpy3/caf8/z2_color_aruco
+# Tuesday, 30 May 2017, 12:17:02 PM
 
 layer {
 	name: 'ZED_data_pool2'
 	type: 'Input'
 	top: 'ZED_data_pool2'
 	top: 'steer_motor_target_data'
+	top: 'potential_target_data'
 	input_param {
 		shape: {dim: 1 dim: 12 dim: 94 dim: 168}
 		shape: {dim: 1 dim: 20}
+		shape: {dim: 1 dim: 12}
 	}
 }
 
@@ -204,6 +206,30 @@ layer {
 	bottom: "steer_motor_target_data"
 	bottom: "ip2"
 	top: "euclidean"
+	loss_weight: 1
+}
+	
+
+layer {
+	name: "ip3"
+	type: "InnerProduct"
+	bottom: "ip1"
+	top: "ip3"
+	inner_product_param {
+		num_output: 12
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "euclidean3"
+	type: "EuclideanLoss"
+	bottom: "potential_target_data"
+	bottom: "ip3"
+	top: "euclidean3"
 	loss_weight: 1
 }
 	
