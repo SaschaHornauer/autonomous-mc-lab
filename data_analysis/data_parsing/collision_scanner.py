@@ -12,11 +12,15 @@ import os
 from collections import defaultdict
 import sys
 from timeit import default_timer as timer
-
+from cv_bridge import CvBridge, CvBridgeError
+import rosbag
+from tensorflow.contrib.learn.python.learn.graph_actions import run_n
+from data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile_Handler
 
 
 distance = 8  # m
-fov_angle = 110.0  # deg
+fov_angle = 66.0  # deg
+smooth_heading_over_timesteps = 30 
 
 class MyIter():
     
@@ -177,7 +181,7 @@ class Collision_Scanner():
                 list_index += 1
                 
             own_trajectory = aligned_list[own_carname]
-            smooth_factor = 10
+            smooth_factor = smooth_heading_over_timesteps
             
             
             while list_index < len(own_trajectory):
@@ -213,19 +217,102 @@ class Collision_Scanner():
                             continue
                         
                         if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
-                            encounters_cars_timesteps_xy[own_carname][other_carname].append({'fov':own_fov,'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
+                            encounters_cars_timesteps_xy[own_carname][other_carname].append({'run_name':trajectories_dict[own_carname].keys()[0],'fov':own_fov,'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
     
                 list_index += 1
                 
         return encounters_cars_timesteps_xy
     
+
+def show_video_image(timestamp,run_name):
+    
+    # Use Image Bagfile Handler
+    # Change so a certain timestep can be given and the bagfile is automatically opened, searched and displayed
+    
+    pass
+
+def onClick(event):
+    global pause
+    pause ^= True
+    
+    
+def draw_content(plot,i):
+    fov_a = own_fov[i].a
+    fov_b = own_fov[i].b
+    fov_c = own_fov[i].c            
+    show_video_image(timestamps[i],run_names[i])
+    fov_plot_a = plot.plot([fov_a.x,fov_b.x], [fov_a.y,fov_b.y],'g-')
+    fov_plot_b = plot.plot([fov_b.x,fov_c.x], [fov_b.y,fov_c.y],'g-')
+    fov_plot_c = plot.plot([fov_c.x,fov_a.x], [fov_c.y,fov_a.y],'g-')
+    old_pos_own = plot.plot(own_xy[i][0], own_xy[i][1],'ro')
+    old_pos_other = plot.plot(other_xy[i][0], other_xy[i][1],'bo')
+    #current_figure = plot.gcf()
+    text = plot.text(-2, -3, timestamps[i], fontsize=10)
+    plot.show()
+    plot.pause(1/30.)
+    old_pos_own.pop(0).remove()
+    old_pos_other.pop(0).remove()
+    fov_plot_a.pop(0).remove()
+    fov_plot_b.pop(0).remove()
+    fov_plot_c.pop(0).remove()
+    text.remove()
+
+    
+    
+def visualise(encounter_situations):
+    
+    plt.figure('top', figsize=(6, 6))
+    
+    own_xy = []
+    other_xy = []
+    own_fov = []
+    timestamps = []
+    run_names = []
+    
+    for own_carname in encounter_situations:
+        for other_carname in encounter_situations[own_carname]:
+            for entry in encounter_situations[own_carname][other_carname]:
+                timestamps.append(entry['timestamp'])
+                own_xy.append(entry['own_xy'])
+                other_xy.append(entry['other_ts_xy'][1])
+                own_fov.append(entry['fov'])
+                run_names.append(entry['run_name'])
+
+    
+    plt.xlim(-5, 5)
+    plt.ylim(-5, 5)
+    plt.ion()
+    fig = plt.gcf()
+    fig.canvas.mpl_connect('button_press_event', onClick)
+    for i in range(len(other_xy)):
+        if not pause:
+            draw_content(plt,i)
+        else:
+            while pause:
+                draw_content(plt,i)
+
+
+pause = False
+
 if __name__ == '__main__':
     
     trajectories_path = sys.argv[1]
     trajectories_dict = pickle.load(open(trajectories_path, "rb"))
-
-    show_only_encounters = False
-    plt.figure('top', figsize=(6, 6))
+    
+    
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-23-52_1.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-24-14_2.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-10_10.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-28-38_11.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/bair_car_2017-04-28-17-29-10_12.bag'
+    
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
+    
+    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/'
+    bagfiles =  [os.path.join(bagfile_path,file) for file in os.listdir(bagfile_path) if os.path.isfile(os.path.join(bagfile_path,file))] 
     
     # Timestamps from the last car are taken. In the future it would be good to check
     # if the timestamps differ for different cars
@@ -234,38 +321,34 @@ if __name__ == '__main__':
     col_scanner = Collision_Scanner()
     encounter_situations = col_scanner.get_encounters(trajectories_dict)
     
-    own_xy = []
-    other_xy = []
-    own_fov = []
+    for bagfile in bagfiles:
+        bag_handler = Image_Bagfile_Handler(bagfile)
     
-    for own_carname in encounter_situations:
+        own_xy = []
+        other_xy = []
+        own_fov = []
+        timestamps = []
+        run_names = []
+        
+    #     for own_carname in encounter_situations:
+        own_carname = 'Mr_Blue'
         for other_carname in encounter_situations[own_carname]:
             for entry in encounter_situations[own_carname][other_carname]:
+                timestamps.append(entry['timestamp'])
                 own_xy.append(entry['own_xy'])
                 other_xy.append(entry['other_ts_xy'][1])
                 own_fov.append(entry['fov'])
-
-    from_index = 0
-    to_index = 100 
-
-    plt.xlim(-5, 5)
-    plt.ylim(-5, 5)
-    plt.ion()
-    for i in range(len(other_xy)):
-        
-        fov_a = own_fov[i].a
-        fov_b = own_fov[i].b
-        fov_c = own_fov[i].c
-        
-        fov_plt_a = plt.plot([fov_a.x,fov_b.x], [fov_a.y,fov_b.y],'g-')
-        fov_plt_b = plt.plot([fov_b.x,fov_c.x], [fov_b.y,fov_c.y],'g-')
-        fov_plt_c = plt.plot([fov_c.x,fov_a.x], [fov_c.y,fov_a.y],'g-')
-        old_pos_own = plt.plot(own_xy[i][0], own_xy[i][1],'ro')
-        old_pos_other = plt.plot(other_xy[i][0], other_xy[i][1],'bo')
-        plt.show()
-        plt.pause(1/30.)
-        old_pos_own.pop(0).remove()
-        old_pos_other.pop(0).remove()
-        fov_plt_a.pop(0).remove()
-        fov_plt_b.pop(0).remove()
-        fov_plt_c.pop(0).remove()
+                run_names.append(entry['run_name'])
+        try:
+            for timestamp in timestamps:
+                cv_image, timestamp = bag_handler.get_image(timestamp)
+                
+                if(cv_image == None):
+                    continue
+                    
+                cv2.imshow('frame', cv_image)
+                key = cv2.waitKey(1000 / 30) & 0xFF
+                if key == ord('q'):
+                    break
+        except StopIteration:
+            continue

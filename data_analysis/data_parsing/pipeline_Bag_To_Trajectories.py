@@ -360,7 +360,7 @@ if __name__ == '__main__':
     """)
     print ("Process trajectory.pkl files." )
     
-    run_names = list_immediate_directories(root_folder_name)
+    run_names = [os.path.basename(full_path) for full_path in list_immediate_directories(root_folder_name)]
     trajectory_dict = {}
  
     for run_name in run_names:

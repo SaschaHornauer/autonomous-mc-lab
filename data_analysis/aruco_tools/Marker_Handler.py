@@ -7,12 +7,12 @@ import sys
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import aruco_annotator
+import kzpy3.data_analysis.aruco_tools.aruco_annotator
 
-from Video_Marker import Video_Marker
+from kzpy3.data_analysis.aruco_tools.Video_Marker import Video_Marker
 from data_parsing.Bagfile_Handler import Bagfile_Handler
 from visualization.Area_Visualizer import Area_Visualizer
-from aruco_tools.aruco_angle_retriever import get_boundary_angles_distances
+from kzpy3.data_analysis.aruco_tools.aruco_angle_retriever import get_boundary_angles_distances
 
 class Marker_Handler:
     
