@@ -62,7 +62,7 @@ def sample_dic:
 
 
 
-if False:
+if True:
 	CS_('load aruco trajectory data')
 	Aruco_Steering_Trajectories = {}
 	aruco_data_location = opjD('output_data')
@@ -96,7 +96,8 @@ if False:
 				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
-if True:
+if False:
+	print("Loading Aruco_Steering_Trajectories . . .")
 	Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories.pkl'))
 
 
@@ -191,12 +192,18 @@ def get_data_considering_high_low_steer():
 #loss_dic = {}
 counter_dic = {}
 counts = 0
+high_loss_key_ctr = 200000
+high_loss_keys = []
+
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	global ctr_low
 	global ctr_high
 	global low_steer
 	global high_steer
 	global counts
+	global high_loss_key_ctr
+	global high_loss_keys
+
 	if ctr_low >= len_low_steer:
 		ctr_low = -1
 	if ctr_high >= len_high_steer:
@@ -241,7 +248,15 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 		if len(aruco_matches) < 1:
 			return None
 	#print aruco_matches
-	if random.random() < 0.5:
+	if len(high_loss_dic) > 10000 and random.random() < 0.5:
+		if high_loss_key_ctr >= 1000:
+			high_loss_key_ctr = 0
+			high_loss_keys = high_loss_dic.keys()
+			np.random.shuffle(high_loss_keys)
+		high_loss_key = high_loss_keys[high_loss_key_ctr]
+		high_loss_key_ctr += 1
+		
+
 		high_loss_key = random.choice(high_loss_dic.keys())
 		behavioral_mode = high_loss_key[1]
 		run_code = high_loss_key[3]

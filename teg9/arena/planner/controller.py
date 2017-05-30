@@ -10,7 +10,6 @@ import arena.planner.Cars as Cars
 #
 #bair_car_data_location = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
-
 bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
 bair_car_data_location = opjD('bair_car_data_new_28April2017')
@@ -152,8 +151,10 @@ if __name__ == "__main__":
 	#our_car = random.choice(N.keys())
 	#run_name = random.choice(N[our_car].keys())
 
-	for our_car in ['Mr_Blue']:#,'Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']: #cars.keys():
+	for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']: #cars.keys():
 		for run_name in cars[our_car]['runs'].keys():
+			#if run_name == 'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow':
+			#	continue
 			output_data = {}
 			output_name = opjD(run_name+'.output_data.pkl')
 			output_data[run_name] = {}
