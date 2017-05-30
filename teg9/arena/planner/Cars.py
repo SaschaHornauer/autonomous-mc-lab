@@ -38,6 +38,7 @@ def Car(N,car_name,origin,mult,markers):
 		D['state_info']['pts'] = []
 		D['state_info']['heading'] = None
 		D['state_info']['heading_prev'] = 0
+		D['state_info']['relative_heading'] = 90
 	D['rewind'] = _rewind
 
 
@@ -94,10 +95,11 @@ def Car(N,car_name,origin,mult,markers):
 				D['state_info']['heading'] *= -1
 			if D['state_info']['near_t'] - D['state_info']['near_t_prev'] < 0.1:
 				if np.degrees(angle_between(D['state_info']['heading'],D['state_info']['heading_prev'])) > 45:
-					print_stars()
-					print('Heading warning!!!')
-					print_stars()
+					#print_stars()
+					#print('Heading warning!!!')
+					#print_stars()
 					D['state_info']['heading'] = D['state_info']['heading_prev']
+			D['state_info']['relative_heading'] = (degrees(angle_between(D['state_info']['heading'],D['state_info']['pts'][-1])))
 			D['state_info']['heading_prev'] = D['state_info']['heading']
 			D['state_info']['near_t_prev'] = D['state_info']['near_t']
 		else:
