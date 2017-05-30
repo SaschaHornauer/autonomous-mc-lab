@@ -1,11 +1,11 @@
 # /home/karlzipser/kzpy3/caf8/z2_color
-# Friday, 26 May 2017, 05:07:42 PM
+# Sunday, 28 May 2017, 02:02:27 PM
 
 net: "/home/karlzipser/kzpy3/caf8/z2_color/train_val.prototxt"
 test_iter: 1
 test_interval: 1000000
 test_initialization: false
-base_lr: 0.001  
+base_lr: 0.005  
 momentum: 0.0001
 weight_decay: 0.000005
 lr_policy: "inv"

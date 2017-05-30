@@ -2,13 +2,9 @@
 
 
 import kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params as rp
-
-
-
 #from kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params import *
 #import aruco_code
 from kzpy3.utils import *
-print "get_ros_images_live2..."
 # aruco code
 #import aruco_code
 # aruco code
@@ -108,7 +104,6 @@ try:
 		
 		
 		if state in [3,5,6,7,10]:
-			print "HERE!!!!!!!!"
 			if rp.use_caffe:
 				if solver == None:
 					solver = setup_solver(rp.solver_file_path)
@@ -180,9 +175,6 @@ try:
 						#print(aruco_steer)
 						#print(aruco_motor)
 
-						#caf_motor = int((caf_motor-49.) * motor_gain + 49)
-						#caf_steer = int((caf_steer-49.) * steer_gain + 49)
-
 						caf_steer = int((caf_steer+caf_steer_previous)/2.0)
 						caf_steer_previous = caf_steer
 						caf_motor = int((caf_motor+caf_motor_previous)/2.0)
@@ -198,7 +190,7 @@ try:
 						if caf_steer < 0:
 							caf_steer = 0
 
-						print caf_steer
+
 
 						
 						if state in [3,6,10]:			

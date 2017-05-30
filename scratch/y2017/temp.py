@@ -79,3 +79,29 @@ markers['cv2_draw'](markers,img)
 
 
 
+def pretty(d, indent=0):
+	ctr = 0
+	for key, value in d.iteritems():
+		if ctr < 4:
+			print '\t' * indent + str(key)
+		elif ctr == 4:
+			print '\t' * indent + '...'
+		ctr += 1
+		if isinstance(value, dict):
+			pretty(value, indent+1)
+		else:
+			print '\t' * (indent+1) + str(value)
+
+losses = [] 
+for k in loss_dic:       
+	losses.append(loss_dic[k])
+figure(10);hist(losses)
+
+
+for k in loss_dic:
+	if loss_dic[k]>0.1:
+		run_name,behavioral_mode,timestamp,run_code,seg_num,offset = k
+		if behavioral_mode == 'Direct_Arena_Potential_Field':
+			data = get_data_with_hdf5.get_data(run_code,seg_num,offset,N_STEPS,offset+0,N_FRAMES,ignore=ignore,require_one=require_one)
+			mi(data['left'][0]);pause(1)
+

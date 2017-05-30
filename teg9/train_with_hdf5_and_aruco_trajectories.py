@@ -16,12 +16,12 @@ print_timer = Timer(5)
 if True:
 	MODEL = 'z2_color'
 	print(MODEL)
-	bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017' #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
-	#weights_file_path =  most_recent_file_in_folder(opjD(fname(opjh(REPO,CAF,MODEL))))
-	weights_file_path = opjh('caffe_models/z2_color.caffemodel')
+	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
+	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
-	gpu = 1
+	gpu = 0
 
 if False:
 	MODEL = 'z2_color_small_ip1'
@@ -55,7 +55,9 @@ if False:
 
 
 
-
+"""
+def sample_dic:
+"""
 
 
 
@@ -77,19 +79,21 @@ if False:
 				timestamps = ast[run_name][mode]['near_t']
 				steer = ast[run_name][mode]['steer']
 				assert(len(timestamps) == len(steer))
-				Aruco_Steering_Trajectories[run_name][mode]['timestamps'] = timestamps
-				Aruco_Steering_Trajectories[run_name][mode]['steer'] = steer
-
+				Aruco_Steering_Trajectories[run_name][mode]['new_steer'] = {}
+				for t,s in zip(timestamps,steer):
+					Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t] = s
 	for run_name in Aruco_Steering_Trajectories.keys():
+		if 'flip_' in run_name:
+			del Aruco_Steering_Trajectories[run_name]
+			continue
 		flip = 'flip_'+run_name
 		Aruco_Steering_Trajectories[flip]= {}
 		for mode in Aruco_Steering_Trajectories[run_name]:
-			if mode not in Aruco_Steering_Trajectories[flip]:
-				Aruco_Steering_Trajectories[flip][mode] = {}
-			Aruco_Steering_Trajectories[flip][mode]['timestamps'] = Aruco_Steering_Trajectories[run_name][mode]['timestamps']
-			Aruco_Steering_Trajectories[flip][mode]['steer'] = list(99-array(Aruco_Steering_Trajectories[run_name][mode]['timestamps']))
-
-
+			#if mode not in Aruco_Steering_Trajectories[flip]:
+			Aruco_Steering_Trajectories[flip][mode] = {}
+			Aruco_Steering_Trajectories[flip][mode]['new_steer'] = {}
+			for t in Aruco_Steering_Trajectories[run_name][mode]['new_steer'].keys():
+				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
 if True:
@@ -179,14 +183,15 @@ def get_data_considering_high_low_steer():
 
 
 
-
-
+loss_dic = {}
+counter_dic = {}
+counts = 0
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	global ctr_low
 	global ctr_high
 	global low_steer
 	global high_steer
-
+	global counts
 	if ctr_low >= len_low_steer:
 		ctr_low = -1
 	if ctr_high >= len_high_steer:
@@ -217,18 +222,42 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	#print 'here!'
 	seg_num_str = str(seg_num)
 	aruco_matches = []
-	for i in range(N_FRAMES):
+	for i in [0]:#range(N_FRAMES):
 		timestamp = get_data_with_hdf5.Segment_Data['runs'][run_name]['segments'][seg_num_str]['left_timestamp'][offset+i]
-		behavioral_mode = 'Follow_Arena_Potential_Field'
+		behavioral_mode = np.random.choice(
+			['Direct_Arena_Potential_Field',
+ 			'Furtive_Arena_Potential_Field',
+ 			'Follow_Arena_Potential_Field',
+ 			'Play_Arena_Potential_Field'])
 		#print Aruco_Steering_Trajectories[run_name].keys()
 		#print run_name
-		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['timestamps']:
+		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'].keys():
 			aruco_matches.append(timestamp)
 		if len(aruco_matches) < 1:
 			return None
 	#print aruco_matches
 	data = get_data_with_hdf5.get_data(run_code,seg_num,offset,N_STEPS,offset+0,N_FRAMES,ignore=ignore,require_one=require_one)
+	if data != None:
+		data['states'][0] = 1
+		data['labels']['follow'] = False
+		data['labels']['direct'] = False
+		data['labels']['play'] = False
+		data['labels']['furtive'] = False
+		if behavioral_mode == 'Direct_Arena_Potential_Field':
+			data['labels']['direct'] = True
+		if behavioral_mode == 'Furtive_Arena_Potential_Field':
+			data['labels']['furtive'] = True
+		if behavioral_mode == 'Follow_Arena_Potential_Field':
+			data['labels']['follow'] = True
+		if behavioral_mode == 'Play_Arena_Potential_Field':
+			data['labels']['play'] = True
 
+		data['steer'] = array(data['steer'])*0.0 + Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'][timestamp]
+ 		data['id'] = (run_name,behavioral_mode,timestamp,run_code,seg_num,offset)
+		if data['id'] not in counter_dic:
+			counter_dic[data['id']] = 0
+ 		counter_dic[data['id']] += 1
+ 		counts += 1
 	return data
 
 
@@ -248,6 +277,7 @@ if DISPLAY:
 	figure('steer',figsize=(3,2))
 	figure('loss',figsize=(3,2))
 	figure('high low steer histograms',figsize=(2,1))
+	histogram_plot_there = True
 	clf()
 	plt.hist(array(low_steer)[:,2],bins=range(0,100))
 	plt.hist(array(high_steer)[:,2],bins=range(0,100))
@@ -261,52 +291,55 @@ while True:
 			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
 		Solver.put_data_into_model(data,Solver.solver,b)
 
-	Solver.solver.step(1)
-	if not DISPLAY:
-		if print_timer.check():
-			print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
-			print(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]))
-			print(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]))
-			print_timer.reset()
+	Solver.solver.step(1) # The training step. Everything below is for display.
 
-	if DISPLAY:
-		# The training step. Everything below is for display.
-		rate_ctr += 1
-		if rate_timer.check():
-			print(d2s('rate =',dp(rate_ctr/rate_timer_interval,2),'Hz'))
-			rate_timer.reset()
-			rate_ctr = 0
-		a = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
-		loss.append(np.sqrt(a * a).mean())
-		if len(loss) >= 10000/Solver.batch_size:
-			loss10000.append(array(loss[-10000:]).mean())
-			loss = []
+	rate_ctr += 1
+	if rate_timer.check():
+		print(d2s('rate =',dp(rate_ctr/rate_timer_interval,2),'Hz'))
+		rate_timer.reset()
+		rate_ctr = 0
+	the_loss = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
+	the_loss = np.sqrt(the_loss * the_loss).mean()
+	loss.append(the_loss)
+	loss_dic[data['id']] = the_loss
+
+	if len(loss) >= 10000/Solver.batch_size:
+		loss10000.append(array(loss[-10000:]).mean())
+		loss = []
+		if DISPLAY:
 			figure('loss');clf()
-			lm = min(len(loss10000),100)
+			lm = min(len(loss10000),300)
 			plot(loss10000[-lm:])
-			print(d2s('loss10000 =',loss10000[-1]))
-		if print_timer.check():
+			if histogram_plot_there:
+				plt.close('high low steer histograms')
+				histogram_plot_there = False
+		print(d2s('loss10000 =',loss10000[-1]))
+	if print_timer.check():
+		
+		print(data['name'])
+		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
 
-			print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
-
-			cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
-			cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
-			
-			figure('steer')
-			clf()
-			
+		if Solver.solver.net.blobs['metadata'].data[0,2,0,0] > 0:
+			print 'follow'
+		if Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0:
+			print 'direct'
+		if Solver.solver.net.blobs['metadata'].data[0,4,0,0] > 0:
+			print 'play'
+		if Solver.solver.net.blobs['metadata'].data[0,5,0,0] > 0:
+			print 'furtive'
+		print(d2s('len(counter_dic),counts',(len(counter_dic),counts)))
+		cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
+		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
+		
+		if DISPLAY:
+			figure('steer');clf()
 			t = Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
 			o = Solver.solver.net.blobs['ip2'].data[-1,:]
 			ylim(-0.05,1.05);xlim(0,len(t))
 			plot([-1,60],[0.49,0.49],'k');plot(o,'og'); plot(t,'or'); plt.title(data['name'])
-			
-			#print(shape(Solver.solver.net.blobs['steer_motor_target_data'].data))
-			#print Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
-			#print Solver.solver.net.blobs['ip2'].data[-1,:]
+			mi_or_cv2_animate(data['left'],delay=33);pause(0.001)
 
-			mi_or_cv2_animate(data['left'],delay=33)
-			pause(0.001)
-			print_timer.reset()
+		print_timer.reset()
 
 
 

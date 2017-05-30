@@ -1,17 +1,7 @@
 #!/usr/bin/env python
 
-
 import kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params as rp
-
-
-
-#from kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params import *
-#import aruco_code
 from kzpy3.utils import *
-print "get_ros_images_live2..."
-# aruco code
-#import aruco_code
-# aruco code
 import roslib
 import std_msgs.msg
 import geometry_msgs.msg
@@ -88,11 +78,6 @@ try:
 
 	steer_cmd_pub = rospy.Publisher('cmd/steer', std_msgs.msg.Int32, queue_size=100)
 	motor_cmd_pub = rospy.Publisher('cmd/motor', std_msgs.msg.Int32, queue_size=100)
-	### ARUCO ROS CODE
-	aruco_cmd_pub = rospy.Publisher('cmd/evasion_active', std_msgs.msg.Int32, queue_size=100)
-	### ARUCO ROS CODE
-	#freeze_cmd_pub = rospy.Publisher('cmd/freeze', std_msgs.msg.Int32, queue_size=100)
-	#model_name_pub = rospy.Publisher('/bair_car/model_name', std_msgs.msg.String, queue_size=10)
 
 
 
@@ -108,7 +93,6 @@ try:
 		
 		
 		if state in [3,5,6,7,10]:
-			print "HERE!!!!!!!!"
 			if rp.use_caffe:
 				if solver == None:
 					solver = setup_solver(rp.solver_file_path)
@@ -130,11 +114,6 @@ try:
 						l1 = left_list[-1]
 						r0 = right_list[-2]
 						r1 = right_list[-1]
-
-						"""
-						if use_aruco:
-							aruco_steer,aruco_motor,aruco_only = aruco_code.do_aruco(left_list[-1],steer,motor)
-						"""
 
 						solver.net.blobs['ZED_data'].data[0,0,:,:] = l0[:,:,0]
 						solver.net.blobs['ZED_data'].data[0,1,:,:] = l1[:,:,0]
@@ -161,27 +140,10 @@ try:
 						caf_steer = 100*solver.net.blobs['ip2'].data[0,9]
 						caf_motor = 100*solver.net.blobs['ip2'].data[0,19]
 
-						# Aruco Marker Code ->
-						#aruco_steer, aruco_motor, aruco_only = aruco_code.do_aruco(left_list[-1],caf_steer,caf_motor,rp.ar_params)
-						#if aruco_only:
-						#	caf_steer = aruco_steer
-						#	caf_motor = aruco_motor
-							# If the aruco module should override the motor and steering commands, 
-							# publish this to a ros publisher so the arduino can pick it up and
-							# read the caffe motor values
-						#	if state in [6,10]:
-						#		aruco_cmd_pub.publish(std_msgs.msg.Int32(1))
-						#else:
-						#	if state in [6,10]:
-						#		aruco_cmd_pub.publish(std_msgs.msg.Int32(0))
-						# <- Aruco Marker Code
-						#print("#####")
-						#print(aruco_only)
-						#print(aruco_steer)
-						#print(aruco_motor)
 
-						#caf_motor = int((caf_motor-49.) * motor_gain + 49)
-						#caf_steer = int((caf_steer-49.) * steer_gain + 49)
+
+						caf_motor = int((caf_motor-49.) * motor_gain + 49)
+						caf_steer = int((caf_steer-49.) * steer_gain + 49)
 
 						caf_steer = int((caf_steer+caf_steer_previous)/2.0)
 						caf_steer_previous = caf_steer
@@ -198,19 +160,13 @@ try:
 						if caf_steer < 0:
 							caf_steer = 0
 
-						print caf_steer
+
 
 						
 						if state in [3,6,10]:			
 							steer_cmd_pub.publish(std_msgs.msg.Int32(caf_steer))
 						if state in [6,7,10]:
 							motor_cmd_pub.publish(std_msgs.msg.Int32(caf_motor))
-
-						"""
-						aruco_steer_cmd_pub.publish(std_msgs.msg.Int32(aruco_steer))
-						aruco_motor_cmd_pub.publish(std_msgs.msg.Int32(aruco_motor))
-						aruco_only_cmd_pub.publish(std_msgs.msg.Int32(aruco_only))
-						"""
 
 
 
