@@ -176,7 +176,7 @@ class Collision_Scanner():
             smooth_factor = 10
             
             
-            while list_index <= len(own_trajectory):
+            while list_index < len(own_trajectory):
                 
                 # If the own trajectory at that position is None, that is the end or a gap
                 # in the own trajectory. We skip and increase the counter
@@ -189,13 +189,8 @@ class Collision_Scanner():
                 
                 # Calculate the heading based on values in the future or past, depending
                 # on whether we are close to the beginning or end of the trajectory
-                try:
-                    local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index:list_index + smooth_factor]]
-                except TypeError:
-                    try:
-                        local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index - smooth_factor:list_index]]
-                    except TypeError:
-                        print "SCHSIT"
+                local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index:list_index + smooth_factor] if own_xy != None]
+                
                 
                 heading = get_heading(local_own_xys)
                 own_fov = self.get_fov_triangle(local_own_xys[0], heading, fov_angle, distance)
