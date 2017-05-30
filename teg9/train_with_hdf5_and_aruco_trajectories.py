@@ -11,7 +11,7 @@ ignore = ['reject_run','left','out1_in2','Smyth','racing','local','Tilden','camp
 require_one = ['aruco_ring'] # at least one of this type of run lable is required
 use_states = [1,3,5,6,7]
 rate_timer_interval = 5.
-print_timer = Timer(5)
+print_timer = Timer(10)
 
 if True:
 	MODEL = 'z2_color'
@@ -21,7 +21,7 @@ if True:
 	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
-	gpu = 0
+	gpu = 1
 
 if False:
 	MODEL = 'z2_color_small_ip1'
@@ -62,7 +62,7 @@ def sample_dic:
 
 
 
-if True:
+if False:
 	CS_('load aruco trajectory data')
 	Aruco_Steering_Trajectories = {}
 	aruco_data_location = opjD('output_data')
@@ -96,13 +96,14 @@ if True:
 				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
-if False:
+if True:
 	print("Loading Aruco_Steering_Trajectories . . .")
 	Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories.pkl'))
+	#Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories_26May2017.pkl'))
 
 
 
-if True:
+if False:
 	loss_dic = lo(opjD('loss_dic'))
 	high_loss_dic = {}
 	for k in loss_dic.keys():
@@ -189,11 +190,12 @@ def get_data_considering_high_low_steer():
 
 
 
-#loss_dic = {}
+loss_dic = {}
 counter_dic = {}
 counts = 0
-high_loss_key_ctr = 200000
+high_loss_dic = {}
 high_loss_keys = []
+high_loss_key_ctr = 200000
 
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	global ctr_low
@@ -258,7 +260,9 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 		
 
 		#high_loss_key = random.choice(high_loss_dic.keys())
+		run_name = high_loss_key[0]
 		behavioral_mode = high_loss_key[1]
+		timestamp = high_loss_key[2]
 		run_code = high_loss_key[3]
 		seg_num = high_loss_key[4]
 		offset = high_loss_key[5]
@@ -333,7 +337,7 @@ while True:
 	else:
 		if data['id'] in high_loss_dic:
 			del high_loss_dic[data['id']]
-			print(d2s('removed',data['id'],'from high_loss_dic'))
+			#print(d2s('removed',data['id'],'from high_loss_dic'))
 	loss_dic[data['id']] = the_loss
 
 	if len(loss) >= 10000/Solver.batch_size:
@@ -347,7 +351,7 @@ while True:
 				plt.close('high low steer histograms')
 				histogram_plot_there = False
 		print(d2s('loss10000 =',loss10000[-1]))
-	if print_timer.check() and Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0: # and the_loss >= loss_threshold 
+	if print_timer.check() and Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0 and the_loss >= 0.1:#loss_threshold:
 		
 		print(data['name'])
 		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
