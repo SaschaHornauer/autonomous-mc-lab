@@ -152,10 +152,15 @@ d['c'] = 'C'
 dic_str = zdic_to_str(d,[-2]);print dic_str
 
 
-if False:
+if True:
 	figure('trajectories',figsize=(8,8))
 	N = lo(opjD('N'))
-	for i in range(len(zaccess(N,[1]).keys())):
+	TOP = {}
+	TOP['current_dic'] = N
+	def zac(alst):
+		return zaccess(TOP['current_dic'],alst)
+
+	for i in range(len(zac([1]).keys())):
 		x=zaccess(N,[1,i,1,1,2])
 		y=zaccess(N,[1,i,1,1,4])
 		clf();xylim(-5,5,-5,5)
