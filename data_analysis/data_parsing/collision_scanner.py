@@ -213,7 +213,7 @@ class Collision_Scanner():
                             continue
                         
                         if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
-                            encounters_cars_timesteps_xy[own_carname][other_carname].append({'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
+                            encounters_cars_timesteps_xy[own_carname][other_carname].append({'fov':own_fov,'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
     
                 list_index += 1
                 
@@ -223,8 +223,6 @@ if __name__ == '__main__':
     
     trajectories_path = sys.argv[1]
     trajectories_dict = pickle.load(open(trajectories_path, "rb"))
-
-    # print trajectories_dict['Mr_Black']['/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black']['self_trajectory']['left']['x']
 
     show_only_encounters = False
     plt.figure('top', figsize=(6, 6))
@@ -238,12 +236,14 @@ if __name__ == '__main__':
     
     own_xy = []
     other_xy = []
+    own_fov = []
     
     for own_carname in encounter_situations:
         for other_carname in encounter_situations[own_carname]:
             for entry in encounter_situations[own_carname][other_carname]:
                 own_xy.append(entry['own_xy'])
                 other_xy.append(entry['other_ts_xy'][1])
+                own_fov.append(entry['fov'])
 
     from_index = 0
     to_index = 100 
@@ -253,9 +253,19 @@ if __name__ == '__main__':
     plt.ion()
     for i in range(len(other_xy)):
         
+        fov_a = own_fov[i].a
+        fov_b = own_fov[i].b
+        fov_c = own_fov[i].c
+        
+        fov_plt_a = plt.plot([fov_a.x,fov_b.x], [fov_a.y,fov_b.y],'g-')
+        fov_plt_b = plt.plot([fov_b.x,fov_c.x], [fov_b.y,fov_c.y],'g-')
+        fov_plt_c = plt.plot([fov_c.x,fov_a.x], [fov_c.y,fov_a.y],'g-')
         old_pos_own = plt.plot(own_xy[i][0], own_xy[i][1],'ro')
         old_pos_other = plt.plot(other_xy[i][0], other_xy[i][1],'bo')
         plt.show()
         plt.pause(1/30.)
         old_pos_own.pop(0).remove()
         old_pos_other.pop(0).remove()
+        fov_plt_a.pop(0).remove()
+        fov_plt_b.pop(0).remove()
+        fov_plt_c.pop(0).remove()
