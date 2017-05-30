@@ -68,8 +68,7 @@ def get_boundary_angle_min_distance(cv_image, crop=False, max_distance_boundary=
             tvec = tvecs[i]
             
             R, _ = cv2.Rodrigues(rvec)
-            # cameraRotationVector,_ = cv2.Rodrigues(cv2.transpose(R))
-            # Maybe needed later
+
             cameraTranslationVector = np.dot(cv2.transpose(-R), cv2.transpose(tvec))
             
             angle = np.arctan2(cameraTranslationVector[2], cameraTranslationVector[0])
