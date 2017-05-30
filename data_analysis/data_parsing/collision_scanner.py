@@ -14,6 +14,7 @@ import sys
 from timeit import default_timer as timer
 
 
+
 distance = 8  # m
 fov_angle = 110.0  # deg
 
@@ -152,8 +153,11 @@ class Collision_Scanner():
         global fov_angle
         
         
-        encounters_cars_timesteps_xy = defaultdict(lambda: defaultdict(dict))
-        
+        encounters_cars_timesteps_xy = defaultdict(lambda: dict())
+        for own_carname in trajectories_dict:
+            for other_carname in trajectories_dict:
+                if own_carname != other_carname:
+                    encounters_cars_timesteps_xy[own_carname][other_carname] = []
             
         traj_list = Trajectory_List()
     
@@ -209,10 +213,11 @@ class Collision_Scanner():
                             continue
                         
                         if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
-                            encounters_cars_timesteps_xy[own_carname][other_carname] = other_xy
+                            encounters_cars_timesteps_xy[own_carname][other_carname].append({'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
     
                 list_index += 1
-
+                
+        return encounters_cars_timesteps_xy
     
 if __name__ == '__main__':
     
@@ -229,6 +234,7 @@ if __name__ == '__main__':
     
     # encounters_cars_timesteps_xy = defaultdict(lambda: defaultdict(dict))
     col_scanner = Collision_Scanner()
-    col_scanner.get_encounters(trajectories_dict)
-        
+    horray = col_scanner.get_encounters(trajectories_dict)
+    
+    print horray
         
