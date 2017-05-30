@@ -129,6 +129,7 @@ def Play_Arena_Potential_Field(origin,mult,markers):
 	d = 1/2.0
 	e = 0	
 	D['fill_in_potential_field'](a,b,c,d,e)
+	D['Image']['img'] *= 2.5
 	return D
 
 def Follow_Arena_Potential_Field(origin,mult,markers):
@@ -144,9 +145,10 @@ def Follow_Arena_Potential_Field(origin,mult,markers):
 	d = 1/2.0
 	e = 0.5
 	D['fill_in_potential_field'](a,b,c,d,e)
+	D['Image']['img'] *= 2.5
 	return D
 
-def Direct_Arena_Potential_Field(origin,mult,markers):
+def Direct_Arena_Potential_Field(origin,mult,markers,a=0.65):
 	D = Arena_Potential_Field(origin,mult,markers)
 	D['type'] = 'Direct_Arena_Potential_Field'
 	if False:

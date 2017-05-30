@@ -62,7 +62,7 @@ def sample_dic:
 
 
 
-if False:
+if True:
 	CS_('load aruco trajectory data')
 	Aruco_Steering_Trajectories = {}
 	aruco_data_location = opjD('output_data')
@@ -96,12 +96,18 @@ if False:
 				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
-if True:
+if False:
+	print("Loading Aruco_Steering_Trajectories . . .")
 	Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories.pkl'))
 
 
 
-
+if True:
+	loss_dic = lo(opjD('loss_dic'))
+	high_loss_dic = {}
+	for k in loss_dic.keys():
+		if loss_dic[k] >= 0.1:
+			high_loss_dic[k] = loss_dic[k]
 
 
 if gpu >= 0:
@@ -183,15 +189,21 @@ def get_data_considering_high_low_steer():
 
 
 
-loss_dic = {}
+#loss_dic = {}
 counter_dic = {}
 counts = 0
+high_loss_key_ctr = 200000
+high_loss_keys = []
+
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	global ctr_low
 	global ctr_high
 	global low_steer
 	global high_steer
 	global counts
+	global high_loss_key_ctr
+	global high_loss_keys
+
 	if ctr_low >= len_low_steer:
 		ctr_low = -1
 	if ctr_high >= len_high_steer:
@@ -236,6 +248,20 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 		if len(aruco_matches) < 1:
 			return None
 	#print aruco_matches
+	if len(high_loss_dic) > 10000 and random.random() < 0.5:
+		if high_loss_key_ctr >= 1000:
+			high_loss_key_ctr = 0
+			high_loss_keys = high_loss_dic.keys()
+			np.random.shuffle(high_loss_keys)
+		high_loss_key = high_loss_keys[high_loss_key_ctr]
+		high_loss_key_ctr += 1
+		
+
+		#high_loss_key = random.choice(high_loss_dic.keys())
+		behavioral_mode = high_loss_key[1]
+		run_code = high_loss_key[3]
+		seg_num = high_loss_key[4]
+		offset = high_loss_key[5]
 	data = get_data_with_hdf5.get_data(run_code,seg_num,offset,N_STEPS,offset+0,N_FRAMES,ignore=ignore,require_one=require_one)
 	if data != None:
 		data['states'][0] = 1
@@ -283,6 +309,7 @@ if DISPLAY:
 	plt.hist(array(high_steer)[:,2],bins=range(0,100))
 	figure(1)
 
+loss_threshold = 0.08
 while True:
 
 	for b in range(Solver.batch_size):
@@ -301,6 +328,12 @@ while True:
 	the_loss = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
 	the_loss = np.sqrt(the_loss * the_loss).mean()
 	loss.append(the_loss)
+	if the_loss >= loss_threshold:
+		high_loss_dic[data['id']] = the_loss
+	else:
+		if data['id'] in high_loss_dic:
+			del high_loss_dic[data['id']]
+			print(d2s('removed',data['id'],'from high_loss_dic'))
 	loss_dic[data['id']] = the_loss
 
 	if len(loss) >= 10000/Solver.batch_size:
@@ -314,7 +347,7 @@ while True:
 				plt.close('high low steer histograms')
 				histogram_plot_there = False
 		print(d2s('loss10000 =',loss10000[-1]))
-	if print_timer.check():
+	if print_timer.check() and Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0: # and the_loss >= loss_threshold 
 		
 		print(data['name'])
 		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])

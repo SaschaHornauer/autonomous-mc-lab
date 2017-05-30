@@ -10,17 +10,18 @@ import arena.planner.Cars as Cars
 #
 #bair_car_data_location = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
-bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+
+#bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
 bair_car_data_location = opjD('bair_car_data_new_28April2017')
 
 trajectory_data_location = opjD('N.pkl')
 
 angles = -arange(-45,46,9)
-view_angle = 30
+view_angle = 35
 
-DISPLAY_LEFT = False
-GRAPHICS = False
+DISPLAY_LEFT = True
+GRAPHICS = True
 
 markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 Origin = int(2*1000/300.*300 / 5)
@@ -116,8 +117,8 @@ def summarize_N_other_trajectories(N,car_name,run_name):
 
 		
 
-#heading_prev = 0
-#near_t_prev = 0
+heading_prev = 0
+near_t_prev = 0
 
 
 
@@ -135,10 +136,10 @@ if __name__ == "__main__":
 	#	the_arena = Potential_Fields.Direct_Arena_Potential_Field(Origin,Mult,markers)
 	#	mode = the_arena['type']
 		print("Creating arenas . . .")
-		the_arenas = [Potential_Fields.Direct_Arena_Potential_Field(Origin,Mult,markers),
-			Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers),
-			Potential_Fields.Follow_Arena_Potential_Field(Origin,Mult,markers),
-			Potential_Fields.Furtive_Arena_Potential_Field(Origin,Mult,markers)]
+		the_arenas = [Potential_Fields.Direct_Arena_Potential_Field(Origin,Mult,markers)]#,
+			#Potential_Fields.Follow_Arena_Potential_Field(Origin,Mult,markers),
+			#Potential_Fields.Furtive_Arena_Potential_Field(Origin,Mult,markers),
+			#Potential_Fields.Play_Arena_Potential_Field(Origin,Mult,markers)]
 
 	
 	#if 'INITALIZED' not in locals():
@@ -153,8 +154,6 @@ if __name__ == "__main__":
 
 	for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']: #cars.keys():
 		for run_name in cars[our_car]['runs'].keys():
-			#if run_name == 'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow':
-			#	continue
 			output_data = {}
 			output_name = opjD(run_name+'.output_data.pkl')
 			output_data[run_name] = {}
@@ -164,7 +163,7 @@ if __name__ == "__main__":
 				continue
 			else:
 				print("Working on: "+output_name)
-				#time.sleep(1)
+				time.sleep(1)
 			try:
 
 				print(d2n(our_car,'\n\t',run_name))
@@ -183,8 +182,7 @@ if __name__ == "__main__":
 
 
 
-				for the_arena_ctr in range(len(the_arenas)):
-					the_arena = the_arenas[the_arena_ctr]
+				for the_arena in the_arenas:
 					mode = the_arena['type']
 					print('mode = '+mode)
 
@@ -217,22 +215,6 @@ if __name__ == "__main__":
 					ctr_q = 0
 					t_prev = 0
 					for t in arange(T0+210,Tn,1/30.):
-						
-						
-						################
-						#
-						if the_arena_ctr in [0,3]:
-							if cars[our_car]['state_info']['relative_heading'] < 60:
-								the_arena = the_arenas[1]
-								#print "switch to Play"
-							else:
-								the_arena = the_arenas[the_arena_ctr]
-						#print((mode,the_arena_ctr,cars[our_car]['state_info']['relative_heading']))
-						#
-						################
-						
-
-
 						t_prev = t
 						if timer.check():
 							print(time_str('Pretty'))
@@ -302,7 +284,7 @@ if __name__ == "__main__":
 								output_data[run_name][mode]['real_steer'].append(real_steer)
 								output_data[run_name][mode]['near_t'].append(cars[our_car]['state_info']['near_t'])
 								output_data[run_name][mode]['near_i'].append(cars[our_car]['state_info']['near_i'])
-								"""
+
 								heading = cars[our_car]['state_info']['heading']
 								near_t = cars[our_car]['state_info']['near_t']
 								if near_t - near_t_prev < 0.1:
@@ -318,10 +300,9 @@ if __name__ == "__main__":
 
 								heading_prev = heading
 								near_t_prev = near_t
-								"""
-								#figure('heading',figsize=(3,3));clf();xylim(-2,2,-2,2);#;raw_input('here!')
+								figure('heading',figsize=(3,3));plt.title(d2s(dheading));clf();xylim(-2,2,-2,2);#;raw_input('here!')
 								#plot([0,heading[1]],[0,heading[0]],'r')
-								#plot([0,heading[1]],[0,-heading[0]],'g');pause(0.01)
+								plot([0,heading[1]],[0,-heading[0]],'g');pause(0.01)
 								
 
 								#plot([0,-heading[1]],[0,heading[0]],'b')
