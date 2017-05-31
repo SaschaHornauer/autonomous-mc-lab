@@ -18,13 +18,20 @@ def Car(N,car_name,origin,mult,markers):
 		D['runs'][run_name] = {}
 		R = D['runs'][run_name]
 		R['trajectory'] = N[car_name][run_name]['self_trajectory']
-		R['list_of_other_car_trajectories'] = []	
+		R['list_of_other_car_trajectories'] = []
+		"""
+			for ot in N[car_name][run_name]['other_trajectories']:
+				other_run_name = ot['run_name']
+				other_car_name = car_name_from_run_name(other_run_name)
+				R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
+		"""		
 		for other_run_name in N[car_name][run_name]['other_trajectories']:
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
 
 	def _rewind():
 		D['state_info'] = {}
+		#D['state_info']['positions'] = {}
 		D['state_info']['near_i'] = 0
 		D['state_info']['near_t'] = 0
 		D['state_info']['near_t_prev'] = 0
@@ -89,7 +96,7 @@ def Car(N,car_name,origin,mult,markers):
 			if D['state_info']['near_t'] - D['state_info']['near_t_prev'] < 0.1:
 				if np.degrees(angle_between(D['state_info']['heading'],D['state_info']['heading_prev'])) > 45:
 					#print_stars()
-					print('Heading warning!!!')
+					#print('Heading warning!!!')
 					#print_stars()
 					D['state_info']['heading'] = D['state_info']['heading_prev']
 			D['state_info']['relative_heading'] = (degrees(angle_between(D['state_info']['heading'],D['state_info']['pts'][-1])))
@@ -100,13 +107,41 @@ def Car(N,car_name,origin,mult,markers):
 		return D['state_info']['pts'][-1] #positions
 	D['report_camera_positions'] = _report_camera_positions
 
+	"""
+	def _report_camera_positions(run_name,t):
+		near_t,near_i = _valid_time_and_index(run_name,t)
+		if not near_t:
+			return False
+		traj = D['runs'][run_name]['trajectory']
+		positions = []
+		for side in ['left','right']:
+			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
+			D['state_info']['pts'].append(positions[0])
 
-	def _get_image(run_name,side):
+			if len(D['state_info']['pts']) >= D['n_for_heading']:
+				n = D['n_for_heading']
+				D['state_info']['heading'] = normalized_vector_from_pts(D['state_info']['pts'][-n:])
+				if D['state_info']['pts'][-n][0] > D['state_info']['pts'][-1][0]:
+					D['state_info']['heading'] *= -1
+			else:
+				D['state_info']['heading'] = None
+		return positions
+	D['report_camera_positions'] = _report_camera_positions
+	"""
+
+	def _get_left_image(run_name):
 		traj = D['runs'][run_name]['trajectory']
 		index = traj['data']['t_to_indx'][D['state_info']['near_t']]
-		img = traj['data'][side][index]
-		return img		
-	D['get_image'] = _get_image
+		img = traj['data']['left'][index]
+		return img
+	D['get_left_image'] = _get_left_image
+
+	def _get_right_image(run_name):
+		traj = D['runs'][run_name]['trajectory']
+		index = traj['data']['t_to_indx'][D['state_info']['near_t']]
+		img = traj['data']['right'][index]
+		return img
+	D['get_right_image'] = _get_right_image
 
 
 	def _load_image_and_meta_data(run_name,bair_car_data_location):
