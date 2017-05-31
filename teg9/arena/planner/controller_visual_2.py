@@ -12,6 +12,8 @@ import arena.planner.Cars as Cars
 #bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
 bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+#bair_car_data_location = opjD('bair_car_data_new_28April2017')
+
 trajectory_data_location = opjD('N.pkl')
 for p in [bair_car_data_location,trajectory_data_location]:
 	assert(len(gg(p))) > 0
@@ -114,16 +116,6 @@ def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
 	return angle_to_other,distance_to_other,in_view
 
 
-"""
-def objects_to_angle_distance_representation_car(reference_angles,other_angle_distance_list):
-	m = array(reference_angles)*0.0
-	for object_angle,object_distance in other_angle_distance_list:
-		indx = find_index_of_closest(object_angle,reference_angles)
-		if m[indx] < 1/object_distance:
-			m[indx] = 1/object_distance
-	return m
-"""
-
 
 def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list):
 	m = array(reference_angles)*0.0
@@ -150,6 +142,8 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 
 	for run_name in cars[our_car]['runs'].keys():
 
+		velocity = (cars[our_car]['runs'][run_name]['trajectory']['left']['t_vel']+cars[our_car]['runs'][run_name]['trajectory']['right']['t_vel'])/2.0
+		#velocity = mean_exclude_outliers(velocity,15,1/3.0,2/3.0)
 		output_data = {}
 
 		output_name = opjD(run_name+'.output_data.pkl')
@@ -162,12 +156,12 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 		else:
 			print(output_name+" does not exist, processing it now.")
 
-		for the_arena_type in ['Follow_Arena_Potential_Field']:
+		for the_arena_type in ['Direct_Arena_Potential_Field']:
 			the_arena = the_arenas[the_arena_type]
 			mode = the_arena['type']
 			print('mode = '+mode)
 
-			if True:#try:
+			try:
 
 				print(d2n(our_car,'\n\t',run_name))
 				zaccess(N[our_car][run_name],[0]);
@@ -205,7 +199,10 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 				output_data[run_name][mode]['real_motor'] = []
 				output_data[run_name][mode]['near_t'] = []
 				output_data[run_name][mode]['near_i'] = []
-				output_data[run_name][mode]['other_cars_in_view'] = False
+				output_data[run_name][mode]['other_cars_in_view'] = []
+				output_data[run_name][mode]['other_car_inverse_distances'] = []
+				output_data[run_name][mode]['marker_inverse_distances'] = []
+				output_data[run_name][mode]['velocity'] = []
 
 				print_stars(2)
 
@@ -308,7 +305,7 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 
 
 						if no_cars_in_view:
-							continue
+							pass#continue
 
 						the_arena['other_cars'](other_cars_in_view_xy_list,mode,xy_our)
 						img = the_arena['Image']['img']
@@ -333,14 +330,18 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 										potential_values[indx] *= (dist-1)/8.0
 							steer = interpret_potential_values(potential_values)
 							real_steer = cars[our_car]['runs'][run_name]['trajectory']['data']['steer'][cars[our_car]['state_info']['near_i']]
-
+							vel = velocity[cars[our_car]['state_info']['near_i']]
+							n=objects_to_angle_distance_representation(view_angles,other_cars_in_view_angle_distance_list)
+							m=objects_to_angle_distance_representation(view_angles,markers_angle_distance_list)
 							output_data[run_name][mode]['sample_points'].append(sample_points)
 							output_data[run_name][mode]['potential_values'].append(potential_values)
 							output_data[run_name][mode]['steer'].append(steer)
 							output_data[run_name][mode]['real_steer'].append(real_steer)
 							output_data[run_name][mode]['near_t'].append(cars[our_car]['state_info']['near_t'])
 							output_data[run_name][mode]['near_i'].append(cars[our_car]['state_info']['near_i'])
-
+							output_data[run_name][mode]['velocity'].append(vel)
+							output_data[run_name][mode]['other_car_inverse_distances'].append(n)
+							output_data[run_name][mode]['marker_inverse_distances'].append(m)
 							if GRAPHICS:
 								
 								if ctr_q > 3:
@@ -352,7 +353,7 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 								ctr_q += 1
 								figure(9)
 								plot(potential_values,'r.-');xylim(0,10,0,1);
-								n=objects_to_angle_distance_representation(view_angles,other_cars_angle_distance_list)
+								n=objects_to_angle_distance_representation(view_angles,other_cars_in_view_angle_distance_list)
 								m=objects_to_angle_distance_representation(view_angles,markers_angle_distance_list)
 								figure(10)
 								plot(n,'r.-')
@@ -377,7 +378,7 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 									solver.net.forward()
 									steer = 100*solver.net.blobs['ip2'].data[0,9]
 								img = img_left.copy()
-								k = animate.prepare_and_show_or_return_frame(img=img,steer=steer,motor=None,state=6,delay=1,scale=2,color_mode=cv2.COLOR_RGB2BGR,window_title='network')
+								k = animate.prepare_and_show_or_return_frame(img=img,steer=steer,motor=20.0*vel+49,state=6,delay=1,scale=2,color_mode=cv2.COLOR_RGB2BGR,window_title='network')
 								img_left_previous = img_left
 								img_right_previous = img_right
 								if k == ord('q'):
@@ -385,7 +386,7 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 
 					else:
 						cars[our_car]['state_info']['pts'] = []
-			else: #except Exception as e:
+			except Exception as e:
 				print("********** Exception ***********************")
 				print(our_car,run_name)
 				print(e.message, e.args)						
