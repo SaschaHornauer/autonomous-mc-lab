@@ -19,7 +19,9 @@ for p in [bair_car_data_location,trajectory_data_location]:
 #######################################
 #
 angles = -arange(-45,46,9)
-view_angle = 32
+view_angle = 35
+view_angles = arange(-view_angle,view_angle+1,10)
+
 DISPLAY_LEFT = True
 GRAPHICS = True
 markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
@@ -101,13 +103,43 @@ def interpret_potential_values(potential_values):
 	return steer
 
 
+def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
+	in_view = False
+	angle_to_other = angle_clockwise(our_heading,array(xy_other)-array(xy_our))
+	if angle_to_other > 360-view_angle:
+		angle_to_other = angle_to_other-360
+	distance_to_other = length(xy_other-xy_our)
+	if angle_to_other > -view_angle and angle_to_other < view_angle:
+		in_view = True
+	return angle_to_other,distance_to_other,in_view
 
 
+"""
+def objects_to_angle_distance_representation_car(reference_angles,other_angle_distance_list):
+	m = array(reference_angles)*0.0
+	for object_angle,object_distance in other_angle_distance_list:
+		indx = find_index_of_closest(object_angle,reference_angles)
+		if m[indx] < 1/object_distance:
+			m[indx] = 1/object_distance
+	return m
+"""
 
 
-
-
-
+def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list):
+	m = array(reference_angles)*0.0
+	if len(reference_angles) > len(other_angle_distance_list):
+		for object_angle,object_distance in other_angle_distance_list:
+			indx = find_index_of_closest(object_angle,reference_angles)
+			if m[indx] < 1/object_distance:
+				m[indx] = 1/object_distance
+	else:
+		other_angle_distance_array = array(other_angle_distance_list)
+		other_angles = other_angle_distance_array[:,0]
+		other_distances = other_angle_distance_array[:,1]
+		for i in range(len(reference_angles)):
+			indx = find_index_of_closest(reference_angles[i],other_angles)
+			m[i] = 1/other_distances[indx]
+	return m
 
 
 
@@ -130,12 +162,12 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 		else:
 			print(output_name+" does not exist, processing it now.")
 
-		for the_arena_type in ['Direct_Arena_Potential_Field']:
+		for the_arena_type in ['Follow_Arena_Potential_Field']:
 			the_arena = the_arenas[the_arena_type]
 			mode = the_arena['type']
 			print('mode = '+mode)
 
-			try:
+			if True:#try:
 
 				print(d2n(our_car,'\n\t',run_name))
 				zaccess(N[our_car][run_name],[0]);
@@ -212,22 +244,55 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 						print(time_str('Pretty'))
 						timer.reset()
 
+
 					xy_our = cars[our_car]['report_camera_positions'](run_name,t)
-					other_cars_add_list = []
-					other_cars_point_list = []
+
+					other_cars_xy_list = []
+					other_cars_in_view_xy_list = []
 					other_cars_angle_distance_list = []
+					other_cars_in_view_angle_distance_list = []
+	
+					markers_xy_list = []
+					markers_angle_distance_list = []
+					markers_in_view_xy_list = []
+					markers_in_view_angle_distance_list = []
+
+					no_cars_in_view = True
+					no_markers_in_view = True
+
 					if len(xy_our) > 0:
-						xy_pix_our = the_arena['Image']['floats_to_pixels'](xy_our)
 						xy_our = array(xy_our)
 						our_heading = cars[our_car]['state_info']['heading']
-						no_cars_in_view = True
 						for l in list_of_other_car_trajectories:
 							other_car_name = l[0]
 							other_car_run_name = l[1]
 							xy_other = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
 							if len(xy_other) > 0:
-								other_cars_point_list.append(xy_other)
 								if our_heading != None:
+									angle_to_other,distance_to_other,in_view = relation_to_other_object(our_heading,xy_our,xy_other,view_angle)
+									other_cars_angle_distance_list.append([angle_to_other,distance_to_other])
+									other_cars_xy_list.append(xy_other)
+									other_cars_angle_distance_list.append([angle_to_other,distance_to_other])
+									if in_view:
+										no_cars_in_view = False
+										other_cars_in_view_angle_distance_list.append([angle_to_other,distance_to_other])
+										other_cars_in_view_xy_list.append(xy_other)
+						for xy_other in markers['xy']:
+							if len(xy_other) > 0:
+								if our_heading != None:
+									angle_to_other,distance_to_other,in_view = relation_to_other_object(our_heading,xy_our,xy_other,view_angle)
+									markers_angle_distance_list.append([angle_to_other,distance_to_other])
+									markers_xy_list.append(xy_other)
+									markers_angle_distance_list.append([angle_to_other,distance_to_other])
+									markers_xy_list.append(xy_other)
+									if in_view:
+										no_markers_in_view = False
+										markers_in_view_angle_distance_list.append([angle_to_other,distance_to_other])
+										markers_in_view_xy_list.append(xy_other)
+
+
+
+									"""
 									angle_to_other_car = angle_clockwise(our_heading, array(xy_other)-xy_our)
 									if angle_to_other_car > 360-view_angle:
 										angle_to_other_car = angle_to_other_car-360
@@ -235,23 +300,30 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 									
 									if angle_to_other_car > -view_angle and angle_to_other_car < view_angle: 
 										other_cars_angle_distance_list.append([angle_to_other_car,distance_to_other_car])
-										other_cars_add_list.append(xy_other)
+										other_cars_in_view_xy_list.append(xy_other)
 										no_cars_in_view = False
+									"""
+
+
+
+
 						if no_cars_in_view:
 							continue
 
-						the_arena['other_cars'](other_cars_add_list,mode,xy_our)
+						the_arena['other_cars'](other_cars_in_view_xy_list,mode,xy_our)
 						img = the_arena['Image']['img']
 						width = shape(img)[0]
 						origin = Origin
 
 						if GRAPHICS:
 							mi(img,1)
-							the_arena['Image']['plot_pts'](other_cars_point_list,'b')
+							the_arena['Image']['plot_pts'](markers_in_view_xy_list,'c')
+							the_arena['Image']['plot_pts'](other_cars_xy_list,'b')
 							the_arena['Image']['plot_pts'](xy_our,'r')
 							pause(0.000001)
-						if len(other_cars_add_list) > 0:
-							other_cars_add_list = array(other_cars_add_list)
+
+						#if len(other_cars_in_view_xy_list) > 0:
+						#	other_cars_in_view_xy_list = array(other_cars_in_view_xy_list)
 						if cars[our_car]['state_info']['heading'] != None:
 							sample_points,potential_values = get_sample_points(array(cars[our_car]['state_info']['pts']),angles,the_arena,cars[our_car]['state_info']['heading'])
 							if mode == 'Follow_Arena_Potential_Field':
@@ -270,12 +342,23 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 							output_data[run_name][mode]['near_i'].append(cars[our_car]['state_info']['near_i'])
 
 							if GRAPHICS:
-								figure(9)
-								if ctr_q > 1:
+								
+								if ctr_q > 3:
+									figure(9)
+									clf()
+									figure(10)
 									clf()
 									ctr_q = 0
-								plot(potential_values,'r.-');xylim(0,10,0,1);
 								ctr_q += 1
+								figure(9)
+								plot(potential_values,'r.-');xylim(0,10,0,1);
+								n=objects_to_angle_distance_representation(view_angles,other_cars_angle_distance_list)
+								m=objects_to_angle_distance_representation(view_angles,markers_angle_distance_list)
+								figure(10)
+								plot(n,'r.-')
+								plot(m,'b.-')
+								pause(0.0001)
+								
 								img_left = cars[our_car]['get_image'](run_name,'left')
 								img_right = cars[our_car]['get_image'](run_name,'right')
 								img = img_left.copy()
@@ -302,7 +385,7 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 
 					else:
 						cars[our_car]['state_info']['pts'] = []
-			except Exception as e:
+			else: #except Exception as e:
 				print("********** Exception ***********************")
 				print(our_car,run_name)
 				print(e.message, e.args)						

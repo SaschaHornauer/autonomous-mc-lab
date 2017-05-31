@@ -472,6 +472,7 @@ def pt_plot(xy,color='r'):
     plot(xy[0],xy[1],color+'.')
 
 def pts_plot(xys,color='r'):
+    assert(len(color)==1)
     x = xys[:,0]
     y = xys[:,1]
     plot(x,y,color+'.')
