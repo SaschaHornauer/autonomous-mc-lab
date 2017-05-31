@@ -136,18 +136,26 @@ def Car(N,car_name,origin,mult,markers):
 		return img
 	D['get_left_image'] = _get_left_image
 
+	def _get_right_image(run_name):
+		traj = D['runs'][run_name]['trajectory']
+		index = traj['data']['t_to_indx'][D['state_info']['near_t']]
+		img = traj['data']['right'][index]
+		return img
+	D['get_right_image'] = _get_right_image
+
 
 	def _load_image_and_meta_data(run_name,bair_car_data_location):
 		import data.utils.general
-		import data.utils.multi_preprocess_pkl_files_1
+		import data.utils.multi_preprocess_pkl_files_1_1
 		bag_folders_dst_rgb1to4_path = opj(bair_car_data_location,'rgb_1to4')
 		bag_folders_dst_meta_path = opj(bair_car_data_location,'meta')
 		D['runs'][run_name]['trajectory']['data'] = data.utils.general.get_new_Data_dic()
-		data.utils.multi_preprocess_pkl_files_1.multi_preprocess_pkl_files(
+		data.utils.multi_preprocess_pkl_files_1_1.multi_preprocess_pkl_files(
 			D['runs'][run_name]['trajectory']['data'],
 				opj(bag_folders_dst_meta_path,run_name),
 				opj(bag_folders_dst_rgb1to4_path,run_name),
-				print_b=True)
+				print_b=True,
+				load_right_images=True)
 	D['load_image_and_meta_data'] = _load_image_and_meta_data
 
 

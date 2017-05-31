@@ -18,6 +18,7 @@ def get_new_Data_dic(_=None):
     D['motor'] = []
     D['images'] = []
     D['left'] = []
+    D['right'] = []
     D['meta'] = None
     D['color_mode'] = cv2.COLOR_RGB2BGR
     D['save_start_index'] = 0

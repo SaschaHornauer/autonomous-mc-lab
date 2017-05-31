@@ -50,7 +50,6 @@ solver.net.blobs['metadata'].data[0,3,:,:] = 1
 
 
 
-
 	
 """
 
@@ -85,7 +84,8 @@ def get_sample_points(pts,angles,pfield,heading):
         f = sample_points[k]
     for sp in sample_points:
     	if GRAPHICS:
-    		pfield['Image']['plot_pts'](array(sp)+array(pts[-1,:]),'g')
+    		pass
+    		#pfield['Image']['plot_pts'](array(sp)+array(pts[-1,:]),'g')
         pix = pfield['Image']['floats_to_pixels']([sp[0]+pts[-1,0],sp[1]+pts[-1,1]])
         potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
     return sample_points,potential_values
@@ -99,7 +99,7 @@ def interpret_potential_values(potential_values):
 	pmax = potential_values.max()
 	potential_values = z2o(potential_values) * pmax
 	if GRAPHICS:
-		figure(9);plot(potential_values,'bo-')
+		pass #figure(9);plot(potential_values,'bo-')
 	d = 99.0/(1.0*len(potential_values)-1)
 	steer_angles = np.floor(99-arange(0,100,d))
 	p = min(pmax/0.8,1.0)
@@ -140,7 +140,7 @@ def summarize_N_other_trajectories(N,car_name,run_name):
 
 #heading_prev = 0
 #near_t_prev = 0
-img_left_previous = False
+
 
 
 if __name__ == "__main__":
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 					cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location)
 				except Exception as e:
 					print("********** Exception *** cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location) ********************")
-					print(mode,our_car,run_name)
+					print(our_car,run_name)
 					print(e.message, e.args)
 
 
@@ -222,9 +222,11 @@ if __name__ == "__main__":
 					print_stars()
 					for car_name in cars:
 						cars[car_name]['rewind']()
-					if GRAPHICS:			
+					if GRAPHICS:
+						pass
+						"""		
 						plt.figure(1,figsize=(4,4));clf();ds = 5;xylim(-ds,ds,-ds,ds)
-
+						"""
 
 
 
@@ -297,9 +299,11 @@ if __name__ == "__main__":
 							width = shape(img)[0]
 							origin = Origin
 							if GRAPHICS:
+								"""
 								mi(img,1)
 								the_arena['Image']['plot_pts'](other_cars_point_list,'b')
 								the_arena['Image']['plot_pts'](xy_our,'r')
+								"""
 							if len(other_cars_add_list) > 0:
 								other_cars_add_list = array(other_cars_add_list)
 								#xy = other_cars_add_list*0
@@ -314,7 +318,7 @@ if __name__ == "__main__":
 										if dist > 1:
 											potential_values[indx] *= (dist-1)/8.0
 								steer = interpret_potential_values(potential_values)
-								real_steer = cars[our_car]['runs'][run_name]['trajectory']['data']['steer'][cars[our_car]['state_info']['near_i']]
+								real_steer=49#real_steer = cars[our_car]['runs'][run_name]['trajectory']['data']['steer'][cars[our_car]['state_info']['near_i']]
 
 								output_data[run_name][mode]['sample_points'].append(sample_points)
 								output_data[run_name][mode]['potential_values'].append(potential_values)
@@ -346,12 +350,15 @@ if __name__ == "__main__":
 
 								#plot([0,-heading[1]],[0,heading[0]],'b')
 								if GRAPHICS:
+									"""
 									figure(9)
 									if ctr_q > 1:
 										clf()
 										ctr_q = 0
 									plot(potential_values,'r.-');xylim(0,10,0,1);
 									ctr_q += 1
+									"""
+									#img = cars[our_car]['get_left_image'](run_name).copy()
 									img_left = cars[our_car]['get_left_image'](run_name)
 									img_right = cars[our_car]['get_right_image'](run_name)
 									img = img_left.copy()
@@ -365,7 +372,7 @@ if __name__ == "__main__":
 										for c in range(3):
 											for camera in ['left','right']:
 												for t in range(2):
-													solver.net.blobs['ZED_data_pool2'].data[0,ctr,:,:] = imgs[camera][t][:,:,c]
+													solver.net.blobs['ZED_data_pool2'].data[0,ctr,:,:] = imgs[camera][:,:,c]
 													ctr += 1
 										solver.net.forward()
 										steer = 100*solver.net.blobs['ip2'].data[0,9]
@@ -377,6 +384,7 @@ if __name__ == "__main__":
 									#k = animate.prepare_and_show_or_return_frame(img=img,steer=real_steer,motor=None,state=6,delay=1,scale=2,color_mode=cv2.COLOR_RGB2BGR,window_title='real')
 									if k == ord('q'):
 										break
+									
 
 						else:
 							cars[our_car]['state_info']['pts'] = []
@@ -399,6 +407,7 @@ def replay_potential_values(pv):
 			ctr = 0
 		plot(p,'r.-');xylim(0,9,0,2);pause(0.01)
 		ctr += 1
+
 
 
 
