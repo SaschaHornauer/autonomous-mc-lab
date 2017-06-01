@@ -194,17 +194,6 @@ for i in range(len(May24_e)):
     May24_e[i] = opj(May24_e[i],'processed')
 
 
-
-
-
-
-
-
-
-
-
-
-
 May24_f = ['/media/karlzipser/bair_car_data_14/Mr_Yellow_Fern_15April2017/new',
     '/media/karlzipser/bair_car_data_14/Mr_Yellow_28April2017/new',
     '/media/karlzipser/bair_car_data_14/Mr_Yellow_25April2017/new',
@@ -224,9 +213,6 @@ May24_f = ['/media/karlzipser/bair_car_data_14/Mr_Yellow_Fern_15April2017/new',
     '/media/karlzipser/bair_car_data_14/Mr_Orange_15April2017/new']
 
 
-
-
-
 May24_g = ['/media/karlzipser/bdd_data_11a/Mr_Yellow_Fern_11April2017/processed',
 '/media/karlzipser/bdd_data_11a/Mr_Yellow_30April2017/new',
 '/media/karlzipser/bdd_data_11a/Mr_Yellow_14May2017/processed',
@@ -239,6 +225,9 @@ May24_g = ['/media/karlzipser/bdd_data_11a/Mr_Yellow_Fern_11April2017/processed'
 '/media/karlzipser/bdd_data_11a/Mr_Black_30April2017/new']
 
 
+May28 = ['/media/karlzipser/ExtraDrive4/Mr_Yellow_27May2017/processed',
+    '/media/karlzipser/ExtraDrive2/Mr_Orange_27May2017/processed',
+    '/media/karlzipser/ExtraDrive1/Mr_Black_27May2017']
 
 
 
@@ -248,11 +237,9 @@ May24_g = ['/media/karlzipser/bdd_data_11a/Mr_Yellow_Fern_11April2017/processed'
 
 
 
-
-
-if False:
+if True:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
-    multi_process_bag_folders(May24_g,meta_path,100)
+    multi_process_bag_folders(May28,meta_path,100)
 
 
 

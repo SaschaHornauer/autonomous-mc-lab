@@ -10,9 +10,9 @@ import arena.planner.Cars as Cars
 #
 #bair_car_data_location = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
-bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+#bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
-#bair_car_data_location = opjD('bair_car_data_new_28April2017')
+bair_car_data_location = opjD('bair_car_data_new_28April2017')
 
 trajectory_data_location = opjD('N.pkl')
 for p in [bair_car_data_location,trajectory_data_location]:
@@ -24,8 +24,8 @@ angles = -arange(-45,46,9)
 view_angle = 35
 view_angles = arange(-view_angle,view_angle+1,10)
 
-DISPLAY_LEFT = True
-GRAPHICS = True
+DISPLAY_LEFT = False
+GRAPHICS = False
 markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 Origin = int(2*1000/300.*300 / 5)
 Mult = 1000/300.*50 / 5
@@ -56,11 +56,11 @@ for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 
 #######################################
 #
-USE_CAFFE = True
+USE_CAFFE = False
 if USE_CAFFE:
 	import caf8.protos as protos
 	solver = protos.setup_solver(opjh('kzpy3/caf8/z2_color_aruco/solver.prototxt'))
-	solver.net.copy_from('/Users/karlzipser/caffe_models/z2_color_aruco_potential_May2017/z2_color_iter_6500000.caffemodel')
+	solver.net.copy_from('/home/karlzipser/caffe_models/z2_color_aruco_potential_May2017/z2_color_iter_6500000.caffemodel')
 	#solver.net.copy_from('/Users/karlzipser/caffe_models/z2_color/z2_color.caffemodel')
 	img_left_previous = False
 #
@@ -138,15 +138,17 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 
 
 
-for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
+for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 
 	for run_name in cars[our_car]['runs'].keys():
-
+		if len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5: #'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow' in run_name:
+			print("len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5")
+			continue
 		velocity = (cars[our_car]['runs'][run_name]['trajectory']['left']['t_vel']+cars[our_car]['runs'][run_name]['trajectory']['right']['t_vel'])/2.0
 		#velocity = mean_exclude_outliers(velocity,15,1/3.0,2/3.0)
 		output_data = {}
 
-		output_name = opjD(run_name+'.output_data.pkl')
+		output_name = opjD('output_data',run_name+'.output_data.pkl')
 
 		output_data[run_name] = {}
 
@@ -226,13 +228,15 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 					
 					################
 					#
+					"""
 					if mode in ['Direct_Arena_Potential_Field','Furtive_Arena_Potential_Field']:
 						if cars[our_car]['state_info']['relative_heading'] < 60:
 							the_arena = the_arenas['Play_Arena_Potential_Field']
-							print "switch to Play"
+							#print "switch to Play"
 						else:
 							the_arena = the_arenas[mode]
 					#	print((mode,the_arena_ctr,cars[our_car]['state_info']['relative_heading']))
+					"""
 					#
 					################
 					
@@ -391,9 +395,9 @@ for our_car in ['Mr_Black','Mr_Blue','Mr_Silver','Mr_Yellow','Mr_Orange']:
 				print(our_car,run_name)
 				print(e.message, e.args)						
 
-	so(output_data,output_name)
-	print('saved '+output_name)
-	print(output_data[run_name].keys())
-	print_stars()
+		so(output_data,output_name)
+		print('saved '+output_name)
+		print(output_data[run_name].keys())
+		print_stars()
 
 

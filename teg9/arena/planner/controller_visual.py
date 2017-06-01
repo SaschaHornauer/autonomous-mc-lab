@@ -175,6 +175,8 @@ if __name__ == "__main__":
 
 	for our_car in ['Mr_Blue','Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange']: #cars.keys():
 		for run_name in cars[our_car]['runs'].keys():
+			if run_name = 'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow':
+				continue
 			output_data = {}
 			output_name = opjD(run_name+'.output_data.pkl')
 			output_data[run_name] = {}

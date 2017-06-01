@@ -13,7 +13,7 @@ use_states = [1,3,5,6,7]
 rate_timer_interval = 5.
 print_timer = Timer(10)
 
-if True:
+if False:
 	MODEL = 'z2_color'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
@@ -23,7 +23,7 @@ if True:
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
 
-if False:
+if True:
 	MODEL = 'z2_color_aruco'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
@@ -119,6 +119,9 @@ if False:
 			#if mode not in Aruco_Steering_Trajectories[flip]:
 			Aruco_Steering_Trajectories[flip][mode] = {}
 			Aruco_Steering_Trajectories[flip][mode]['new_steer'] = {}
+			Aruco_Steering_Trajectories[flip][mode]['velocity'] = {}
+			Aruco_Steering_Trajectories[flip][mode]['other_car_inverse_distances'] = {}
+			Aruco_Steering_Trajectories[flip][mode]['marker_inverse_distances'] = {}
 			for t in Aruco_Steering_Trajectories[run_name][mode]['new_steer'].keys():
 				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
 				Aruco_Steering_Trajectories[flip][mode]['velocity'][t] = Aruco_Steering_Trajectories[run_name][mode]['velocity'][t]
@@ -323,9 +326,9 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 			counter_dic[data['id']] = 0
  		counter_dic[data['id']] += 1
  		counts += 1
-	data['target_cars'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['target_cars'][timestamp]
-	data['target_markers'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['target_markers'][timestamp]
-	data['target_velocity'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['target_velocity'][timestamp]
+		data['target_cars'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['other_car_inverse_distances'][timestamp]
+		data['target_markers'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['marker_inverse_distances'][timestamp]
+		data['target_velocity'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['velocity'][timestamp]
 	return data
 
 
@@ -352,6 +355,9 @@ if DISPLAY:
 	figure(1)
 
 loss_threshold = 0.08
+velocity_data = []
+velocity_data_timer = Timer(60)
+even_ctr = 0
 while True:
 
 	for b in range(Solver.batch_size):
@@ -359,7 +365,13 @@ while True:
 		while data == None:
 			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
 		Solver.put_data_into_model(data,Solver.solver,b)
-
+	if Solver.solver.net.blobs['target_cars'].data[-1,:].max() == 0:
+		if even_ctr == 0:
+			continue
+		else:
+			even_ctr = 0
+	else:
+		even_ctr += 1
 	Solver.solver.step(1) # The training step. Everything below is for display.
 
 	rate_ctr += 1
@@ -389,7 +401,10 @@ while True:
 				plt.close('high low steer histograms')
 				histogram_plot_there = False
 		print(d2s('loss10000 =',loss10000[-1]))
-	if print_timer.check():# and Solver.solver.net.blobs['metadata'].data[0,2,0,0] > 0 and the_loss > 0.1:#loss_threshold:
+	velocity_data.append([Solver.solver.net.blobs['target_velocity'].data[-1,0], Solver.solver.net.blobs['ip_velocity'].data[-1,0]])
+
+
+	if print_timer.check():#Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0 and the_loss > 0.1:#loss_threshold:
 		
 		print(data['name'])
 		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
@@ -405,18 +420,29 @@ while True:
 		print(d2s('len(counter_dic),counts',(len(counter_dic),counts)))
 		cprint(array_to_int_list(Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:][:]),'green','on_red')
 		cprint(array_to_int_list(Solver.solver.net.blobs['ip2'].data[-1,:][:]),'red','on_green')
-		
+		velocity_data.append([Solver.solver.net.blobs['target_velocity'].data[-1,0], Solver.solver.net.blobs['ip_velocity'].data[-1,0]])
 		if DISPLAY:
-			figure('steer');clf()
-			t = Solver.solver.net.blobs['steer_motor_target_data'].data[-1,:]
-			o = Solver.solver.net.blobs['ip2'].data[-1,:]
-			ylim(-0.05,1.05);xlim(0,len(t))
-			plot([-1,60],[0.49,0.49],'k');plot(o,'og'); plot(t,'or'); plt.title(data['name'])
+			for plot_data in [['steer_motor_target_data','ip2'],
+				['target_markers','ip_markers'],['target_cars','ip_cars'],]:
+				figure(plot_data[0]);clf()
+				t = Solver.solver.net.blobs[plot_data[0]].data[-1,:]
+				o = Solver.solver.net.blobs[plot_data[1]].data[-1,:]
+				ylim(-0.05,2.05);xlim(-0.5,len(t)-0.5)
+				plot([-1,60],[0.49,0.49],'k');plot(o,'og'); plot(t,'or'); plt.title(data['name'])
+
 			mi_or_cv2_animate(data['left'],delay=33);pause(0.001)
 
 		print_timer.reset()
+	if velocity_data_timer.check():
+		figure('velocity data')
+		clf()
+		xylim(0,2,0,2)
+		v = array(velocity_data)
+		pts_plot(array(v))
+		plt.title(d2s('r =',dp(np.corrcoef(v[:,0],v[:,1])[0,1],3)))
 
-
+		if len(velocity_data) > 5000:
+			velocity_data = velocity_data[-2500:]
 
 
 
