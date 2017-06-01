@@ -89,10 +89,26 @@ if False:
 					Aruco_Steering_Trajectories[run_name][mode] = {}
 				timestamps = ast[run_name][mode]['near_t']
 				steer = ast[run_name][mode]['steer']
+				velocity = ast[run_name][mode]['velocity']
+				other_car_inverse_distances = ast[run_name][mode]['other_car_inverse_distances']
+				marker_inverse_distances = ast[run_name][mode]['marker_inverse_distances']				
 				assert(len(timestamps) == len(steer))
+				assert(len(timestamps) == len(velocity))
+				assert(len(timestamps) == len(other_car_inverse_distances))
+				assert(len(timestamps) == len(marker_inverse_distances))
 				Aruco_Steering_Trajectories[run_name][mode]['new_steer'] = {}
 				for t,s in zip(timestamps,steer):
 					Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t] = s
+				Aruco_Steering_Trajectories[run_name][mode]['velocity'] = {}
+				for t,s in zip(timestamps,velocity):
+					Aruco_Steering_Trajectories[run_name][mode]['velocity'][t] = s
+				Aruco_Steering_Trajectories[run_name][mode]['other_car_inverse_distances'] = {}
+				for t,s in zip(timestamps,other_car_inverse_distances):
+					Aruco_Steering_Trajectories[run_name][mode]['other_car_inverse_distances'][t] = s
+				Aruco_Steering_Trajectories[run_name][mode]['marker_inverse_distances'] = {}
+				for t,s in zip(timestamps,marker_inverse_distances):
+					Aruco_Steering_Trajectories[run_name][mode]['marker_inverse_distances'][t] = s
+
 	for run_name in Aruco_Steering_Trajectories.keys():
 		if 'flip_' in run_name:
 			del Aruco_Steering_Trajectories[run_name]
@@ -105,6 +121,14 @@ if False:
 			Aruco_Steering_Trajectories[flip][mode]['new_steer'] = {}
 			for t in Aruco_Steering_Trajectories[run_name][mode]['new_steer'].keys():
 				Aruco_Steering_Trajectories[flip][mode]['new_steer'][t] = 99-Aruco_Steering_Trajectories[run_name][mode]['new_steer'][t]
+				Aruco_Steering_Trajectories[flip][mode]['velocity'][t] = Aruco_Steering_Trajectories[run_name][mode]['velocity'][t]
+				l = list(Aruco_Steering_Trajectories[run_name][mode]['other_car_inverse_distances'][t])
+				l.reverse()
+				Aruco_Steering_Trajectories[flip][mode]['other_car_inverse_distances'][t] = l
+				l = list(Aruco_Steering_Trajectories[run_name][mode]['marker_inverse_distances'][t])
+				l.reverse()
+				Aruco_Steering_Trajectories[flip][mode]['marker_inverse_distances'][t] = l
+
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
 if True:
@@ -250,10 +274,10 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	for i in [0]:#range(N_FRAMES):
 		timestamp = get_data_with_hdf5.Segment_Data['runs'][run_name]['segments'][seg_num_str]['left_timestamp'][offset+i]
 		behavioral_mode = np.random.choice(
-			['Direct_Arena_Potential_Field',
- 			'Furtive_Arena_Potential_Field',
- 			'Follow_Arena_Potential_Field',
- 			'Play_Arena_Potential_Field'])
+			['Direct_Arena_Potential_Field'])#,
+ 			#'Furtive_Arena_Potential_Field',
+ 			#'Follow_Arena_Potential_Field',
+ 			#'Play_Arena_Potential_Field'])
 		#print Aruco_Steering_Trajectories[run_name].keys()
 		#print run_name
 		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'].keys():
@@ -299,6 +323,9 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 			counter_dic[data['id']] = 0
  		counter_dic[data['id']] += 1
  		counts += 1
+	data['target_cars'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['target_cars'][timestamp]
+	data['target_markers'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['target_markers'][timestamp]
+	data['target_velocity'] = Aruco_Steering_Trajectories[run_name][behavioral_mode]['target_velocity'][timestamp]
 	return data
 
 

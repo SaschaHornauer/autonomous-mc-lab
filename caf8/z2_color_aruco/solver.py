@@ -19,22 +19,12 @@ train_val_lst = [d2s('#',model_path),d2s('#',time_str('Pretty'))]
 train_val_lst += [
 	d2s('#',model_path),
 	d2s('#',time_str('Pretty')),
-"""
-layer {
-	name: 'ZED_data_pool2'
-	type: 'Input'
-	top: 'ZED_data_pool2'
-	top: 'steer_motor_target_data'
-	top: 'potential_target_data'
-	input_param {
-		shape: {dim: """+str(batch_size)+""" dim: 12 dim: 94 dim: 168}
-		shape: {dim: """+str(batch_size)+""" dim: 20}
-		shape: {dim: """+str(batch_size)+""" dim: 12}
-	}
-}""",
-	#protos.dummy('steer_motor_target_data',(batch_size,20)),
+	protos.dummy('target_cars',(batch_size,8)),
+	protos.dummy('target_markers',(batch_size,8)),
+	protos.dummy('target_velocity',(batch_size,1)),
+	protos.dummy('steer_motor_target_data',(batch_size,20)),
 	protos.dummy('metadata',(batch_size,6,14,26)),
-	#protos.dummy('ZED_data_pool2',(batch_size,12,94,168)),
+	protos.dummy('ZED_data_pool2',(batch_size,12,94,168)),
 	protos.scale('ZED_data_pool2_scale','ZED_data_pool2',0.003921,-0.5),
 
 	protos.conv("conv1",'ZED_data_pool2_scale',96,1,11,3,0,"gaussian",std='0.00001'),
@@ -52,8 +42,12 @@ layer {
 
 	protos.ip("ip2","ip1",20,"xavier",std=0),
 	protos.euclidean("euclidean","steer_motor_target_data","ip2"),
-	protos.ip("ip3","ip1",12,"xavier",std=0),
-	protos.euclidean("euclidean3","potential_target_data","ip3")
+	protos.ip("ip_cars","ip1",8,"xavier",std=0),
+	protos.euclidean("euclidean_cars","target_cars","ip_cars"),
+	protos.ip("ip_markers","ip1",8,"xavier",std=0),
+	protos.euclidean("euclidean_markers","target_markers","ip_markers"),
+	protos.ip("ip_velocity","ip1",1,"xavier",std=0),
+	protos.euclidean("euclidean_velocity","target_velocity","ip_velocity")
 ]
 
 
@@ -130,6 +124,11 @@ def put_data_into_model(data,solver,b=0):
 	solver.net.blobs['metadata'].data[b,3,:,:] = Direct
 	solver.net.blobs['metadata'].data[b,4,:,:] = Play
 	solver.net.blobs['metadata'].data[b,5,:,:] = Furtive
+
+	solver.net.blobs['target_cars'].data[b,:] = data['target_cars']
+	solver.net.blobs['target_markers'].data[b,:] = data['target_markers']
+	solver.net.blobs['target_velocity'].data[b,:] = data['target_velocity']
+
 
 	solver.net.blobs['steer_motor_target_data'].data[b,:10] = data['steer'][-10:]/99.
 	solver.net.blobs['steer_motor_target_data'].data[b,10:] = data['motor'][-10:]/99.
