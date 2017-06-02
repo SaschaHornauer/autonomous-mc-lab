@@ -45,12 +45,20 @@ motor_gain = 1.0
 acc2rd_threshold = 150
 
 PID_min_max = [1.5,2.5]
-
+"""
 gyro_freeze_threshold = 150
 acc_freeze_threshold_x = 7
 acc_freeze_threshold_y_max = 15
 acc_freeze_threshold_y_min = 0
 acc_freeze_threshold_z = 7
+motor_freeze_threshold = 55
+n_avg_IMU = 10
+"""
+gyro_freeze_threshold = 150
+acc_freeze_threshold_x = 14
+acc_freeze_threshold_y_max = 30
+acc_freeze_threshold_y_min = 0
+acc_freeze_threshold_z = 14
 motor_freeze_threshold = 55
 n_avg_IMU = 10
 #
