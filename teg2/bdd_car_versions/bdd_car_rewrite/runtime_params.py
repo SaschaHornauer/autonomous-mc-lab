@@ -69,8 +69,8 @@ n_avg_IMU = 10
 if computer_name == 'Mr_Orange':
 	#PID_min_max = [2.,3.]
 	#motor_gain = 1.0
-	Direct = 0.
-	Follow = 1.
+	Direct = 1.
+	Follow = 0.
 	Play = 0.
 	Furtive = 0.
 	pass
