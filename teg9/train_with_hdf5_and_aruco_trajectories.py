@@ -374,10 +374,9 @@ while True:
 		Solver.put_data_into_model(data,Solver.solver,b)
 	
 	if Solver.solver.net.blobs['target_cars'].data[-1,:].max() == 0:
-		continue
 		if even_ctr == 0:
 			continue
-		elif even_ctr > 1:
+		elif even_ctr > 10:
 			even_ctr = 0
 	else:
 		even_ctr += 1
