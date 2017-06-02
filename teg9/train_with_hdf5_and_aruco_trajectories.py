@@ -83,6 +83,9 @@ if False:
 			print(run_name)
 			if run_name not in Aruco_Steering_Trajectories:
 				Aruco_Steering_Trajectories[run_name] = {}
+			if len(ast[run_name].keys()) != 4:
+				print_stars()
+				continue
 			for mode in ast[run_name].keys():
 				print('\t'+mode)
 				if mode not in Aruco_Steering_Trajectories[run_name]:
@@ -164,7 +167,7 @@ if weights_file_path:
 	Solver.solver.net.copy_from(weights_file_path)
 else:
 	print(d2s("No weights loaded to",Solver.solver))
-time.sleep(5)
+time.sleep(0)
 
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
 hdf5_segment_metadata_path = opj(bair_car_data_path,'hdf5/segment_metadata')
@@ -270,6 +273,8 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	if run_name not in Aruco_Steering_Trajectories.keys():
 		#print('Run name '+run_name+' not in Aruco_Steering_Trajectories')
 		return None
+	if len(Aruco_Steering_Trajectories[run_name].keys()) != 4:
+		return None
 
 	#print 'here!'
 	seg_num_str = str(seg_num)
@@ -277,18 +282,20 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 	for i in [0]:#range(N_FRAMES):
 		timestamp = get_data_with_hdf5.Segment_Data['runs'][run_name]['segments'][seg_num_str]['left_timestamp'][offset+i]
 		behavioral_mode = np.random.choice(
-			['Direct_Arena_Potential_Field'])#,
- 			#'Furtive_Arena_Potential_Field',
- 			#'Follow_Arena_Potential_Field',
- 			#'Play_Arena_Potential_Field'])
+			['Direct_Arena_Potential_Field',
+ 			'Furtive_Arena_Potential_Field',
+ 			'Follow_Arena_Potential_Field',
+ 			'Play_Arena_Potential_Field'])
 		#print Aruco_Steering_Trajectories[run_name].keys()
+		#print behavioral_mode
 		#print run_name
+		#print Aruco_Steering_Trajectories[run_name][behavioral_mode].keys()
 		if timestamp in Aruco_Steering_Trajectories[run_name][behavioral_mode]['new_steer'].keys():
 			aruco_matches.append(timestamp)
 		if len(aruco_matches) < 1:
 			return None
 	#print aruco_matches
-	if len(high_loss_dic) > 10000 and random.random() < 0.5:
+	if len(high_loss_dic) > 10000 and random.random() < 0.05:
 		if high_loss_key_ctr >= 1000:
 			high_loss_key_ctr = 0
 			high_loss_keys = high_loss_dic.keys()
@@ -365,13 +372,16 @@ while True:
 		while data == None:
 			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
 		Solver.put_data_into_model(data,Solver.solver,b)
+	
 	if Solver.solver.net.blobs['target_cars'].data[-1,:].max() == 0:
+		continue
 		if even_ctr == 0:
 			continue
-		else:
+		elif even_ctr > 1:
 			even_ctr = 0
 	else:
 		even_ctr += 1
+	
 	Solver.solver.step(1) # The training step. Everything below is for display.
 
 	rate_ctr += 1
@@ -382,6 +392,7 @@ while True:
 	the_loss = Solver.solver.net.blobs['steer_motor_target_data'].data[0,:] - Solver.solver.net.blobs['ip2'].data[0,:]
 	the_loss = np.sqrt(the_loss * the_loss).mean()
 	loss.append(the_loss)
+	
 	if the_loss >= loss_threshold:
 		high_loss_dic[data['id']] = the_loss
 	else:
@@ -389,7 +400,7 @@ while True:
 			del high_loss_dic[data['id']]
 			#print(d2s('removed',data['id'],'from high_loss_dic'))
 	loss_dic[data['id']] = the_loss
-
+	
 	if len(loss) >= 10000/Solver.batch_size:
 		loss10000.append(array(loss[-10000:]).mean())
 		loss = []
@@ -433,7 +444,9 @@ while True:
 			mi_or_cv2_animate(data['left'],delay=33);pause(0.001)
 
 		print_timer.reset()
+	
 	if velocity_data_timer.check():
+		velocity_data_timer.reset()
 		figure('velocity data')
 		clf()
 		xylim(0,2,0,2)
@@ -443,6 +456,7 @@ while True:
 
 		if len(velocity_data) > 5000:
 			velocity_data = velocity_data[-2500:]
+	
 
 
 
