@@ -138,7 +138,7 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 
 
 
-for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
+for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:#['Mr_Yellow','Mr_Orange','Mr_Blue']:#
 
 	for run_name in cars[our_car]['runs'].keys():
 		if len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5: #'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow' in run_name:
@@ -158,25 +158,32 @@ for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 		else:
 			print(output_name+" does not exist, processing it now.")
 
-		for the_arena_type in ['Direct_Arena_Potential_Field']:
-			the_arena = the_arenas[the_arena_type]
-			mode = the_arena['type']
-			print('mode = '+mode)
 
+
+		try:
+
+			print(d2n(our_car,'\n\t',run_name))
+			zaccess(N[our_car][run_name],[0]);
+
+			T0 = cars[our_car]['runs'][run_name]['trajectory']['ts'][0]
+			Tn = cars[our_car]['runs'][run_name]['trajectory']['ts'][-1]
+			list_of_other_car_trajectories = cars[our_car]['runs'][run_name]['list_of_other_car_trajectories']
 			try:
+				cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location)
+			except Exception as e:
+				print("********** Exception *** cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location) ********************")
+				print(our_car,run_name)
+				print(e.message, e.args)
 
-				print(d2n(our_car,'\n\t',run_name))
-				zaccess(N[our_car][run_name],[0]);
 
-				T0 = cars[our_car]['runs'][run_name]['trajectory']['ts'][0]
-				Tn = cars[our_car]['runs'][run_name]['trajectory']['ts'][-1]
-				list_of_other_car_trajectories = cars[our_car]['runs'][run_name]['list_of_other_car_trajectories']
-				try:
-					cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location)
-				except Exception as e:
-					print("********** Exception *** cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location) ********************")
-					print(our_car,run_name)
-					print(e.message, e.args)
+			for the_arena_type in ['Direct_Arena_Potential_Field',
+	 			'Furtive_Arena_Potential_Field',
+	 			'Follow_Arena_Potential_Field',
+	 			'Play_Arena_Potential_Field']:
+				the_arena = the_arenas[the_arena_type]
+				mode = the_arena['type']
+				print('mode = '+mode)
+
 
 				if USE_CAFFE:
 					solver.net.blobs['metadata'].data[0,:,:,:] *= 0
@@ -228,15 +235,15 @@ for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 					
 					################
 					#
-					"""
+					
 					if mode in ['Direct_Arena_Potential_Field','Furtive_Arena_Potential_Field']:
-						if cars[our_car]['state_info']['relative_heading'] < 60:
+						if cars[our_car]['state_info']['relative_heading'] < 30:
 							the_arena = the_arenas['Play_Arena_Potential_Field']
 							#print "switch to Play"
 						else:
 							the_arena = the_arenas[mode]
 					#	print((mode,the_arena_ctr,cars[our_car]['state_info']['relative_heading']))
-					"""
+					
 					#
 					################
 					
@@ -390,10 +397,10 @@ for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 
 					else:
 						cars[our_car]['state_info']['pts'] = []
-			except Exception as e:
-				print("********** Exception ***********************")
-				print(our_car,run_name)
-				print(e.message, e.args)						
+		except Exception as e:
+			print("********** Exception ***********************")
+			print(our_car,run_name)
+			print(e.message, e.args)						
 
 		so(output_data,output_name)
 		print('saved '+output_name)
