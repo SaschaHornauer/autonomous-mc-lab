@@ -81,9 +81,9 @@ if computer_name == 'Mr_Yellow':
 	#PID_min_max = [1,2]
 	#motor_gain = 0.9
 	Direct = 0.
-	Follow = 1.
+	Follow = 0.
 	Play = 0.
-	Furtive = 0.
+	Furtive = 1.
 	Caf = 0.0
 	Racing = 0.0
 	pass
