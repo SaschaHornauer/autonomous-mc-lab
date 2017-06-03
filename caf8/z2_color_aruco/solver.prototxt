@@ -1,7 +1,7 @@
-# /home/karlzipser/kzpy3/caf8/z2_color_aruco
+# /Users/karlzipser/kzpy3/caf8/z2_color_aruco
 # Wednesday, 31 May 2017, 09:10:31 PM
 
-net: "/home/karlzipser/kzpy3/caf8/z2_color_aruco/train_val.prototxt"
+net: "/Users/karlzipser/kzpy3/caf8/z2_color_aruco/train_val.prototxt"
 test_iter: 1
 test_interval: 1000000
 test_initialization: false
@@ -14,5 +14,5 @@ power: 0.75
 display: 20000
 max_iter: 10000000
 snapshot: 100000
-snapshot_prefix: "/home/karlzipser/Desktop/z2_color_aruco/z2_color_aruco"
+snapshot_prefix: "/Users/karlzipser/Desktop/z2_color_aruco/z2_color_aruco"
 	
