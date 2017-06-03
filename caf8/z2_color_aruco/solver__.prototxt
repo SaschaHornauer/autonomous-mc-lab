@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # /Users/karlzipser/kzpy3/caf8/z2_color_aruco
 # Wednesday, 31 May 2017, 09:10:31 PM
+=======
+# /home/karlzipser/kzpy3/caf8/z2_color_aruco
+# Thursday, 01 Jun 2017, 11:36:54 PM
+>>>>>>> 834e70c24dd7b6843b936a6bd7043355479d81ec
 
 net: "/Users/karlzipser/kzpy3/caf8/z2_color_aruco/train_val.prototxt"
 test_iter: 1

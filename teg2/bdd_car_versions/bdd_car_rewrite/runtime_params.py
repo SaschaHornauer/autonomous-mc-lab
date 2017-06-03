@@ -22,12 +22,12 @@ except KeyError:
 for i in range(5):
 	print('*************' + computer_name + '***********')
 Direct = 1.
-Follow = 1.
+Follow = 0.
 Play = 0.
 Furtive = 0.
 Caf = 0.0
 Racing = 0.0
-Location =  'local' # 'local' #'Smyth_tape'
+Location =  'Fern' #Smyth_tape'
 
 solver_file_path = opjh("kzpy3/caf5/z2_color/solver_live.prototxt")
 #weights_file_path = opjh("caffe_current/z2_color.caffemodel" )
@@ -45,12 +45,20 @@ motor_gain = 1.0
 acc2rd_threshold = 150
 
 PID_min_max = [1.5,2.5]
-
+"""
 gyro_freeze_threshold = 150
 acc_freeze_threshold_x = 7
 acc_freeze_threshold_y_max = 15
 acc_freeze_threshold_y_min = 0
 acc_freeze_threshold_z = 7
+motor_freeze_threshold = 55
+n_avg_IMU = 10
+"""
+gyro_freeze_threshold = 150
+acc_freeze_threshold_x = 14
+acc_freeze_threshold_y_max = 30
+acc_freeze_threshold_y_min = 0
+acc_freeze_threshold_z = 14
 motor_freeze_threshold = 55
 n_avg_IMU = 10
 #
@@ -61,6 +69,10 @@ n_avg_IMU = 10
 if computer_name == 'Mr_Orange':
 	#PID_min_max = [2.,3.]
 	#motor_gain = 1.0
+	Direct = 1.
+	Follow = 0.
+	Play = 0.
+	Furtive = 0.
 	pass
 if computer_name == 'Mr_Silver':
 	#motor_gain = 1.0
@@ -72,6 +84,12 @@ if computer_name == 'Mr_Blue':
 if computer_name == 'Mr_Yellow':
 	#PID_min_max = [1,2]
 	#motor_gain = 0.9
+	Direct = 1.
+	Follow = 0.
+	Play = 0.
+	Furtive = 0.
+	Caf = 0.0
+	Racing = 0.0
 	pass
 if computer_name == 'Mr_Black':
 	#PID_min_max = [1.5,2.5]

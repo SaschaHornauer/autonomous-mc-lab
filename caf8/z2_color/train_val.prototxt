@@ -1,59 +1,18 @@
-# /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Thursday, 01 Jun 2017, 11:36:54 PM
-# /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Thursday, 01 Jun 2017, 11:36:54 PM
+# /home/karlzipser/kzpy3/caf8/z2_color
+# Friday, 02 Jun 2017, 07:42:47 AM
+# /home/karlzipser/kzpy3/caf8/z2_color
+# Friday, 02 Jun 2017, 07:42:47 AM
 
 layer {
-	name: "target_cars"
-	type: "DummyData"
-	top: "target_cars"
-	dummy_data_param {
-		shape {
-			dim: 1
-			dim: 8
-		}
+	name: 'ZED_data_pool2'
+	type: 'Input'
+	top: 'ZED_data_pool2'
+	top: 'steer_motor_target_data'
+	input_param {
+		shape: {dim: 1 dim: 12 dim: 94 dim: 168}
+		shape: {dim: 1 dim: 20}
 	}
 }
-	
-
-layer {
-	name: "target_markers"
-	type: "DummyData"
-	top: "target_markers"
-	dummy_data_param {
-		shape {
-			dim: 1
-			dim: 8
-		}
-	}
-}
-	
-
-layer {
-	name: "target_velocity"
-	type: "DummyData"
-	top: "target_velocity"
-	dummy_data_param {
-		shape {
-			dim: 1
-			dim: 1
-		}
-	}
-}
-	
-
-layer {
-	name: "steer_motor_target_data"
-	type: "DummyData"
-	top: "steer_motor_target_data"
-	dummy_data_param {
-		shape {
-			dim: 1
-			dim: 20
-		}
-	}
-}
-	
 
 layer {
 	name: "metadata"
@@ -65,21 +24,6 @@ layer {
 			dim: 6
 			dim: 14
 			dim: 26
-		}
-	}
-}
-	
-
-layer {
-	name: "ZED_data_pool2"
-	type: "DummyData"
-	top: "ZED_data_pool2"
-	dummy_data_param {
-		shape {
-			dim: 1
-			dim: 12
-			dim: 94
-			dim: 168
 		}
 	}
 }
@@ -260,78 +204,6 @@ layer {
 	bottom: "steer_motor_target_data"
 	bottom: "ip2"
 	top: "euclidean"
-	loss_weight: 1
-}
-	
-
-layer {
-	name: "ip_cars"
-	type: "InnerProduct"
-	bottom: "ip1"
-	top: "ip_cars"
-	inner_product_param {
-		num_output: 8
-		weight_filler {
-			type: "xavier" 
-		}
-	}
-}
-	
-
-layer {
-	name: "euclidean_cars"
-	type: "EuclideanLoss"
-	bottom: "target_cars"
-	bottom: "ip_cars"
-	top: "euclidean_cars"
-	loss_weight: 1
-}
-	
-
-layer {
-	name: "ip_markers"
-	type: "InnerProduct"
-	bottom: "ip1"
-	top: "ip_markers"
-	inner_product_param {
-		num_output: 8
-		weight_filler {
-			type: "xavier" 
-		}
-	}
-}
-	
-
-layer {
-	name: "euclidean_markers"
-	type: "EuclideanLoss"
-	bottom: "target_markers"
-	bottom: "ip_markers"
-	top: "euclidean_markers"
-	loss_weight: 1
-}
-	
-
-layer {
-	name: "ip_velocity"
-	type: "InnerProduct"
-	bottom: "ip1"
-	top: "ip_velocity"
-	inner_product_param {
-		num_output: 1
-		weight_filler {
-			type: "xavier" 
-		}
-	}
-}
-	
-
-layer {
-	name: "euclidean_velocity"
-	type: "EuclideanLoss"
-	bottom: "target_velocity"
-	bottom: "ip_velocity"
-	top: "euclidean_velocity"
 	loss_weight: 1
 }
 	

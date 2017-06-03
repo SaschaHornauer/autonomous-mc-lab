@@ -108,7 +108,7 @@ try:
 		
 		
 		if state in [3,5,6,7,10]:
-			print "HERE!!!!!!!!"
+			#print "HERE!!!!!!!!"
 			if rp.use_caffe:
 				if solver == None:
 					solver = setup_solver(rp.solver_file_path)
@@ -198,7 +198,7 @@ try:
 						if caf_steer < 0:
 							caf_steer = 0
 
-						print caf_steer
+						#print caf_steer
 
 						
 						if state in [3,6,10]:			
