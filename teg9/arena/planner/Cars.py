@@ -3,14 +3,14 @@ pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 import data.utils.general
 from data.utils.general import car_name_from_run_name
-from data.utils.general import car_colors as colors
-import arena.planner.Potential_Fields as Potential_Fields
+from arena.planner.Constants import C
 
 
 def Car(N,car_name,origin,mult,markers):
 	D = {}
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Car object.')
 	D['car_name'] = car_name
+	D['type'] = 'Car'
 	D['runs'] = {}
 	D['n_for_heading'] = 15
 	for run_name in N[car_name].keys():
@@ -21,7 +21,12 @@ def Car(N,car_name,origin,mult,markers):
 		for other_run_name in N[car_name][run_name]['other_trajectories']:
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
-	print("Remeber to smooth velocities and look at encoder values.")
+	print("""
+Remeber to smooth velocities and look at encoder values.
+Also look at raw trajectories.
+Also time to collision.
+Clockwise?
+	""")
 
 	def _rewind():
 		D['state_info'] = {}
@@ -138,7 +143,7 @@ def Car(N,car_name,origin,mult,markers):
 				load_right_images=True)
 	D['load_image_and_meta_data'] = _load_image_and_meta_data
 
-
+	print("created "+D['type']+": "+D['car_name'])
 	return D
 
 

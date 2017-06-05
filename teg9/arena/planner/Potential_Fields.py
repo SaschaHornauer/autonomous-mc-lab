@@ -1,15 +1,11 @@
 from kzpy3.utils import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
-from data.utils.general import car_colors as colors
+from arena.planner.Constants import C
 
 
+R = C['Marker_Radius']
 
-
-
-
-
-R = 4*107/100.0
 def f(x,a,b,c,d,e):
 	if is_number(x):
 		x = array([x])
@@ -26,9 +22,6 @@ def f(x,a,b,c,d,e):
 	y = (1-e)*y + e
 	#y[y>2.0] = 2.0
 	return y
-
-
-
 
 
 
@@ -63,7 +56,7 @@ def Potential_Field(xy_sizes,origin,mult):
 
 
 
-def Arena_Potential_Field(origin,mult,markers,warp_image=False):
+def Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
 	xy_sizes = [2*origin,2*origin]
 	D = Potential_Field(xy_sizes,origin,mult)
 	D['Purpose'] = d2f('\n',d2s(inspect.stack()[0][3],':','Potential field specific for arena.'),D['Purpose'])
@@ -122,11 +115,12 @@ def Arena_Potential_Field(origin,mult,markers,warp_image=False):
 					xn = x
 					yn = y
 					if y > origin:
-						yn = int(y-origin)*1.5+origin
+						yn = (y-origin)*warp_a+origin
 					if x > origin:
-						xn = int(x-origin)*1.2+origin
+						xn = (x-origin)*warp_b+origin
 					if x < origin:
-						xn = int(origin-x)*1.2+origin
+						xn = (origin-x)*warp_b+origin
+					xn,yn = int(xn),int(yn)
 					if xn < 2*origin and yn < 2*origin:
 						img2[x,y] = img[xn,yn]
 			D['Image']['img'] = img2	
@@ -134,8 +128,8 @@ def Arena_Potential_Field(origin,mult,markers,warp_image=False):
 	return D
 
 
-def Play_Arena_Potential_Field(origin,mult,markers,warp_image=False):
-	D = Arena_Potential_Field(origin,mult,markers,warp_image)
+def Play_Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
+	D = Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b)
 	D['type'] = 'Play_Arena_Potential_Field'
 	if False:
 		gau_center = Gaussian_2D(6*mult)
@@ -149,10 +143,11 @@ def Play_Arena_Potential_Field(origin,mult,markers,warp_image=False):
 	e = 0	
 	D['fill_in_potential_field'](a,b,c,d,e)
 	D['Image']['img'] *= 2.5
+	print("created "+D['type'])
 	return D
 
-def Follow_Arena_Potential_Field(origin,mult,markers,warp_image=False):
-	D = Arena_Potential_Field(origin,mult,markers,warp_image)
+def Follow_Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
+	D = Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b)
 	D['type'] = 'Follow_Arena_Potential_Field'
 	D['other_cars_parent'] = D['other_cars']
 	def _other_cars(xy_list,mode,xy_our):
@@ -165,10 +160,11 @@ def Follow_Arena_Potential_Field(origin,mult,markers,warp_image=False):
 	e = 0.5
 	D['fill_in_potential_field'](a,b,c,d,e)
 	D['Image']['img'] *= 2.5
+	print("created "+D['type'])
 	return D
 
-def Direct_Arena_Potential_Field(origin,mult,markers,a=0.65,warp_image=False):
-	D = Arena_Potential_Field(origin,mult,markers,warp_image)
+def Direct_Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
+	D = Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b)
 	D['type'] = 'Direct_Arena_Potential_Field'
 	if False:
 		gau_marker = Gaussian_2D(mult)
@@ -186,11 +182,12 @@ def Direct_Arena_Potential_Field(origin,mult,markers,a=0.65,warp_image=False):
 	d = 1/2.0
 	e = 0
 	D['fill_in_potential_field'](a,b,c,d,e)
+	print("created "+D['type'])
 	return D
 
 
-def Furtive_Arena_Potential_Field(origin,mult,markers,warp_image=False):
-	D = Arena_Potential_Field(origin,mult,markers,warp_image)
+def Furtive_Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
+	D = Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b)
 	D['type'] = 'Furtive_Arena_Potential_Field'
 	if False:
 		gau_marker = Gaussian_2D(mult)
@@ -208,6 +205,7 @@ def Furtive_Arena_Potential_Field(origin,mult,markers,warp_image=False):
 	d = 1/1.5
 	e = 0
 	D['fill_in_potential_field'](a,b,c,d,e)
+	print("created "+D['type'])
 	return D
 
 

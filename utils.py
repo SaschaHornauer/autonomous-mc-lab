@@ -789,9 +789,12 @@ def zaccess(d,alst,truncate=True,dic_show_ends=4):
         d = d[sorted(d.keys())[a]]
     return d
 
-
-
-
+def zds(d,dic_show_ends,*alst):
+    alst = list(alst)
+    assert(dic_show_ends>1)
+    if len(alst) == 0:
+        print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
+    print(zdic_to_str(d,alst,False,dic_show_ends))
 
 def zlst_truncate(lst,show_ends=2):
     if show_ends == 0:
@@ -801,10 +804,6 @@ def zlst_truncate(lst,show_ends=2):
     else:
         out_lst = lst
     return out_lst
-
-
-
-
 
 def zlst_to_str(lst,truncate=True,decimal_places=2,show_ends=2,depth=0,range_lst=[-2]):
     original_len = -1
@@ -832,10 +831,6 @@ def zlst_to_str(lst,truncate=True,decimal_places=2,show_ends=2,depth=0,range_lst
     if original_len > 0:
         lst_str += d2n(' (len=',original_len,')')
     return lst_str
-
-
-
-
 
 def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
 
@@ -894,16 +889,16 @@ def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
 
 
 
+def assert_disk_locations(locations):
+    if type(locations) == str:
+        locations = [locations]
+    for l in locations:
+        print(d2s("Checking for",l))
+        if len(gg(l)) < 1:
+            print(d2s(l,"not available!"))
+            assert(False)
+        print(d2s(l,'is there.\n'))
 
-
-"""
-def zprint_str_lst(str_lst):
-    for s in str_lst:
-        if type(s) == list:
-            zprint_str_lst(s)
-        else:
-            print(s)
-"""
 
 
 

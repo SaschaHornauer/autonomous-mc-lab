@@ -1,7 +1,10 @@
-
-
-
-
+from kzpy3.utils import *
+pythonpaths(['kzpy3','kzpy3/teg9'])
+from vis2 import *
+import data.utils.animate as animate
+import arena.planner.Markers as Markers
+import arena.planner.Potential_Fields as Potential_Fields
+import arena.planner.Cars as Cars
 
 
 def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
@@ -48,6 +51,19 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 	markers_in_view_xy_list = []
 	markers_in_view_angle_distance_list = []
 
+
+	object['car']['Mr_Black']['xy']
+	object['car']['Mr_Black']['in_view']
+	object['car']['Mr_Black']['angle']
+	object[['car']'Mr_Black']['dist']
+	object['marker'][49]['xy']
+	object['marker'][49]['in_view']
+	object['marker'][49]['angle']
+	object['marker'][49]['dist']
+
+	heading
+	relative_heading
+
 	no_cars_in_view = True
 	no_markers_in_view = True
 
@@ -89,10 +105,9 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 
 
 
-velocity = (cars[our_car]['runs'][run_name]['trajectory']['left']['t_vel']+cars[our_car]['runs'][run_name]['trajectory']['right']['t_vel'])/2.0
 
 
-	def _get_sample_points(pts,angles,pfield,heading):
+	def get_sample_points(pts,angles,pfield,heading):
 	    sample_points = []
 	    potential_values = []
 	    heading *= 0.5 # 50 cm, about the length of the car
@@ -107,7 +122,7 @@ velocity = (cars[our_car]['runs'][run_name]['trajectory']['left']['t_vel']+cars[
 	        potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
 	    return sample_points,potential_values
 
-	def _interpret_potential_values(potential_values):
+	def interpret_potential_values(potential_values):
 		min_potential_index = potential_values.index(min(potential_values))
 		max_potential_index = potential_values.index(max(potential_values))
 		middle_index = int(len(potential_values)/2)

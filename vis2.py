@@ -305,7 +305,7 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
     D = {}
     D['origin'] = origin
     D['mult'] = mult
-    D['Purpose'] = d2s(inspect.stack()[0][3],':','An image which translates from float coordinates.'
+    D['Purpose'] = d2s(inspect.stack()[0][3],':','An image which translates from float coordinates.')
     D['name'] = 'Image'
     def _floats_to_pixels(xy):
         xy = array(xy)
@@ -349,8 +349,6 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
                 D['img'][x][y] = f(xy_float[0],xy_float[1])      
     D['apply_fun'] = _apply_fun
     def _show(name=None):
-        raw_input('asdfadsads ')
-        print('i am here')
         if name == None:
             name = D['name']
         mi(D['img'],name)
