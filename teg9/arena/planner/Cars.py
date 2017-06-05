@@ -22,10 +22,10 @@ def Car(N,car_name,origin,mult,markers):
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
 	print("""
-Remeber to smooth velocities and look at encoder values.
-Also look at raw trajectories.
-Also time to collision.
-Clockwise?
+		Remeber to smooth velocities and look at encoder values.
+		Also look at raw trajectories.
+		Also time to collision.
+		Clockwise?
 	""")
 
 	def _rewind():
@@ -39,7 +39,7 @@ Clockwise?
 		D['state_info']['relative_heading'] = 90
 		D['state_info']['velocity'] = []
 	D['rewind'] = _rewind
-
+	D['rewind']()
 
 
 
@@ -64,14 +64,14 @@ Clockwise?
 					#print('Heading warning!!!')
 					#print_stars()
 					D['state_info']['heading'] = D['state_info']['heading_prev']
-			D['state_info']['relative_heading'] = (degrees(angle_between(D['state_info']['heading'],D['state_info']['pts'][-1])))
+			D['state_info']['relative_heading'] = (degrees(angle_clockwise(D['state_info']['heading'],D['state_info']['pts'][-1])))
 			D['state_info']['heading_prev'] = D['state_info']['heading']
 			D['state_info']['near_t_prev'] = D['state_info']['near_t']
 			D['state_info']['velocity'] = (traj['left']['t_vel']+traj['right']['t_vel'])/2.0
 
 		else:
 			D['state_info']['heading'] = None
-		return D['state_info']['pts'][-1] #positions
+		return (D['state_info']['pts'][-1],D['state_info']['heading']) #positions
 	D['report_camera_positions'] = _report_camera_positions
 
 
@@ -82,13 +82,13 @@ Clockwise?
 	def _check_trajectory_point(traj,side,i,t):
 		assert(traj['ts'][i] <= t)
 		if traj['ts'][i] == t:
-			if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
+			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
 				return False
-			if traj[side]['t_vel'][i]<0.2: #TEMP
+			if traj[side]['t_vel'][i]<0.1: #TEMP
 				return False
-			elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
+			elif traj['camera_separation'][i] > 0.5: # almost larger than length of car
 				return False
-			elif traj[side]['timestamp_gap'][i] > 0.1: # missed data points
+			elif traj[side]['timestamp_gap'][i] > 0.5: # missed data points
 				return False
 			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
 				return False

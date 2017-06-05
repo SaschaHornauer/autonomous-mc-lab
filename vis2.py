@@ -352,7 +352,7 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
         if name == None:
             name = D['name']
         mi(D['img'],name)
-        print d2s('name =',name)
+        #print d2s('name =',name)
     D['show'] = _show
     if len(xyz_sizes) == 2:
         D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)

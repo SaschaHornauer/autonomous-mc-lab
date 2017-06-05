@@ -38,9 +38,9 @@ def Constants():
 
 	D['markers'] = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 
-	D['Origin'] = int(2*1000/300.*300 / 5     /10)
+	D['Origin'] = int(2*1000/300.*300 / 5)
 
-	D['Mult'] = 1000/300.*50 / 5     /10
+	D['Mult'] = 1000/300.*50 / 5
 
 	D['car_colors'] = car_colors
 

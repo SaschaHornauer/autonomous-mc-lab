@@ -796,6 +796,36 @@ def zds(d,dic_show_ends,*alst):
         print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
     print(zdic_to_str(d,alst,False,dic_show_ends))
 
+def zda(d,dic_show_ends,*alst):
+    """
+    https://stackoverflow.com/questions/2749796/how-to-get-the-original-variable-name-of-variable-passed-to-a-function
+    """
+    import inspect
+    frame = inspect.currentframe()
+    frame = inspect.getouterframes(frame)[1]
+    string = inspect.getframeinfo(frame[0]).code_context[0].strip()
+    args = string[string.find('(') + 1:-1].split(',')
+    names = []
+    for i in args:
+        if i.find('=') != -1:
+            names.append(i.split('=')[1].strip())
+        else:
+            names.append(i)
+
+    zds(d,dic_show_ends,*alst)
+    ks = []
+    for a in alst:
+        if type(d) != dict:
+            break
+        k = sorted(d.keys())[a]
+        d = d[k]
+        ks.append(k)
+    out_str = ">> "+names[0]
+    for k in ks:
+        out_str += "['"+k+"']"
+    cprint(out_str,'yellow')
+    return d
+
 def zlst_truncate(lst,show_ends=2):
     if show_ends == 0:
         return []
