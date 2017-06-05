@@ -83,7 +83,6 @@ def bag_folders_save_images(bag_folders_src_path,bag_folders_dst_path):
 
 
 def bag_folders_transfer_meta(bag_folders_src_path,bag_folders_dst_path):
-    #bag_folders_src_path,bag_folders_dst_path='/media/karlzipser/bair_car_data_6/bair_car_data','/home/karlzipser/Desktop/bair_car_data/meta/'
     bag_folders_paths = sorted(os.listdir(bag_folders_src_path),key=natural_keys)
     for bag_folder_path in bag_folders_paths:
         unix('mkdir -p '+os.path.join(bag_folders_dst_path,fname(bag_folder_path)))

@@ -60,9 +60,9 @@ def preprocess_Bag_Folders(bag_folders_path_meta_path,bag_folders_path_rgb1to4_p
 
 
 
-def get_preprocess_dir_name_info(bfp):
-	fl = sgg(opj(bfp,'left*'))
+def get_preprocess_dir_name_info(bag_file_path):
+	fl = sgg(opj(bag_file_path,'left*'))
 	if len(fl) > 0:
-		return sgg(opj(bfp,'left*'))[-1]
+		return sgg(opj(bag_file_path,'left*'))[-1]
 	else:
 		return None

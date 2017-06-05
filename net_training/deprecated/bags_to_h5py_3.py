@@ -15,7 +15,7 @@ rgb_1to4_dir = os.path.join(working_path,'rgb_1to4')
 verbose = False
 
 
-def get_bag_names_dic(meta_dir,rgb_1to4_dir,to_ignore = ['xxx'],to_require=['direct']):#['caffe','home','racing']):
+def get_bag_names_dic(meta_dir,rgb_1to4_dir,to_ignore = ['xxx'],to_require=['']):#['caffe','home','racing']):
 
 	_,all_run_names = dir_as_dic_and_list(meta_dir)
 
