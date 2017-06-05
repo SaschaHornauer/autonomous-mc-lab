@@ -42,7 +42,6 @@ import datetime
 import random
 try:
     import cPickle as pickle
-    print("utils.py: imported cPickle as pickle")
 except:
     import pickle
     print("utils.py: importing cPickle failed, using pickle instead.")

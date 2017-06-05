@@ -1,6 +1,6 @@
 from kzpy3.utils import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
-from vis import *
+from vis2 import *
 import data.utils.general
 from data.utils.general import car_name_from_run_name
 from data.utils.general import car_colors as colors
@@ -11,7 +11,6 @@ def Car(N,car_name,origin,mult,markers):
 	D = {}
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Car object.')
 	D['car_name'] = car_name
-	D['potential_field'] = Potential_Fields.Arena_Potential_Field(origin,mult,markers)
 	D['runs'] = {}
 	D['n_for_heading'] = 15
 	for run_name in N[car_name].keys():
@@ -22,6 +21,7 @@ def Car(N,car_name,origin,mult,markers):
 		for other_run_name in N[car_name][run_name]['other_trajectories']:
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
+	print("Remeber to smooth velocities and look at encoder values.")
 
 	def _rewind():
 		D['state_info'] = {}
@@ -32,43 +32,10 @@ def Car(N,car_name,origin,mult,markers):
 		D['state_info']['heading'] = None
 		D['state_info']['heading_prev'] = 0
 		D['state_info']['relative_heading'] = 90
+		D['state_info']['velocity'] = []
 	D['rewind'] = _rewind
 
 
-	def _check_trajectory_point(traj,side,i,t):
-		assert(traj['ts'][i] <= t)
-		if traj['ts'][i] == t:
-			if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
-				return False
-			if traj[side]['t_vel'][i]<0.2: #TEMP
-				return False
-			elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
-				return False
-			elif traj[side]['timestamp_gap'][i] > 0.1: # missed data points
-				return False
-			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
-				return False
-			return True
-		assert(False)
-
-
-	def _valid_time_and_index(run_name,t):
-		traj = D['runs'][run_name]['trajectory']
-		if t>traj['ts'][0] and t<traj['ts'][-1]:
-			near_t = -1
-			for i in range(D['state_info']['near_i'],len(traj['ts'])):
-				if traj['ts'][i-1]<t and traj['ts'][i]>t:
-					near_t = traj['ts'][i]
-					near_i = i
-					break
-			if near_t > 0:
-				D['state_info']['near_i'] = near_i
-				D['state_info']['near_t'] = near_t
-				for side in ['left','right']:
-					if not _check_trajectory_point(traj,side,near_i,near_t):
-						return False,False
-				return near_t,near_i
-		return False,False
 
 
 	def _report_camera_positions(run_name,t):
@@ -95,10 +62,56 @@ def Car(N,car_name,origin,mult,markers):
 			D['state_info']['relative_heading'] = (degrees(angle_between(D['state_info']['heading'],D['state_info']['pts'][-1])))
 			D['state_info']['heading_prev'] = D['state_info']['heading']
 			D['state_info']['near_t_prev'] = D['state_info']['near_t']
+			D['state_info']['velocity'] = (traj['left']['t_vel']+traj['right']['t_vel'])/2.0
+
 		else:
 			D['state_info']['heading'] = None
 		return D['state_info']['pts'][-1] #positions
 	D['report_camera_positions'] = _report_camera_positions
+
+
+
+
+
+
+	def _check_trajectory_point(traj,side,i,t):
+		assert(traj['ts'][i] <= t)
+		if traj['ts'][i] == t:
+			if traj[side]['t_vel'][i] > 2: # 1.788: # Above 4 mph
+				return False
+			if traj[side]['t_vel'][i]<0.2: #TEMP
+				return False
+			elif traj['camera_separation'][i] > 0.25: # almost larger than length of car
+				return False
+			elif traj[side]['timestamp_gap'][i] > 0.1: # missed data points
+				return False
+			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
+				return False
+			return True
+		assert(False)
+
+
+
+
+	def _valid_time_and_index(run_name,t):
+		traj = D['runs'][run_name]['trajectory']
+		if t>traj['ts'][0] and t<traj['ts'][-1]:
+			near_t = -1
+			for i in range(D['state_info']['near_i'],len(traj['ts'])):
+				if traj['ts'][i-1]<t and traj['ts'][i]>=t:
+					near_t = traj['ts'][i]
+					near_i = i
+					break
+			if near_t > 0:
+				D['state_info']['near_i'] = near_i
+				D['state_info']['near_t'] = near_t
+				for side in ['left','right']:
+					if not _check_trajectory_point(traj,side,near_i,near_t):
+						return False,False
+				return near_t,near_i
+		return False,False
+
+
 
 
 	def _get_image(run_name,side):
@@ -107,6 +120,8 @@ def Car(N,car_name,origin,mult,markers):
 		img = traj['data'][side][index]
 		return img		
 	D['get_image'] = _get_image
+
+
 
 
 	def _load_image_and_meta_data(run_name,bair_car_data_location):

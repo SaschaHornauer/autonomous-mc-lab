@@ -10,9 +10,9 @@ import arena.planner.Cars as Cars
 #
 #bair_car_data_location = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
-#bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+bair_car_data_location = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 #bair_car_data_location = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
-bair_car_data_location = opjD('bair_car_data_new_28April2017')
+#bair_car_data_location = opjD('bair_car_data_new_28April2017')
 
 trajectory_data_location = opjD('N.pkl')
 for p in [bair_car_data_location,trajectory_data_location]:
@@ -24,8 +24,8 @@ angles = -arange(-45,46,9)
 view_angle = 35
 view_angles = arange(-view_angle,view_angle+1,10)
 
-DISPLAY_LEFT = False
-GRAPHICS = False
+DISPLAY_LEFT = True
+GRAPHICS = True
 markers = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 Origin = int(2*1000/300.*300 / 5)
 Mult = 1000/300.*50 / 5
@@ -56,11 +56,11 @@ for car_name in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:
 
 #######################################
 #
-USE_CAFFE = False
+USE_CAFFE = True
 if USE_CAFFE:
 	import caf8.protos as protos
 	solver = protos.setup_solver(opjh('kzpy3/caf8/z2_color_aruco/solver.prototxt'))
-	solver.net.copy_from('/home/karlzipser/caffe_models/z2_color_aruco_potential_May2017/z2_color_iter_6500000.caffemodel')
+	solver.net.copy_from(most_recent_file_in_folder(opjh('caffe_models/z2_color_aruco_potential_May2017')))
 	#solver.net.copy_from('/Users/karlzipser/caffe_models/z2_color/z2_color.caffemodel')
 	img_left_previous = False
 #
@@ -160,7 +160,7 @@ for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:#['Mr_
 
 
 
-		try:
+		if True:#try:
 
 			print(d2n(our_car,'\n\t',run_name))
 			zaccess(N[our_car][run_name],[0]);
@@ -353,6 +353,8 @@ for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:#['Mr_
 							output_data[run_name][mode]['velocity'].append(vel)
 							output_data[run_name][mode]['other_car_inverse_distances'].append(n)
 							output_data[run_name][mode]['marker_inverse_distances'].append(m)
+
+							
 							if GRAPHICS:
 								
 								if ctr_q > 3:
@@ -397,12 +399,13 @@ for our_car in ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']:#['Mr_
 
 					else:
 						cars[our_car]['state_info']['pts'] = []
-		except Exception as e:
+		else:#except Exception as e:
 			print("********** Exception ***********************")
 			print(our_car,run_name)
 			print(e.message, e.args)						
 
 		so(output_data,output_name)
+		del cars[our_car][run_name]
 		print('saved '+output_name)
 		print(output_data[run_name].keys())
 		print_stars()
