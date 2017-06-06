@@ -7,6 +7,8 @@ import arena.planner.Potential_Fields as Potential_Fields
 import arena.planner.Cars as Cars
 from arena.planner.Constants import C
 
+
+
 def Other_Object(the_name,the_type):
 	D = {}
 	D['type'] = 'Other_Object'
@@ -37,10 +39,6 @@ def Other_Object(the_name,the_type):
 
 
 
-
-
-
-
 def setup_spatial_dics(current_run):
 	marker_spatial_dic = {}
 	ctr = 0
@@ -60,10 +58,13 @@ def setup_spatial_dics(current_run):
 
 
 
+
 def update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t):
 	report = current_run['our_car']['report_camera_positions'](current_run['run_name'],t)
 	if len(report) == 2:
 		xy_our,our_heading = report
+		if our_heading != None:
+			print(d2s('>>',length(array(our_heading))))
 		list_of_other_car_trajectories = current_run['our_car']['runs'][current_run['run_name']]['list_of_other_car_trajectories']
 		for l in list_of_other_car_trajectories:
 			other_car_name = l[0]
@@ -76,10 +77,11 @@ def update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t):
 				car_spatial_dic[other_car_name]['process_spatial_relations'](xy_our,our_heading,t)
 		for m in marker_spatial_dic.keys():
 			marker_spatial_dic[m]['process_spatial_relations'](xy_our,our_heading,t)
-
+		return True
+	else:
+		return False
 
 	
-
 
 def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
 	in_view = False
@@ -90,6 +92,7 @@ def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
 	if angle_to_other > -view_angle and angle_to_other < view_angle:
 		in_view = True
 	return angle_to_other,distance_to_other,in_view
+
 
 
 def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list):
@@ -109,6 +112,16 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 	return m
 
 
+def get_angle_distance_view(current_run,spatial_dic):
+	other_angle_distance_list = []
+	angle_dist_view = []
+	for c in current_run[spatial_dic].keys():
+		if current_run[spatial_dic][c]['in_view']:
+			other_angle_distance_list.append([current_run[spatial_dic][c]['angle'],current_run[spatial_dic][c]['dist']])
+	if len(other_angle_distance_list) > 0:
+		angle_dist_view = objects_to_angle_distance_representation(C['view_angles'],other_angle_distance_list)
+	return angle_dist_view
+
 
 def get_sample_points(pts,angles,pfield,heading):
     sample_points = []
@@ -116,14 +129,11 @@ def get_sample_points(pts,angles,pfield,heading):
     heading *= 0.5 # 50 cm, about the length of the car
     for the_arena in angles:
         sample_points.append( rotatePoint([0,0],heading,the_arena) )
-    for k in range(len(sample_points)):
-        f = sample_points[k]
     for sp in sample_points:
-    	if GRAPHICS:
-    		pfield['Image']['plot_pts'](array(sp)+array(pts[-1,:]),'g')
-        pix = pfield['Image']['floats_to_pixels']([sp[0]+pts[-1,0],sp[1]+pts[-1,1]])
+        pix = pfield['Image']['floats_to_pixels']([sp[0]+array(pts)[-1,0],sp[1]+array(pts)[-1,1]])
         potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
-    return sample_points,potential_values
+        # pfield['Image']['img'][pix[0],pix[1]] = 1 # for checking
+    return potential_values
 
 
 def interpret_potential_values(potential_values):
@@ -134,8 +144,6 @@ def interpret_potential_values(potential_values):
 	pmin = potential_values.min()
 	pmax = potential_values.max()
 	potential_values = z2o(potential_values) * pmax
-	if GRAPHICS:
-		figure(9);plot(potential_values,'bo-')
 	d = 99.0/(1.0*len(potential_values)-1)
 	steer_angles = np.floor(99-arange(0,100,d))
 	p = min(pmax/0.8,1.0)

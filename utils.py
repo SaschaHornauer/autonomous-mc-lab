@@ -238,6 +238,10 @@ def d2n(*args):
 def d2f(*args):
     return d2s_spacer(args[1:],spacer=args[0])
 
+def pd2s(*args):
+    print(d2s(*args))
+
+
 def dp(f,n=2):
     """
     get floats to the right number of decimal places, for display purposes
@@ -795,6 +799,14 @@ def zds(d,dic_show_ends,*alst):
     if len(alst) == 0:
         print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
     print(zdic_to_str(d,alst,False,dic_show_ends))
+
+def zdl(d,dic_show_ends,*alst):
+    alst = list(alst)
+    assert(dic_show_ends>1)
+    if len(alst) == 0:
+        print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
+    list_of_strings_to_txt_file(opjD('zdl.txt'),zdic_to_str(d,alst,False,dic_show_ends).split('\n'))
+
 
 def zda(d,dic_show_ends,*alst):
     """

@@ -505,6 +505,12 @@ def normalized_vector_from_pts(pts):
     y = pts[:,1]
     m,b = curve_fit(f___,x,y)[0]
     heading = normalized([1,m])[0]
+    len_heading = length(heading)
+    print len_heading
+    if np.abs(len_heading-1.0)>0.1:
+        print('here')
+        print((heading,len_heading,pts))
+        assert(False)
     return heading
 
 
