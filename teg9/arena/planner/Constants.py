@@ -22,13 +22,13 @@ def Constants():
 
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Constant values of various types.')
 	
-	D['Marker_Radius'] = 4*107/100.0
+	D['Marker_Radius'] = 180*2.54/100.0 #4*107/100.0
 
 	D['sensor_angles'] = -arange(-45,46,9)
 
-	D['view_angle'] = 35
+	D['view_angle'] = 45#35
 
-	D['view_angles'] = arange(-D['view_angle'],D['view_angle']+1,10)
+	D['view_angles'] = -D['sensor_angles']#arange(-D['view_angle'],D['view_angle']+1,10)
 
 	D['DISPLAY_LEFT'] = True
 
@@ -38,13 +38,15 @@ def Constants():
 
 	D['markers'] = Markers.Markers(Markers.markers_clockwise,4*107/100.)
 
-	D['Origin'] = int(2*1000/300.*300 / 5     /10)
+	D['Origin'] = int(2*1000/300.*300 / 5)
 
-	D['Mult'] = 1000/300.*50 / 5     /10
+	D['Mult'] = 1000/300.*50 / 5
 
 	D['car_colors'] = car_colors
 
 	D['car_names'] = ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']
+
+	D['n_for_heading'] = 15
 
 	return D
 

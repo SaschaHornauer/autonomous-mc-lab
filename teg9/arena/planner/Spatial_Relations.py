@@ -5,7 +5,81 @@ import data.utils.animate as animate
 import arena.planner.Markers as Markers
 import arena.planner.Potential_Fields as Potential_Fields
 import arena.planner.Cars as Cars
+from arena.planner.Constants import C
 
+
+
+def Other_Object(the_name,the_type):
+	D = {}
+	D['type'] = 'Other_Object'
+	D['the_type'] = the_type
+	D['Purpose'] = d2s(inspect.stack()[0][3],':','Storing spatial information for objects of interest')
+	D['the_name'] = the_name
+	def _reinit():
+		D['xy'] = None
+		D['in_view'] = None
+		D['angle'] = None
+		D['dist'] = None
+	D['reinit'] = _reinit
+	def _process_spatial_relations(xy_our,our_heading,t):
+		xy_other = D['xy']
+		if len(xy_other) > 0:
+			if our_heading != None:
+				angle_to_other,distance_to_other,in_view = relation_to_other_object(our_heading,xy_our,xy_other,C['view_angle'])
+				D['angle'] = angle_to_other
+				D['dist'] = distance_to_other
+				D['in_view'] = in_view
+			else:
+				return None
+		else:
+			return None
+	D['process_spatial_relations'] = _process_spatial_relations
+	return D
+
+
+
+
+def setup_spatial_dics(current_run):
+	marker_spatial_dic = {}
+	ctr = 0
+	for xy in C['markers']['xy']:
+		ctr += 1
+		m = Other_Object(ctr,'marker')
+		m['reinit']()
+		m['xy'] = xy
+		marker_spatial_dic[ctr] = m
+
+	car_spatial_dic = {}
+	for n in set(C['car_names']) - set(list(current_run['our_car_name'])):
+		m = Other_Object(n,'car')
+		m['reinit']()
+		car_spatial_dic[n] = m
+	return car_spatial_dic,marker_spatial_dic
+
+
+
+
+def update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t):
+	report = current_run['our_car']['report_camera_positions'](current_run['run_name'],t)
+	if len(report) == 2:
+		xy_our,our_heading = report
+		list_of_other_car_trajectories = current_run['our_car']['runs'][current_run['run_name']]['list_of_other_car_trajectories']
+		for l in list_of_other_car_trajectories:
+			other_car_name = l[0]
+			other_car_run_name = l[1]
+			report = current_run['cars'][other_car_name]['report_camera_positions'](other_car_run_name,t)
+			car_spatial_dic[other_car_name]['reinit']()
+			if len(report) == 2:
+				xy,heading = report
+				car_spatial_dic[other_car_name]['xy'] = xy
+				car_spatial_dic[other_car_name]['process_spatial_relations'](xy_our,our_heading,t)
+		for m in marker_spatial_dic.keys():
+			marker_spatial_dic[m]['process_spatial_relations'](xy_our,our_heading,t)
+		return True
+	else:
+		return False
+
+	
 
 def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
 	in_view = False
@@ -19,9 +93,9 @@ def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
 
 
 
-def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list):
+def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list,are_markers=False):
 	m = array(reference_angles)*0.0
-	if len(reference_angles) > len(other_angle_distance_list):
+	if len(reference_angles) > len(other_angle_distance_list) and not are_markers:
 		for object_angle,object_distance in other_angle_distance_list:
 			indx = find_index_of_closest(object_angle,reference_angles)
 			if m[indx] < 1/object_distance:
@@ -36,106 +110,43 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 	return m
 
 
+def get_angle_distance_view(current_run,spatial_dic,are_markers=False):
+	other_angle_distance_list = []
+	angle_dist_view = []
+	for c in current_run[spatial_dic].keys():
+		if current_run[spatial_dic][c]['in_view']:
+			other_angle_distance_list.append([current_run[spatial_dic][c]['angle'],current_run[spatial_dic][c]['dist']])
+	if len(other_angle_distance_list) > 0:
+		angle_dist_view = objects_to_angle_distance_representation(C['view_angles'],other_angle_distance_list,are_markers)
+	return angle_dist_view
 
 
-
-	xy_our = cars[our_car]['report_camera_positions'](run_name,t)
-
-	other_cars_xy_list = []
-	other_cars_in_view_xy_list = []
-	other_cars_angle_distance_list = []
-	other_cars_in_view_angle_distance_list = []
-
-	markers_xy_list = []
-	markers_angle_distance_list = []
-	markers_in_view_xy_list = []
-	markers_in_view_angle_distance_list = []
-
-
-	object['car']['Mr_Black']['xy']
-	object['car']['Mr_Black']['in_view']
-	object['car']['Mr_Black']['angle']
-	object[['car']'Mr_Black']['dist']
-	object['marker'][49]['xy']
-	object['marker'][49]['in_view']
-	object['marker'][49]['angle']
-	object['marker'][49]['dist']
-
-	heading
-	relative_heading
-
-	no_cars_in_view = True
-	no_markers_in_view = True
-
-	if len(xy_our) > 0:
-		xy_our = array(xy_our)
-		our_heading = cars[our_car]['state_info']['heading']
-		for l in list_of_other_car_trajectories:
-			other_car_name = l[0]
-			other_car_run_name = l[1]
-			xy_other = cars[other_car_name]['report_camera_positions'](other_car_run_name,t)
-			if len(xy_other) > 0:
-				if our_heading != None:
-					angle_to_other,distance_to_other,in_view = relation_to_other_object(our_heading,xy_our,xy_other,view_angle)
-					other_cars_angle_distance_list.append([angle_to_other,distance_to_other])
-					other_cars_xy_list.append(xy_other)
-					other_cars_angle_distance_list.append([angle_to_other,distance_to_other])
-					if in_view:
-						no_cars_in_view = False
-						other_cars_in_view_angle_distance_list.append([angle_to_other,distance_to_other])
-						other_cars_in_view_xy_list.append(xy_other)
-		for xy_other in markers['xy']:
-			if len(xy_other) > 0:
-				if our_heading != None:
-					angle_to_other,distance_to_other,in_view = relation_to_other_object(our_heading,xy_our,xy_other,view_angle)
-					markers_angle_distance_list.append([angle_to_other,distance_to_other])
-					markers_xy_list.append(xy_other)
-					markers_angle_distance_list.append([angle_to_other,distance_to_other])
-					markers_xy_list.append(xy_other)
-					if in_view:
-						no_markers_in_view = False
-						markers_in_view_angle_distance_list.append([angle_to_other,distance_to_other])
-						markers_in_view_xy_list.append(xy_other)
+def get_sample_points(pts,angles,pfield,heading):
+    sample_points = []
+    potential_values = []
+    heading = heading.copy()
+    heading *= 0.5 # 50 cm, about the length of the car
+    for the_arena in angles:
+        sample_points.append( rotatePoint([0,0],heading,the_arena) )
+    for sp in sample_points:
+        pix = pfield['Image']['floats_to_pixels']([sp[0]+array(pts)[-1,0],sp[1]+array(pts)[-1,1]])
+        potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
+        #pfield['Image']['img'][pix[0],pix[1]] = 1 # for checking
+    return potential_values
 
 
-
-
-
-
-
-
-
-
-
-	def get_sample_points(pts,angles,pfield,heading):
-	    sample_points = []
-	    potential_values = []
-	    heading *= 0.5 # 50 cm, about the length of the car
-	    for the_arena in angles:
-	        sample_points.append( rotatePoint([0,0],heading,the_arena) )
-	    for k in range(len(sample_points)):
-	        f = sample_points[k]
-	    for sp in sample_points:
-	    	if GRAPHICS:
-	    		pfield['Image']['plot_pts'](array(sp)+array(pts[-1,:]),'g')
-	        pix = pfield['Image']['floats_to_pixels']([sp[0]+pts[-1,0],sp[1]+pts[-1,1]])
-	        potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
-	    return sample_points,potential_values
-
-	def interpret_potential_values(potential_values):
-		min_potential_index = potential_values.index(min(potential_values))
-		max_potential_index = potential_values.index(max(potential_values))
-		middle_index = int(len(potential_values)/2)
-		potential_values = array(potential_values)
-		pmin = potential_values.min()
-		pmax = potential_values.max()
-		potential_values = z2o(potential_values) * pmax
-		if GRAPHICS:
-			figure(9);plot(potential_values,'bo-')
-		d = 99.0/(1.0*len(potential_values)-1)
-		steer_angles = np.floor(99-arange(0,100,d))
-		p = min(pmax/0.8,1.0)
-		steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
-		return steer
+def interpret_potential_values(potential_values):
+	min_potential_index = potential_values.index(min(potential_values))
+	max_potential_index = potential_values.index(max(potential_values))
+	middle_index = int(len(potential_values)/2)
+	potential_values = array(potential_values)
+	pmin = potential_values.min()
+	pmax = potential_values.max()
+	potential_values = z2o(potential_values) * pmax
+	d = 99.0/(1.0*len(potential_values)-1)
+	steer_angles = np.floor(99-arange(0,100,d))
+	p = min(pmax/0.8,1.0)
+	steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
+	return steer
 
 

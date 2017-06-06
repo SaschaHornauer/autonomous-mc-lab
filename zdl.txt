@@ -1,0 +1,236 @@
+0) ...
+4) Mr_Yellow:
+	0) ...
+	7) runs:
+		0) caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Yellow caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow_B] (len=2) [Mr_Yellow caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow_A] (len=2) [Mr_Silver caffe2_z2_color_direct_local_11Apr17_14h16m42s_Mr_Silver] (len=2) [Mr_Blue caffe2_z2_color_direct_local_31Dec12_16h01m08s_Mr_Blue] (len=2)] (len=4)
+			1) trajectory:
+				...
+
+		1) caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow_A:
+			0) list_of_other_car_trajectories:
+				[[Mr_Yellow caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow] (len=2) [Mr_Blue caffe2_z2_color_direct_local_31Dec12_16h01m08s_Mr_Blue] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		2) caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow_B:
+			0) list_of_other_car_trajectories:
+				[[Mr_Yellow caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		3) caffe2_z2_color_direct_local_11Apr17_22h14m05s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver caffe2_z2_color_direct_local_11Apr17_15h25m02s_Mr_Silver] (len=2) [Mr_Blue caffe2_z2_color_direct_local_11Apr17_15h29m09s_Mr_Blue] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		4) direct_Fern_aruco_1_11Apr17_22h59m32s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_Fern_aruco_1_11Apr17_15h47m09s_Mr_Blue] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		5) direct_Fern_aruco_1_11Apr17_23h24m50s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_Fern_aruco_1_11Apr17_16h25m09s_Mr_Blue] (len=2) [Mr_Orange direct_Fern_aruco_1_11Apr17_17h04m16s_Mr_Orange] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		6) direct_Fern_aruco_1_14Apr17_20h17m10s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[]
+			1) trajectory:
+				...
+
+		7) direct_Fern_aruco_1_14Apr17_20h24m03s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_Fern_aruco_1_14Apr17_13h33m11s_Mr_Blue] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		8) direct_Fern_aruco_1_14Apr17_21h14m26s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_Fern_aruco_1_14Apr17_13h45m40s_Mr_Blue] (len=2) [Mr_Blue direct_Fern_aruco_1_14Apr17_14h38m24s_Mr_Blue] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		9) direct_Fern_aruco_1_14Apr17_22h19m52s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_Fern_aruco_1_14Apr17_14h38m24s_Mr_Blue] (len=2) [Mr_Blue direct_Fern_aruco_1_14Apr17_16h04m17s_Mr_Blue] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		10) direct_caffe_Fern_aruco_15Apr17_19h39m02s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_caffe_Fern_aruco_15Apr17_12h38m01s_Mr_Silver] (len=2) [Mr_Blue direct_caffe_Fern_aruco_15Apr17_12h38m05s_Mr_Blue] (len=2) [Mr_Black direct_caffe_Fern_aruco_15Apr17_12h38m22s_Mr_Black] (len=2) [Mr_Orange direct_caffe_Fern_aruco_15Apr17_12h38m03s_Mr_Orange] (len=2)] (len=4)
+			1) trajectory:
+				...
+
+		11) direct_caffe_Fern_aruco_15Apr17_20h42m44s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[]
+			1) trajectory:
+				...
+
+		12) direct_caffe_Fern_aruco_15Apr17_20h50m32s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_caffe_Fern_aruco_15Apr17_13h57m22s_Mr_Blue] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		13) direct_caffe_Fern_aruco_15Apr17_21h02m30s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_caffe_Fern_aruco_15Apr17_14h02m46s_Mr_Blue] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		14) direct_caffe_Fern_aruco_15Apr17_21h17m45s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_caffe_Fern_aruco_15Apr17_14h17m50s_Mr_Blue] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		15) direct_caffe_Fern_aruco_15Apr17_22h09m30s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_caffe_Fern_aruco_15Apr17_15h09m22s_Mr_Blue] (len=2) [Mr_Blue direct_caffe_Fern_aruco_15Apr17_15h28m34s_Mr_Blue] (len=2) [Mr_Black direct_caffe_Fern_aruco_15Apr17_15h04m57s_Mr_Black] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		16) direct_rewrite_test_24Apr17_20h21m56s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_24Apr17_13h27m04s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_24Apr17_13h26m06s_Mr_Black] (len=2) [Mr_Black direct_rewrite_test_24Apr17_13h31m59s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_24Apr17_13h26m08s_Mr_Orange] (len=2)] (len=4)
+			1) trajectory:
+				...
+
+		17) direct_rewrite_test_24Apr17_20h55m12s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_24Apr17_13h27m04s_Mr_Blue] (len=2) [Mr_Orange direct_rewrite_test_24Apr17_13h26m08s_Mr_Orange] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		18) direct_rewrite_test_24Apr17_21h07m08s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_24Apr17_14h07m06s_Mr_Blue] (len=2) [Mr_Blue caffe_direct_rewrite_test_24Apr17_14h07m06s_Mr_Blue] (len=2) ... [Mr_Orange direct_rewrite_test_24Apr17_14h39m17s_Mr_Orange] (len=2) [Mr_Orange direct_rewrite_test_24Apr17_14h07m05s_Mr_Orange] (len=2)] (len=7)
+			1) trajectory:
+				...
+
+		19) direct_rewrite_test_25Apr17_19h28m39s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_25Apr17_12h26m52s_Mr_Silver] (len=2) [Mr_Silver direct_rewrite_test_25Apr17_12h36m54s_Mr_Silver] (len=2) ... [Mr_Black direct_rewrite_test_25Apr17_12h37m54s_Mr_Black] (len=2) [Mr_Black direct_rewrite_test_25Apr17_12h40m27s_Mr_Black] (len=2)] (len=5)
+			1) trajectory:
+				...
+
+		20) direct_rewrite_test_25Apr17_20h09m02s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_25Apr17_13h10m34s_Mr_Silver] (len=2) [Mr_Black direct_rewrite_test_25Apr17_13h09m04s_Mr_Black] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		21) direct_rewrite_test_25Apr17_20h19m42s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_25Apr17_13h36m13s_Mr_Silver] (len=2) [Mr_Silver direct_rewrite_test_25Apr17_13h46m55s_Mr_Silver] (len=2) [Mr_Black direct_rewrite_test_25Apr17_13h21m03s_Mr_Black] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		22) direct_rewrite_test_25Apr17_21h31m25s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_25Apr17_14h32m09s_Mr_Silver] (len=2) [Mr_Blue direct_rewrite_test_25Apr17_14h31m51s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_25Apr17_14h31m27s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_25Apr17_14h32m22s_Mr_Orange] (len=2)] (len=4)
+			1) trajectory:
+				...
+
+		23) direct_rewrite_test_25Apr17_21h54m05s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_25Apr17_14h56m12s_Mr_Silver] (len=2) [Mr_Blue direct_rewrite_test_25Apr17_14h54m01s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_25Apr17_14h54m05s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_25Apr17_14h54m02s_Mr_Orange] (len=2)] (len=4)
+			1) trajectory:
+				...
+
+		24) direct_rewrite_test_25Apr17_22h27m31s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_25Apr17_15h27m38s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_25Apr17_15h27m34s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_25Apr17_15h29m02s_Mr_Orange] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		25) direct_rewrite_test_25Apr17_22h57m24s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_25Apr17_15h57m08s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_25Apr17_15h57m04s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_25Apr17_15h57m10s_Mr_Orange] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		26) direct_rewrite_test_25Apr17_23h24m11s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Black direct_rewrite_test_25Apr17_16h09m24s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_25Apr17_16h09m29s_Mr_Orange] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		27) direct_rewrite_test_29Apr17_00h14m59s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Black direct_rewrite_test_28Apr17_17h14m56s_Mr_Black] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		28) direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_28Apr17_17h27m30s_Mr_Silver] (len=2) [Mr_Blue direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_28Apr17_17h23m15s_Mr_Black] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		29) direct_rewrite_test_29Apr17_00h50m25s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Silver direct_rewrite_test_28Apr17_17h51m01s_Mr_Silver] (len=2) [Mr_Blue direct_rewrite_test_28Apr17_17h50m31s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_28Apr17_17h50m34s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_28Apr17_17h59m53s_Mr_Orange] (len=2)] (len=4)
+			1) trajectory:
+				...
+
+		30) direct_rewrite_test_30Apr17_18h56m50s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_30Apr17_11h50m02s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_30Apr17_12h29m10s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_30Apr17_12h28m17s_Mr_Orange] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		31) direct_rewrite_test_30Apr17_19h37m10s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_30Apr17_12h37m06s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_30Apr17_12h37m04s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_30Apr17_12h37m10s_Mr_Orange] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		32) direct_rewrite_test_30Apr17_19h55m33s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_30Apr17_12h55m23s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_30Apr17_12h55m28s_Mr_Black] (len=2)] (len=2)
+			1) trajectory:
+				...
+
+		33) direct_rewrite_test_30Apr17_21h04m44s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_30Apr17_14h00m03s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_30Apr17_13h58m44s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_30Apr17_14h05m58s_Mr_Orange] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		34) direct_rewrite_test_30Apr17_21h15m07s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Black direct_rewrite_test_30Apr17_14h15m14s_Mr_Black] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		35) direct_rewrite_test_30Apr17_21h40m07s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Blue direct_rewrite_test_30Apr17_14h38m29s_Mr_Blue] (len=2) [Mr_Black direct_rewrite_test_30Apr17_14h37m25s_Mr_Black] (len=2) [Mr_Orange direct_rewrite_test_30Apr17_14h42m17s_Mr_Orange] (len=2)] (len=3)
+			1) trajectory:
+				...
+
+		36) direct_rewrite_test_30Apr17_22h21m02s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Black direct_rewrite_test_30Apr17_15h16m53s_Mr_Black] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+		37) direct_rewrite_test_30Apr17_22h42m55s_Mr_Yellow:
+			0) list_of_other_car_trajectories:
+				[[Mr_Black direct_rewrite_test_30Apr17_15h41m49s_Mr_Black] (len=2)] (len=1)
+			1) trajectory:
+				...
+
+
+	... 9)
+
+

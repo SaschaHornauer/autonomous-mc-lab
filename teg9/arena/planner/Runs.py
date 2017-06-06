@@ -2,35 +2,103 @@ from kzpy3.utils import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 import data.utils.animate as animate
-import arena.planner.Markers as Markers
 import arena.planner.Potential_Fields as Potential_Fields
 import arena.planner.Cars as Cars
 from data.utils.general import car_name_from_run_name
+from arena.planner.Constants import C
+import arena.planner.Spatial_Relations as Spatial_Relations
+
+
 
 def Run(run_name,cars,the_arena,bair_car_data_location):
 	D = {}
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Run object.')
 	D['run_name'] = run_name
 	D['cars'] = cars
-	D['our_car'] = car_name_from_run_name(run_name)
+	D['our_car_name'] = car_name_from_run_name(run_name)
+	our_car_name = D['our_car_name']
+	D['our_car'] = cars[our_car_name]
+	our_car = D['our_car']
 	D['the_arena'] = the_arena
 
 	if len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5: #'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow' in run_name:
 			print("len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5")
 			return False
-		
-	D['T0'] = cars[our_car]['runs'][run_name]['trajectory']['ts'][0]
-	D['Tn'] = cars[our_car]['runs'][run_name]['trajectory']['ts'][-1]
-	D['list_of_other_car_trajectories'] = cars[our_car]['runs'][run_name]['list_of_other_car_trajectories']
+	traj = our_car['runs'][run_name]['trajectory']
+	D['T0'] = traj['ts'][0]
+	D['Tn'] = traj['ts'][-1]
+	D['list_of_other_car_trajectories'] = our_car['runs'][run_name]['list_of_other_car_trajectories']
+	def _rewind():
+		for c in C['car_names']:
+			D['cars'][c]['rewind']()
+	D['rewind'] = _rewind
+
 	try:
-		cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location)
+		our_car['load_image_and_meta_data'](run_name,bair_car_data_location)
 	except Exception as e:
 		print("********** Exception *** cars[our_car]['load_image_and_meta_data'](run_name,bair_car_data_location) ********************")
-		print(our_car,run_name)
+		print(our_car_name,run_name)
 		print(e.message, e.args)
 		return False
-			
+	car_spatial_dic,marker_spatial_dic = Spatial_Relations.setup_spatial_dics(D)
+	D['car_spatial_dic'] = car_spatial_dic
+	D['marker_spatial_dic'] = marker_spatial_dic
+	D['rewind']()
+	return D
 
+"""
+def show_arena_with_cars(current_run,an_arena,t):
+	car_spatial_dic,marker_spatial_dic = current_run['car_spatial_dic'],current_run['marker_spatial_dic']
+	Spatial_Relations.update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t)
+	if len(current_run['our_car']['state_info']['pts']) > 0:
+		xy = current_run['our_car']['state_info']['pts'][-1]
+		if len(xy) > 0:
+			an_arena['show']()
+			an_arena['Image']['pts_plot'](xy,'r')
+			heading = current_run['our_car']['state_info']['heading']
+			if heading != None:
+				an_arena['Image']['pts_plot'](xy+heading,'c')
+			for c in car_spatial_dic.keys():
+				if car_spatial_dic[c]['xy'] != None:
+					if car_spatial_dic[c]['in_view']:
+						dot_color = 'y'
+					else:
+						dot_color = 'b'
+					an_arena['Image']['pts_plot'](car_spatial_dic[c]['xy'],dot_color)
+			for c in marker_spatial_dic.keys():
+				if marker_spatial_dic[c]['xy'] != None:
+					if marker_spatial_dic[c]['in_view']:
+						an_arena['Image']['pts_plot'](marker_spatial_dic[c]['xy'],'g')
+			#print current_run['our_car']['state_info']['heading']
+			pause(0.00001)
+"""
+def show_arena_with_cars(current_run,an_arena,t):
+	car_spatial_dic,marker_spatial_dic = current_run['car_spatial_dic'],current_run['marker_spatial_dic']
+	#Spatial_Relations.update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t)
+	if len(current_run['our_car']['state_info']['pts']) > 0:
+		xy = current_run['our_car']['state_info']['pts'][-1]
+		if len(xy) > 0:
+			an_arena['show']()
+			an_arena['Image']['pts_plot'](xy,'r')
+			heading = current_run['our_car']['state_info']['heading']
+			
+			if heading != None:
+				an_arena['Image']['pts_plot'](xy+heading,'c')
+			for c in car_spatial_dic.keys():
+				if car_spatial_dic[c]['xy'] != None:
+					if car_spatial_dic[c]['in_view']:
+						dot_color = 'y'
+					else:
+						dot_color = 'b'
+					an_arena['Image']['pts_plot'](car_spatial_dic[c]['xy'],dot_color)
+			for c in marker_spatial_dic.keys():
+				if marker_spatial_dic[c]['xy'] != None:
+					if marker_spatial_dic[c]['in_view']:
+						an_arena['Image']['pts_plot'](marker_spatial_dic[c]['xy'],'g')
+			#print current_run['our_car']['state_info']['heading']
+			pause(0.00001)
+
+"""
 					
 	def _step(t,other_cars_in_view_xy_list,xy_our,other_cars_angle_distance_list,view_angles):	
 		our_car = D['cars'][D['our_car']]		
@@ -89,4 +157,4 @@ def Run(run_name,cars,the_arena,bair_car_data_location):
 
 	return D
 
-
+"""
