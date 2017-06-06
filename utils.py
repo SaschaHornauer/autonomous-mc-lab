@@ -42,7 +42,6 @@ import datetime
 import random
 try:
     import cPickle as pickle
-    print("utils.py: imported cPickle as pickle")
 except:
     import pickle
     print("utils.py: importing cPickle failed, using pickle instead.")
@@ -238,6 +237,10 @@ def d2n(*args):
     return d2s_spacer(args,spacer='')
 def d2f(*args):
     return d2s_spacer(args[1:],spacer=args[0])
+
+def pd2s(*args):
+    print(d2s(*args))
+
 
 def dp(f,n=2):
     """
@@ -790,6 +793,89 @@ def zaccess(d,alst,truncate=True,dic_show_ends=4):
         d = d[sorted(d.keys())[a]]
     return d
 
+def zds(d,dic_show_ends,*alst):
+    alst = list(alst)
+    assert(dic_show_ends>1)
+    if len(alst) == 0:
+        print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
+    print(zdic_to_str(d,alst,False,dic_show_ends))
+
+
+
+def zdl(d,dic_show_ends,*alst):
+    alst = list(alst)
+    assert(dic_show_ends>1)
+    if len(alst) == 0:
+        print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
+    list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),zdic_to_str(d,alst,False,dic_show_ends).split('\n'))
+
+def zdl(d,dic_show_ends,*alst):
+    """
+    https://stackoverflow.com/questions/2749796/how-to-get-the-original-variable-name-of-variable-passed-to-a-function
+    """
+    import inspect
+    frame = inspect.currentframe()
+    frame = inspect.getouterframes(frame)[1]
+    string = inspect.getframeinfo(frame[0]).code_context[0].strip()
+    args = string[string.find('(') + 1:-1].split(',')
+    names = []
+    for i in args:
+        if i.find('=') != -1:
+            names.append(i.split('=')[1].strip())
+        else:
+            names.append(i)
+
+    alst = list(alst)
+    assert(dic_show_ends>1)
+    if len(alst) == 0:
+        print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
+    dic_str = zdic_to_str(d,alst,False,dic_show_ends)
+    ks = []
+    for a in alst:
+        if type(d) != dict:
+            break
+        k = sorted(d.keys())[a]
+        d = d[k]
+        ks.append(k)
+    out_str = ">> "+names[0]
+    for k in ks:
+        out_str += "['"+k+"']"
+    cprint(out_str,'yellow')
+    list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,names[0]]+dic_str.split('\n'))
+
+
+
+
+def zda(d,dic_show_ends,*alst):
+    """
+    https://stackoverflow.com/questions/2749796/how-to-get-the-original-variable-name-of-variable-passed-to-a-function
+    """
+    import inspect
+    frame = inspect.currentframe()
+    frame = inspect.getouterframes(frame)[1]
+    string = inspect.getframeinfo(frame[0]).code_context[0].strip()
+    args = string[string.find('(') + 1:-1].split(',')
+    names = []
+    for i in args:
+        if i.find('=') != -1:
+            names.append(i.split('=')[1].strip())
+        else:
+            names.append(i)
+
+    zds(d,dic_show_ends,*alst)
+    ks = []
+    for a in alst:
+        if type(d) != dict:
+            break
+        k = sorted(d.keys())[a]
+        d = d[k]
+        ks.append(k)
+    out_str = ">> "+names[0]
+    for k in ks:
+        out_str += "['"+k+"']"
+    cprint(out_str,'yellow')
+    return d
+
 
 
 
@@ -802,10 +888,6 @@ def zlst_truncate(lst,show_ends=2):
     else:
         out_lst = lst
     return out_lst
-
-
-
-
 
 def zlst_to_str(lst,truncate=True,decimal_places=2,show_ends=2,depth=0,range_lst=[-2]):
     original_len = -1
@@ -833,10 +915,6 @@ def zlst_to_str(lst,truncate=True,decimal_places=2,show_ends=2,depth=0,range_lst
     if original_len > 0:
         lst_str += d2n(' (len=',original_len,')')
     return lst_str
-
-
-
-
 
 def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
 
@@ -886,7 +964,7 @@ def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
             else:
                 dic_str_lst.append(d2s('\t'*(depth+1),str(value),type(value)))
     if this_range[1] < len(sorted_keys):
-        dic_str_lst.append(d2n('\t'*depth,'... ',len(d)-1,')'))
+        dic_str_lst.append(d2n('\t'*depth,'..',len(d)-1,')'))
     dic_str = ""
     for d in dic_str_lst:
         dic_str += d + "\n"
@@ -895,16 +973,17 @@ def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
 
 
 
+def assert_disk_locations(locations):
+    if type(locations) == str:
+        locations = [locations]
+    for l in locations:
+        print(d2s("Checking for",l))
+        if len(gg(l)) < 1:
+            print(d2s(l,"not available!"))
+            raw_input('Hit ctr-C')
+            assert(False)
+        print(d2s(l,'is there.\n'))
 
-
-"""
-def zprint_str_lst(str_lst):
-    for s in str_lst:
-        if type(s) == list:
-            zprint_str_lst(s)
-        else:
-            print(s)
-"""
 
 
 

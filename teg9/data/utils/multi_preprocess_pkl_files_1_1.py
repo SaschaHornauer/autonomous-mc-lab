@@ -76,6 +76,16 @@ def multi_preprocess_pkl_files(A,meta_path,rgb_1to4_path,print_b=False,load_imag
                 A['acc_y'].append(1)
                 A['acc_z'].append(2)
             try:
+                A['gyro_heading_x'].append(A['meta'][t]['gyro_heading'][0])
+                A['gyro_heading_y'].append(A['meta'][t]['gyro_heading'][1])
+                A['gyro_heading_z'].append(A['meta'][t]['gyro_heading'][2])
+
+            except:
+                A['gyro_heading_x'].append(0)
+                A['gyro_heading_y'].append(1)
+                A['gyro_heading_z'].append(2)
+
+            try:
                 A['gyro_x'].append(A['meta'][t]['gyro'][0])
                 A['gyro_y'].append(A['meta'][t]['gyro'][1])
                 A['gyro_z'].append(A['meta'][t]['gyro'][2])

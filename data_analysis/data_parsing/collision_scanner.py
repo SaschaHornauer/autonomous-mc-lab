@@ -309,9 +309,9 @@ if __name__ == '__main__':
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
-    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-49_13.bag'
+    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
     
-    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/'
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/'
     bagfiles =  [os.path.join(bagfile_path,file) for file in os.listdir(bagfile_path) if os.path.isfile(os.path.join(bagfile_path,file))] 
     
     # Timestamps from the last car are taken. In the future it would be good to check
@@ -331,7 +331,7 @@ if __name__ == '__main__':
         run_names = []
         
     #     for own_carname in encounter_situations:
-        own_carname = 'Mr_Blue'
+        own_carname = 'Mr_Black'
         for other_carname in encounter_situations[own_carname]:
             for entry in encounter_situations[own_carname][other_carname]:
                 timestamps.append(entry['timestamp'])

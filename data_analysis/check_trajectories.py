@@ -14,7 +14,7 @@ from operator import add
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from data_parsing.Image_Bagfile_Handler import Bagfile_Handler
+from kzpy3.data_analysis.data_parsing.Bagfile_Handler import Bagfile_Handler
 
 def animate(resulting_trajectories):
     
