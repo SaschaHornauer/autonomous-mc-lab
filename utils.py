@@ -938,6 +938,7 @@ def assert_disk_locations(locations):
         print(d2s("Checking for",l))
         if len(gg(l)) < 1:
             print(d2s(l,"not available!"))
+            raw_input('Hit ctr-C')
             assert(False)
         print(d2s(l,'is there.\n'))
 

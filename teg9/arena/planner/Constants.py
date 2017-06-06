@@ -22,7 +22,7 @@ def Constants():
 
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Constant values of various types.')
 	
-	D['Marker_Radius'] = 4*107/100.0
+	D['Marker_Radius'] = 180*2.54/100.0 #4*107/100.0
 
 	D['sensor_angles'] = -arange(-45,46,9)
 

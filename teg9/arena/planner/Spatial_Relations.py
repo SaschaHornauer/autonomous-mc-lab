@@ -93,9 +93,9 @@ def relation_to_other_object(our_heading,xy_our,xy_other,view_angle):
 
 
 
-def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list):
+def objects_to_angle_distance_representation(reference_angles,other_angle_distance_list,are_markers=False):
 	m = array(reference_angles)*0.0
-	if len(reference_angles) > len(other_angle_distance_list):
+	if len(reference_angles) > len(other_angle_distance_list) and not are_markers:
 		for object_angle,object_distance in other_angle_distance_list:
 			indx = find_index_of_closest(object_angle,reference_angles)
 			if m[indx] < 1/object_distance:
@@ -110,14 +110,14 @@ def objects_to_angle_distance_representation(reference_angles,other_angle_distan
 	return m
 
 
-def get_angle_distance_view(current_run,spatial_dic):
+def get_angle_distance_view(current_run,spatial_dic,are_markers=False):
 	other_angle_distance_list = []
 	angle_dist_view = []
 	for c in current_run[spatial_dic].keys():
 		if current_run[spatial_dic][c]['in_view']:
 			other_angle_distance_list.append([current_run[spatial_dic][c]['angle'],current_run[spatial_dic][c]['dist']])
 	if len(other_angle_distance_list) > 0:
-		angle_dist_view = objects_to_angle_distance_representation(C['view_angles'],other_angle_distance_list)
+		angle_dist_view = objects_to_angle_distance_representation(C['view_angles'],other_angle_distance_list,are_markers)
 	return angle_dist_view
 
 
