@@ -38,7 +38,8 @@ for car_name in C['car_names']:
 
 
 
-current_run = Runs.Run('direct_rewrite_test_25Apr17_16h09m24s_Mr_Black',cars,an_arena,C['bair_car_data_location'])
+#current_run = Runs.Run('direct_rewrite_test_25Apr17_16h09m24s_Mr_Black',cars,an_arena,C['bair_car_data_location'])
+current_run = Runs.Run('direct_Fern_aruco_1_14Apr17_20h24m03s_Mr_Yellow',cars,an_arena,C['bair_car_data_location'])
 
 
 
@@ -60,6 +61,7 @@ for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],1/30.):
 		if heading != None:
 			car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
 			if True: #len(car_angle_dist_view) > 0:
+				pd2s(dp(current_run['our_car']['state_info']['relative_heading']))
 				marker_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'marker_spatial_dic')
 				Runs.show_arena_with_cars(current_run,an_arena,t)
 				pause(0.0001)

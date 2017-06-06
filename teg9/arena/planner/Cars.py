@@ -69,7 +69,7 @@ def Car(N,car_name,origin,mult,markers):
 					#print(d2s('>..',length(D['state_info']['heading'])))
 					D['state_info']['heading'] = D['state_info']['heading_prev']
 					#print(d2s('>...',length(D['state_info']['heading'])))
-			D['state_info']['relative_heading'] = (degrees(angle_clockwise(D['state_info']['heading'],D['state_info']['pts'][-1])))
+			D['state_info']['relative_heading'] = (angle_clockwise(D['state_info']['heading'],D['state_info']['pts'][-1]))
 			D['state_info']['heading_prev'] = D['state_info']['heading'].copy()
 			D['state_info']['near_t_prev'] = D['state_info']['near_t']
 			D['state_info']['velocity'] = (traj['left']['t_vel']+traj['right']['t_vel'])/2.0
