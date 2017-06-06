@@ -124,6 +124,41 @@ def Car(N,car_name,origin,mult,markers):
 	D['load_image_and_meta_data'] = _load_image_and_meta_data
 
 
+
+
+	def _get_sample_points(pts,angles,pfield,heading):
+	    sample_points = []
+	    potential_values = []
+	    heading *= 0.5 # 50 cm, about the length of the car
+	    for the_arena in angles:
+	        sample_points.append( rotatePoint([0,0],heading,the_arena) )
+	    for k in range(len(sample_points)):
+	        f = sample_points[k]
+	    for sp in sample_points:
+	    	if GRAPHICS:
+	    		pfield['Image']['plot_pts'](array(sp)+array(pts[-1,:]),'g')
+	        pix = pfield['Image']['floats_to_pixels']([sp[0]+pts[-1,0],sp[1]+pts[-1,1]])
+	        potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
+	    return sample_points,potential_values
+
+	def _interpret_potential_values(potential_values):
+		min_potential_index = potential_values.index(min(potential_values))
+		max_potential_index = potential_values.index(max(potential_values))
+		middle_index = int(len(potential_values)/2)
+		potential_values = array(potential_values)
+		pmin = potential_values.min()
+		pmax = potential_values.max()
+		potential_values = z2o(potential_values) * pmax
+		if GRAPHICS:
+			figure(9);plot(potential_values,'bo-')
+		d = 99.0/(1.0*len(potential_values)-1)
+		steer_angles = np.floor(99-arange(0,100,d))
+		p = min(pmax/0.8,1.0)
+		steer = int((p*steer_angles[min_potential_index]+(1-p)*49.0))
+		return steer
+
+
+
 	return D
 
 

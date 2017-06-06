@@ -6,14 +6,14 @@ from data.utils.general import car_colors as colors
 
 
 
-
-
-
 def gaussian(x, mu, sig):
     return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 
-R = 4*107/100.0
+Radius = 4*107/100.0
+R = Radius
+
+
 def f(x,a,b,c,d,e):
 	if is_number(x):
 		x = array([x])
@@ -34,16 +34,12 @@ def f(x,a,b,c,d,e):
 
 
 
-
-
-
-
-
 def Potential_Field(xy_sizes,origin,mult):
 	D = {}
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Potential field for path planning.')
 	D['Image'] = Image(xy_sizes,origin,mult,data_type=np.float)
 	D['previous_additions'] = []
+	D['type'] = 'generic'
 	def _sub_add(additions):
 		for p in D['previous_additions']:
 			isub(p[0],D['Image']['img'],p[1])
@@ -56,6 +52,11 @@ def Potential_Field(xy_sizes,origin,mult):
 		D['previous_additions'].append([addition,xy_pixels])
 	D['sub_add'] = _sub_add
 	D['add'] = _add
+	def _show():
+		plt.figure(D['type'],figsize=(4,4))
+		clf()
+		mi(D['Image']['img'])
+	D['show'] = _show
 	return D
 
 
