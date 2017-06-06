@@ -12,7 +12,7 @@ def Car(N,car_name,origin,mult,markers):
 	D['car_name'] = car_name
 	D['type'] = 'Car'
 	D['runs'] = {}
-	D['n_for_heading'] = 15
+	D['n_for_heading'] = C['n_for_heading']
 	for run_name in N[car_name].keys():
 		D['runs'][run_name] = {}
 		R = D['runs'][run_name]
@@ -37,7 +37,7 @@ def Car(N,car_name,origin,mult,markers):
 		D['state_info']['heading'] = None
 		D['state_info']['heading_prev'] = [0,1]
 		D['state_info']['relative_heading'] = 90
-		D['state_info']['velocity'] = []
+		D['state_info']['velocity'] = 0
 	D['rewind'] = _rewind
 	D['rewind']()
 
@@ -51,7 +51,8 @@ def Car(N,car_name,origin,mult,markers):
 		for side in ['left','right']:
 			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
 		D['state_info']['pts'].append(array(positions).mean(axis=0))
-
+		if len(D['state_info']['pts']) > 3*D['n_for_heading']:
+			D['state_info']['pts'] = D['state_info']['pts'][-2*D['n_for_heading']:]
 		if len(D['state_info']['pts']) >= D['n_for_heading']:
 			n = D['n_for_heading']
 			D['state_info']['heading'] = normalized_vector_from_pts(D['state_info']['pts'][-n:])
@@ -63,7 +64,7 @@ def Car(N,car_name,origin,mult,markers):
 			if D['state_info']['near_t'] - D['state_info']['near_t_prev'] < 0.1:
 				if np.degrees(angle_between(D['state_info']['heading'],D['state_info']['heading_prev'])) > 45:
 					#print_stars()
-					print('Heading warning!!!')
+					#print('Heading warning!!!')
 					#print_stars()
 					#print(d2s('>..',length(D['state_info']['heading'])))
 					D['state_info']['heading'] = D['state_info']['heading_prev']
@@ -75,7 +76,7 @@ def Car(N,car_name,origin,mult,markers):
 
 		else:
 			D['state_info']['heading'] = None
-		if D['state_info']['heading'] != None:
+		#if D['state_info']['heading'] != None:
 			#print(d2s('>....',length(D['state_info']['heading'])))
 		return (D['state_info']['pts'][-1],D['state_info']['heading']) #positions
 	D['report_camera_positions'] = _report_camera_positions

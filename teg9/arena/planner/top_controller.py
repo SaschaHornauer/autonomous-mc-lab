@@ -46,25 +46,26 @@ current_run = Runs.Run('direct_rewrite_test_25Apr17_16h09m24s_Mr_Black',cars,an_
 
 T_OFFSET_VALUE = 0
 
-
+ctr_timer = Timer(0)
 timer = Timer(5)
+ctr = 0
 
 current_run['rewind']()
 for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],1/30.):
 	if timer.check():
-		#print t - current_run['T0']
+		pd2s(dp(ctr/ctr_timer.time()/30.0),dp(t-current_run['T0']),dp(100.0*(t-current_run['T0'])/(current_run['Tn']-current_run['T0'])),'%')
 		timer.reset()
 	if Spatial_Relations.update_spatial_dics(current_run,current_run['car_spatial_dic'],current_run['marker_spatial_dic'],t):
 		heading = current_run['our_car']['state_info']['heading']
 		if heading != None:
 			car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
-			if len(car_angle_dist_view) > 0:
+			if True: #len(car_angle_dist_view) > 0:
 				marker_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'marker_spatial_dic')
 				Runs.show_arena_with_cars(current_run,an_arena,t)
 				pause(0.0001)
 				potential_values = Spatial_Relations.get_sample_points(current_run['our_car']['state_info']['pts'],
 					C['sensor_angles'],an_arena,heading)
-				
+				ctr += 1
 				figure('view')
 				clf()
 				xylim(0,7,0,2)
@@ -74,7 +75,7 @@ for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],1/30.):
 				
 	else:
 		continue
-		clf()
-		current_run['the_arena']['show']()
-		pause(0.0001)
+		#clf()
+		#current_run['the_arena']['show']()
+		#pause(0.0001)
 			

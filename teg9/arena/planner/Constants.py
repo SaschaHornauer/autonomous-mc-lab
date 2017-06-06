@@ -46,6 +46,8 @@ def Constants():
 
 	D['car_names'] = ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']
 
+	D['n_for_heading'] = 5 #15
+
 	return D
 
 C = Constants()

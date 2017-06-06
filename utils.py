@@ -805,7 +805,7 @@ def zdl(d,dic_show_ends,*alst):
     assert(dic_show_ends>1)
     if len(alst) == 0:
         print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
-    list_of_strings_to_txt_file(opjD('zdl.txt'),zdic_to_str(d,alst,False,dic_show_ends).split('\n'))
+    list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),zdic_to_str(d,alst,False,dic_show_ends).split('\n'))
 
 
 def zda(d,dic_show_ends,*alst):

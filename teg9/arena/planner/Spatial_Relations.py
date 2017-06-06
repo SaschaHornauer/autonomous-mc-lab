@@ -63,8 +63,6 @@ def update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t):
 	report = current_run['our_car']['report_camera_positions'](current_run['run_name'],t)
 	if len(report) == 2:
 		xy_our,our_heading = report
-		if our_heading != None:
-			print(d2s('>>',length(array(our_heading))))
 		list_of_other_car_trajectories = current_run['our_car']['runs'][current_run['run_name']]['list_of_other_car_trajectories']
 		for l in list_of_other_car_trajectories:
 			other_car_name = l[0]
