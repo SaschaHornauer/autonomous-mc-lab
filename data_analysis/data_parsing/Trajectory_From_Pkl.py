@@ -166,7 +166,7 @@ class Trajectory_From_Pkl:
                     
                     # First find all the points in the dataset where another car is actually close
                     
-                    encounter_timestep, closest_xys, _ = collision_scanner.get_close_encounters_in_list(own_xy, other_positions, start_timestep, end_timestep)
+                    encounter_timestep, closest_xys, _ = get_encounters(own_xy, other_positions, start_timestep, end_timestep)
                     
                     time_segments = self.get_continous_segments(encounter_timestep)
                     # Add those points to the goal trajectory. 
