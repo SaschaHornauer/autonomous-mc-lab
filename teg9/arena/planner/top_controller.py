@@ -36,7 +36,7 @@ for car_name in C['car_names']:
 	cars[car_name] =  Cars.Car(N,car_name,C['Origin'],C['Mult'],C['markers'])
 
 
-
+# cars['Mr_Yellow']['runs']['direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow']['trajectory']['data']['t_to_indx']
 
 #current_run = Runs.Run('direct_rewrite_test_25Apr17_16h09m24s_Mr_Black',cars,an_arena,C['bair_car_data_location'])
 current_run = Runs.Run('direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow',cars,an_arena,C['bair_car_data_location'])
@@ -86,13 +86,13 @@ for k in the_arenas:
 							dist = 1/(0.00001+inv_dist)
 							dists.append(dist)
 						if min(dists) <= 1:
-							print "A"
+							#print "A"
 							pass
 						else:
 							for i in range(len(dists)):
 								dist = dists[i]
 								if dist >= 1 and dist < 8:
-									potential_values[i] -= potential_values[i]*1.0/dist
+									potential_values[i] *= 1.0/(9.0-dist)
 					else:
 						potential_values = 3*array(potential_values)
 					relative_heading = current_run['our_car']['state_info']['relative_heading']
