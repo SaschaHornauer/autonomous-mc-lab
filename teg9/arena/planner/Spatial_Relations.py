@@ -124,13 +124,14 @@ def get_angle_distance_view(current_run,spatial_dic,are_markers=False):
 def get_sample_points(pts,angles,pfield,heading):
     sample_points = []
     potential_values = []
+    heading = heading.copy()
     heading *= 0.5 # 50 cm, about the length of the car
     for the_arena in angles:
         sample_points.append( rotatePoint([0,0],heading,the_arena) )
     for sp in sample_points:
         pix = pfield['Image']['floats_to_pixels']([sp[0]+array(pts)[-1,0],sp[1]+array(pts)[-1,1]])
         potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
-        # pfield['Image']['img'][pix[0],pix[1]] = 1 # for checking
+        #pfield['Image']['img'][pix[0],pix[1]] = 1 # for checking
     return potential_values
 
 

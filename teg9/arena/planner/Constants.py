@@ -26,9 +26,9 @@ def Constants():
 
 	D['sensor_angles'] = -arange(-45,46,9)
 
-	D['view_angle'] = 35
+	D['view_angle'] = 45#35
 
-	D['view_angles'] = arange(-D['view_angle'],D['view_angle']+1,10)
+	D['view_angles'] = -D['sensor_angles']#arange(-D['view_angle'],D['view_angle']+1,10)
 
 	D['DISPLAY_LEFT'] = True
 
@@ -46,7 +46,7 @@ def Constants():
 
 	D['car_names'] = ['Mr_Black','Mr_Silver','Mr_Yellow','Mr_Orange','Mr_Blue']
 
-	D['n_for_heading'] = 5 #15
+	D['n_for_heading'] = 15
 
 	return D
 

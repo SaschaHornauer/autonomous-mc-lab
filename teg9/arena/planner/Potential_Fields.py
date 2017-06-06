@@ -142,7 +142,7 @@ def Play_Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
 	d = 1/2.0
 	e = 0	
 	D['fill_in_potential_field'](a,b,c,d,e)
-	D['Image']['img'] *= 2.5
+	D['Image']['img'] *= 1#2.5
 	print("created "+D['type'])
 	return D
 
@@ -159,7 +159,7 @@ def Follow_Arena_Potential_Field(origin,mult,markers,warp_image,warp_a,warp_b):
 	d = 1/2.0
 	e = 0.5
 	D['fill_in_potential_field'](a,b,c,d,e)
-	D['Image']['img'] *= 2.5
+	D['Image']['img'] *= 1#2.5
 	print("created "+D['type'])
 	return D
 
