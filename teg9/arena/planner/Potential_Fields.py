@@ -2,7 +2,7 @@ from kzpy3.utils import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 from arena.planner.Constants import C
-
+#
 
 R = C['Marker_Radius']
 

@@ -86,6 +86,27 @@ def Car(N,car_name,origin,mult,markers):
 		assert(traj['ts'][i] <= t)
 		if traj['ts'][i] == t:
 			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
+				print "traj[side]['t_vel'][i] > 3"
+				return False
+			if traj[side]['t_vel'][i]<0.1: #TEMP
+				print "raj[side]['t_vel'][i]<0.1"
+				return False
+			elif traj['camera_separation'][i] > 0.5: # almost larger than length of car
+				print "traj['camera_separation'][i] > 0.5"
+				return False
+			elif traj[side]['timestamp_gap'][i] > 0.5: # missed data points
+				print "traj[side]['timestamp_gap'][i] > 0.5"
+				return False
+			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
+				print "length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0])"
+				return False
+			return True
+		assert(False)
+
+	def __check_trajectory_point(traj,side,i,t):
+		assert(traj['ts'][i] <= t)
+		if traj['ts'][i] == t:
+			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
 				return False
 			if traj[side]['t_vel'][i]<0.1: #TEMP
 				return False

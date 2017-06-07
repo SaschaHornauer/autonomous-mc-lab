@@ -63,7 +63,7 @@ for k in the_arenas:
 			if heading != None:
 				car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
 
-				if len(car_angle_dist_view) > 0:
+				if True:#len(car_angle_dist_view) > 0:
 
 					other_cars_in_view_xy_list = []
 					for c in current_run['car_spatial_dic'].keys():

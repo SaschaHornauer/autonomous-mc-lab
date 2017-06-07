@@ -27,3 +27,9 @@ for pt in xy:
 
 pts_plot(axy,'b')
 pts_plot(array(xyr))
+
+dx = []
+dy = []
+for i in range(1,len(xyr)):
+	dx.append(xyr[i][0]-xyr[i-1][0])
+	dy.append(xyr[i][1]-xyr[i-1][1])
