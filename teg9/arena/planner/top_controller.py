@@ -85,14 +85,15 @@ for k in the_arenas:
 							inv_dist = car_angle_dist_view[i]
 							dist = 1/(0.00001+inv_dist)
 							dists.append(dist)
-						if min(dists) <= 1:
-							#print "A"
-							pass
-						else:
-							for i in range(len(dists)):
-								dist = dists[i]
-								if dist >= 1 and dist < 8:
-									potential_values[i] *= 1.0/(9.0-dist)
+						if len(dists) > 0:
+							if min(dists) <= 1:
+								#print "A"
+								pass
+							else:
+								for i in range(len(dists)):
+									dist = dists[i]
+									if dist >= 1 and dist < 8:
+										potential_values[i] *= 1.0/(9.0-dist)
 					else:
 						potential_values = 3*array(potential_values)
 					relative_heading = current_run['our_car']['state_info']['relative_heading']

@@ -723,7 +723,8 @@ def mean_exclude_outliers(data,n,min_proportion,max_proportion):
             rdata.append(mean_of_upper_range(data[i-n2:i],min_proportion,max_proportion))
     return rdata
 
-
+def meo(data,n):
+    return mean_exclude_outliers(data,n,1/3.0,2/3.0)
 
 
 
@@ -781,7 +782,9 @@ def find_index_of_closest(val,lst):
 
 
 
-
+ZD_Dictionary = None
+ZD_Dictionary_name = '<no name>'
+ZD_dic_show_ends = 24
 
 
 def zaccess(d,alst,truncate=True,dic_show_ends=4):
@@ -802,16 +805,20 @@ def zds(d,dic_show_ends,*alst):
 
 
 
-def zdl(d,dic_show_ends,*alst):
+def _zdl(d,dic_show_ends,*alst):
     alst = list(alst)
     assert(dic_show_ends>1)
     if len(alst) == 0:
         print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
     list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),zdic_to_str(d,alst,False,dic_show_ends).split('\n'))
 
+
+
+
 def zdl(d,dic_show_ends,*alst):
     """
     https://stackoverflow.com/questions/2749796/how-to-get-the-original-variable-name-of-variable-passed-to-a-function
+    """
     """
     import inspect
     frame = inspect.currentframe()
@@ -824,7 +831,7 @@ def zdl(d,dic_show_ends,*alst):
             names.append(i.split('=')[1].strip())
         else:
             names.append(i)
-
+    """
     alst = list(alst)
     assert(dic_show_ends>1)
     if len(alst) == 0:
@@ -837,13 +844,36 @@ def zdl(d,dic_show_ends,*alst):
         k = sorted(d.keys())[a]
         d = d[k]
         ks.append(k)
-    out_str = ">> "+names[0]
+    out_str = ">> "+ZD_Dictionary_name #names[0]
     for k in ks:
         out_str += "['"+k+"']"
     cprint(out_str,'yellow')
-    list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,names[0]]+dic_str.split('\n'))
+    list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,ZD_Dictionary_name]+dic_str.split('\n'))
 
 
+def zd_set(d,dic_show_ends=24):
+    import inspect
+    frame = inspect.currentframe()
+    frame = inspect.getouterframes(frame)[1]
+    string = inspect.getframeinfo(frame[0]).code_context[0].strip()
+    args = string[string.find('(') + 1:-1].split(',')
+    names = []
+    for i in args:
+        if i.find('=') != -1:
+            names.append(i.split('=')[1].strip())
+        else:
+            names.append(i)
+    global ZD_Dictionary,ZD_Dictionary_name,ZD_dic_show_ends
+    ZD_Dictionary = d
+    ZD_Dictionary_name = names[0]
+    ZD_dic_show_ends = dic_show_ends
+
+
+def zd(*alst):
+    alst = list(alst)
+    if len(alst) == 0:
+        alst = [-1]
+    zdl(ZD_Dictionary,ZD_dic_show_ends,*alst)
 
 
 def zda(d,dic_show_ends,*alst):
@@ -906,7 +936,7 @@ def zlst_to_str(lst,truncate=True,decimal_places=2,show_ends=2,depth=0,range_lst
         elif type(e) == list:
             lst_str += zlst_to_str(e,truncate=truncate,decimal_places=decimal_places,show_ends=show_ends)
         elif type(e) == dict:
-            lst_str += zdic_to_str(d,range_lst,depth=depth+1)# zlst_to_str(e,truncate=truncate,decimal_places=decimal_places,show_ends=show_ends)
+            lst_str += zdic_to_str(e,range_lst,depth=depth+1)# zlst_to_str(e,truncate=truncate,decimal_places=decimal_places,show_ends=show_ends)
         else:
             lst_str += '???'
         if i < len(lst)-1:
@@ -986,7 +1016,20 @@ def assert_disk_locations(locations):
 
 
 
-
+def XX(in_str):
+    eqn = in_str.split('=')
+    var_name = eqn[0].replace(' ','')
+    elements = eqn[1]
+    elements = in_str.split('/')
+    exec_lst = []
+    exec_lst.append(elements[0])
+    for i in range(1,len(elements)):
+        quote = "'"
+        if '`' in elements[i]:
+            quote = ""
+        exec_lst.append(('['+quote+elements[i]+quote+']').replace('`',''))
+    exec_str = var_name + " = " + ("".join(exec_lst)).replace(' ','')
+    return exec_str
 
 
 

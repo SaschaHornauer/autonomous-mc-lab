@@ -82,7 +82,7 @@ def Car(N,car_name,origin,mult,markers):
 	D['report_camera_positions'] = _report_camera_positions
 
 
-	def _check_trajectory_point(traj,side,i,t):
+	def __check_trajectory_point(traj,side,i,t):
 		assert(traj['ts'][i] <= t)
 		if traj['ts'][i] == t:
 			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
@@ -103,7 +103,7 @@ def Car(N,car_name,origin,mult,markers):
 			return True
 		assert(False)
 
-	def __check_trajectory_point(traj,side,i,t):
+	def _check_trajectory_point(traj,side,i,t):
 		assert(traj['ts'][i] <= t)
 		if traj['ts'][i] == t:
 			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
