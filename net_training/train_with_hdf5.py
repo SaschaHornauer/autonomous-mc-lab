@@ -115,8 +115,6 @@ def get_data_considering_high_low_steer():
 	global low_steer
 	global high_steer
 
-	print high_steer
-
 	if ctr_low >= len_low_steer:
 		ctr_low = -1
 	if ctr_high >= len_high_steer:

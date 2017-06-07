@@ -78,64 +78,64 @@ def init(bag_folders_path_meta_path,bag_folders_rgb_1to4_path, left_image_bound_
             bad_timestamps_list.append(ts)
             continue
         """
-        SL = BF['left_image_bound_to_data']
-        #assert('encoder' in SL[ts])
+        function_set_label = BF['left_image_bound_to_data']
+        #assert('encoder' in function_set_label[ts])
         """
-        if not 'encoder' in SL[ts]:
+        if not 'encoder' in function_set_label[ts]:
             bad_timestamps_list.append(ts)
-            cprint("if not 'encoder' in SL[ts]:")
+            cprint("if not 'encoder' in function_set_label[ts]:")
             continue
-        #assert('encoder' in SL[ts])
-        if not 'gyro' in SL[ts]:
+        #assert('encoder' in function_set_label[ts])
+        if not 'gyro' in function_set_label[ts]:
             bad_timestamps_list.append(ts)
-            cprint("if not 'gyro' in SL[ts]:")
+            cprint("if not 'gyro' in function_set_label[ts]:")
             continue
-        #assert('encoder' in SL[ts])
+        #assert('encoder' in function_set_label[ts])
         """
-        if not 'motor' in SL[ts]:
+        if not 'motor' in function_set_label[ts]:
             bad_timestamps_list.append(ts)
-            cprint("if not 'motor' in SL[ts]:")
+            cprint("if not 'motor' in function_set_label[ts]:")
             continue
-        #assert('encoder' in SL[ts])
-        if not 'steer' in SL[ts]:
+        #assert('encoder' in function_set_label[ts])
+        if not 'steer' in function_set_label[ts]:
             bad_timestamps_list.append(ts)
-            cprint("if not 'steer' in SL[ts]:")
+            cprint("if not 'steer' in function_set_label[ts]:")
             continue
-        #assert('encoder' in SL[ts])
-        if not 'state' in SL[ts]:
+        #assert('encoder' in function_set_label[ts])
+        if not 'state' in function_set_label[ts]:
             bad_timestamps_list.append(ts)
-            cprint("if not 'state' in SL[ts]:")
+            cprint("if not 'state' in function_set_label[ts]:")
             continue
-        #assert('encoder' in SL[ts])
+        #assert('encoder' in function_set_label[ts])
         """
-        if not type(SL[ts]['encoder']) == float:
-            cprint("if not type(SL[ts]['encoder']) == float:")
+        if not type(function_set_label[ts]['encoder']) == float:
+            cprint("if not type(function_set_label[ts]['encoder']) == float:")
             bad_timestamps_list.append(ts)
             continue
-        #assert('encoder' in SL[ts])
-        if not len(SL[ts]['gyro']) == 3:
+        #assert('encoder' in function_set_label[ts])
+        if not len(function_set_label[ts]['gyro']) == 3:
             bad_timestamps_list.append(ts)
-            cprint("Warning!!! if not len(SL[ts]['gyro']) == 3:")
+            cprint("Warning!!! if not len(function_set_label[ts]['gyro']) == 3:")
             #continue
-        if not len(SL[ts]['acc']) == 3:
+        if not len(function_set_label[ts]['acc']) == 3:
             bad_timestamps_list.append(ts)
-            cprint(" if not len(SL[ts]['acc']) == 3:")
+            cprint(" if not len(function_set_label[ts]['acc']) == 3:")
             continue
-        #assert('encoder' in SL[ts])
+        #assert('encoder' in function_set_label[ts])
         """
-        if not isinstance(SL[ts]['motor'],numbers.Number):
+        if not isinstance(function_set_label[ts]['motor'],numbers.Number):
             bad_timestamps_list.append(ts)
-            cprint("if not isinstance(SL[ts]['motor'],numbers.Number):")
+            cprint("if not isinstance(function_set_label[ts]['motor'],numbers.Number):")
             continue
 
-        if not isinstance(SL[ts]['steer'],numbers.Number):
+        if not isinstance(function_set_label[ts]['steer'],numbers.Number):
             bad_timestamps_list.append(ts)
-            cprint("if not isinstance(SL[ts]['steer'],numbers.Number):")
+            cprint("if not isinstance(function_set_label[ts]['steer'],numbers.Number):")
             continue
 
-        if not isinstance(SL[ts]['state'],numbers.Number):
+        if not isinstance(function_set_label[ts]['state'],numbers.Number):
             bad_timestamps_list.append(ts)
-            cprint("if not isinstance(SL[ts]['state'],numbers.Number):")
+            cprint("if not isinstance(function_set_label[ts]['state'],numbers.Number):")
             continue
 
     if len(bad_timestamps_list) > 0:
