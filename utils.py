@@ -800,12 +800,50 @@ def zds(d,dic_show_ends,*alst):
         print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
     print(zdic_to_str(d,alst,False,dic_show_ends))
 
+
+
 def zdl(d,dic_show_ends,*alst):
     alst = list(alst)
     assert(dic_show_ends>1)
     if len(alst) == 0:
         print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
     list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),zdic_to_str(d,alst,False,dic_show_ends).split('\n'))
+
+def zdl(d,dic_show_ends,*alst):
+    """
+    https://stackoverflow.com/questions/2749796/how-to-get-the-original-variable-name-of-variable-passed-to-a-function
+    """
+    import inspect
+    frame = inspect.currentframe()
+    frame = inspect.getouterframes(frame)[1]
+    string = inspect.getframeinfo(frame[0]).code_context[0].strip()
+    args = string[string.find('(') + 1:-1].split(',')
+    names = []
+    for i in args:
+        if i.find('=') != -1:
+            names.append(i.split('=')[1].strip())
+        else:
+            names.append(i)
+
+    alst = list(alst)
+    assert(dic_show_ends>1)
+    if len(alst) == 0:
+        print("zds(d,dic_show_ends,*alst), but len(alst) == 0")
+    dic_str = zdic_to_str(d,alst,False,dic_show_ends)
+    ks = []
+    for a in alst:
+        if type(d) != dict:
+            break
+        k = sorted(d.keys())[a]
+        d = d[k]
+        ks.append(k)
+    out_str = ">> "+names[0]
+    for k in ks:
+        out_str += "['"+k+"']"
+    cprint(out_str,'yellow')
+    list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,names[0]]+dic_str.split('\n'))
+
+
 
 
 def zda(d,dic_show_ends,*alst):
@@ -837,6 +875,10 @@ def zda(d,dic_show_ends,*alst):
         out_str += "['"+k+"']"
     cprint(out_str,'yellow')
     return d
+
+
+
+
 
 def zlst_truncate(lst,show_ends=2):
     if show_ends == 0:
@@ -922,7 +964,7 @@ def zdic_to_str(d,range_lst,depth=0,dic_show_ends=4,dic_truncate=True):
             else:
                 dic_str_lst.append(d2s('\t'*(depth+1),str(value),type(value)))
     if this_range[1] < len(sorted_keys):
-        dic_str_lst.append(d2n('\t'*depth,'... ',len(d)-1,')'))
+        dic_str_lst.append(d2n('\t'*depth,'..',len(d)-1,')'))
     dic_str = ""
     for d in dic_str_lst:
         dic_str += d + "\n"
