@@ -23,7 +23,7 @@ python kzpy3/teg7/interactive.py
 
 Then type:
 
-VR()
+function_visualize_run()
 
 This will visualize run data.
 
@@ -44,7 +44,7 @@ and take up about 30s, although this varies with image complexity.
 To choose a new run (say, run 53), type:
 
 SR(53)
-VR()
+function_visualize_run()
 
 Note that the prompt on the command line lists the current run. Note that run 0 is selected by default.
 
@@ -77,11 +77,11 @@ not_direct_modes = ['out1_in2','left','furtive','play','racing','follow']
 i_functions = ['function_close_all_windows','function_set_plot_time_range','function_set_label','function_current_run','function_help','function_set_paths','function_list_runs','function_set_run','function_visualize_run','function_animate','function_run_loop']
 for q in i_variables + i_functions + i_labels:
 	print d2n(q,' = ',"\'",q,"\'")
-	exec(d2n(q,' = ',"\'",q,"\'")) # I use leading underscore because this facilitates auto completion in ipython
+	exec(d2n(q,' = ',"\'",q,"\'")) # global_dict use leading underscore because this facilitates auto completion in ipython
 
 i_label_abbreviations = {aruco_ring:'ar_r',mostly_human:'mH',mostly_caffe:'mC',out1_in2:'o1i2', direct:'D' ,home:'H',furtive:'Fu',play:'P',racing:'R',multicar:'M',campus:'C',night:'Ni',Smyth:'Smy',left:'Lf',notes:'N',local:'L',Tilden:'T',reject_run:'X',reject_intervals:'Xi',snow:'S',follow:'F',only_states_1_and_6_good:'1_6'}
 
-I = {}
+global_dict = {}
 
 #bair_car_data_path = opjD('bair_car_data_new')
 #bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
@@ -134,14 +134,14 @@ def function_set_paths(p=opj(bair_car_data_path)):
 	function_set_paths(p=opj(bair_car_data_path))
 		SP
 	"""
-	global I
-	I[meta_path] = opj(p,'meta')
-	I[rgb_1to4_path] = opj(p,'rgb_1to4')
-	I[runs] = sgg(opj(I[meta_path],'*'))
-	for j in range(len(I[runs])):
-		I[runs][j] = fname(I[runs][j])
-	I[run_] = I[runs][0]
-	cprint('meta_path = '+I[meta_path])
+	global global_dict
+	global_dict[meta_path] = opj(p,'meta')
+	global_dict[rgb_1to4_path] = opj(p,'rgb_1to4')
+	global_dict[runs] = sgg(opj(global_dict[meta_path],'*'))
+	for j in range(len(global_dict[runs])):
+		global_dict[runs][j] = fname(global_dict[runs][j])
+	global_dict[run_] = global_dict[runs][0]
+	cprint('meta_path = '+global_dict[meta_path])
 SP = function_set_paths
 SP()
 
@@ -152,13 +152,13 @@ SP()
 def function_current_run():
 	"""
 	function_current_run()
-		CR
+		function_current_run
 	"""
-	r=I[run_]
-	n = len(gg(opj(I[rgb_1to4_path],r,'*.bag.pkl')))
+	r=global_dict[run_]
+	n = len(gg(opj(global_dict[rgb_1to4_path],r,'*.bag.pkl')))
 	cprint(d2n('[',n,'] ',r))
 	state_hist = np.zeros(10)
-	L=I[B_]['left_image_bound_to_data']
+	L=global_dict[B_]['left_image_bound_to_data']
 	for l in L:
 		s = L[l]['state']
 		if type(s) == str:
@@ -172,8 +172,8 @@ def function_current_run():
 		s = state_hist[i]
 		state_percent.append(int(100*s))
 	print(d2s('State percentges:',state_percent[1:8]))
-	print(I[run_labels][r])
-CR = function_current_run
+	print(global_dict[run_labels][r])
+function_current_run = function_current_run
 
 
 
@@ -183,46 +183,46 @@ def function_list_runs(rng=None,auto_direct_labelling=False):
 	function_list_runs()
 		LR
 	"""
-	cprint(I[meta_path])
+	cprint(global_dict[meta_path])
 	try:
 		run_labels_path = most_recent_file_in_folder(opj(bair_car_data_path,'run_labels'),['run_labels'])
-		I[run_labels] = load_obj(run_labels_path)
+		global_dict[run_labels] = load_obj(run_labels_path)
 	except:
 		cprint('Unable to load run_labels!!!!! Initalizing to empty dict')
-		I[run_labels] = {}
+		global_dict[run_labels] = {}
 	if rng == None:
-		rng = range(len(I[runs]))
+		rng = range(len(global_dict[runs]))
 	for j in rng:
-		r = I[runs][j]
-		if r not in I[run_labels]:
-			I[run_labels][r] = blank_labels()
-		n = len(gg(opj(I[rgb_1to4_path],r,'*.bag.pkl')))
+		r = global_dict[runs][j]
+		if r not in global_dict[run_labels]:
+			global_dict[run_labels][r] = blank_labels()
+		n = len(gg(opj(global_dict[rgb_1to4_path],r,'*.bag.pkl')))
 		labels_str = ""
-		ks = sorted(I[run_labels][r])
+		ks = sorted(global_dict[run_labels][r])
 		labeled = False
 
 		
 		if auto_direct_labelling:
 			direct_flag = True
 			for k in not_direct_modes:
-				if k in I[run_labels][r]:
+				if k in global_dict[run_labels][r]:
 
-					if I[run_labels][r][k] != False:
+					if global_dict[run_labels][r][k] != False:
 						direct_flag = False
 			if direct_flag:
-				I[run_labels][r][direct] = True
+				global_dict[run_labels][r][direct] = True
 
 		for k in ks:
-			if I[run_labels][r][k] != False:
+			if global_dict[run_labels][r][k] != False:
 				if k != only_states_1_and_6_good:
 					labeled = True
-				labels_str += d2n(i_label_abbreviations[k],':',I[run_labels][r][k],' ')
+				labels_str += d2n(i_label_abbreviations[k],':',global_dict[run_labels][r][k],' ')
 		if labeled:
 			c = 'yellow'
 		else:
 			c = 'blue'
 		cprint(d2n(j,'[',n,'] ',r,'  ',j,'\t',labels_str),c)
-		#print I[run_labels][r][direct]
+		#print global_dict[run_labels][r][direct]
 	
 LR = function_list_runs
 LR()
@@ -235,13 +235,13 @@ def function_set_label(k,v=True):
 	function_set_label(k,v)
 		SL
 	"""
-	if not I[run_] in I[run_labels]:
-		I[run_labels][I[run_]] = {}
+	if not global_dict[run_] in global_dict[run_labels]:
+		global_dict[run_labels][global_dict[run_]] = {}
 	if type(k) != list:
 		k = [k]
 	for m in k:
-		I[run_labels][I[run_]][m] = v
-	save_obj(I[run_labels],opj(bair_car_data_path,'run_labels','run_labels_'+time_str()+'.pkl'))
+		global_dict[run_labels][global_dict[run_]][m] = v
+	save_obj(global_dict[run_labels],opj(bair_car_data_path,'run_labels','run_labels_'+time_str()+'.pkl'))
 SL = function_set_label
 
 
@@ -251,13 +251,13 @@ def function_set_run(j):
 	function_set_run()
 		SR
 	"""
-	global I
-	I[run_] = I[runs][j]
-	#cprint(run_ + ' = ' + I[run_])
-	Bag_Folder_filename = gg(opj(I[meta_path],I[run_],'Bag_Folder*'))[0]
+	global global_dict
+	global_dict[run_] = global_dict[runs][j]
+	#cprint(run_ + ' = ' + global_dict[run_])
+	Bag_Folder_filename = gg(opj(global_dict[meta_path],global_dict[run_],'Bag_Folder*'))[0]
 	B = load_obj(Bag_Folder_filename)
-	I[B_] = B
-	CR()
+	global_dict[B_] = B
+	function_current_run()
 SR = function_set_run
 #SR(0)
 
@@ -268,8 +268,8 @@ def function_set_plot_time_range(t0=-999,t1=-999):
 	function_set_plot_time_range
 		ST
 	"""
-	r = I[run_]
-	B = I[B_]
+	r = global_dict[run_]
+	B = global_dict[B_]
 	ts = np.array(B['data']['raw_timestamps'])
 	tsZero = ts - ts[0]
 	if t0 < 0:
@@ -291,31 +291,31 @@ ST = function_set_plot_time_range
 
 
 if False: # trying to fix problem
-	for i in range(len(I[B_]['data']['state'])):
-		if I[B_]['data']['state'][i] == 'no data':
-			I[B_]['data']['state'][i] = 0
+	for i in range(len(global_dict[B_]['data']['state'])):
+		if global_dict[B_]['data']['state'][i] == 'no data':
+			global_dict[B_]['data']['state'][i] = 0
 
 
 def function_visualize_run(j=None,do_load_images=True,do_CA=True):
 	"""
 	function_visualize_run()
-		VR
+		function_visualize_run
 	"""
 	if do_CA:
 		CA()
 	if j != None:
 		SR(j)
-	global I
-	r = I[run_]
-	#Bag_Folder_filename = gg(opj(I[meta_path],r,'Bag_Folder*'))[0]
+	global global_dict
+	r = global_dict[run_]
+	#Bag_Folder_filename = gg(opj(global_dict[meta_path],r,'Bag_Folder*'))[0]
 	#B = load_obj(Bag_Folder_filename)
-	#I[B_] = B
-	B = I[B_]
+	#global_dict[B_] = B
+	B = global_dict[B_]
 	L = B['left_image_bound_to_data']
-	if I[B_] == None:
+	if global_dict[B_] == None:
 		cprint('ERROR, first neet to set run (SR)')
 		return
-	CR()
+	function_current_run()
 	ts = np.array(B['data']['raw_timestamps'])
 	tsZero = ts - ts[0]
 	dts = B['data']['raw_timestamp_deltas']
@@ -374,7 +374,7 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=True):
 		steer_ = {}
 		motor_ = {}
 		state_ = {}
-		bag_paths = sgg(opj(I[rgb_1to4_path],r,'*.bag.pkl'))
+		bag_paths = sgg(opj(global_dict[rgb_1to4_path],r,'*.bag.pkl'))
 		n = len(bag_paths)
 		pb = ProgressBar(n)
 		j =  0
@@ -400,11 +400,11 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=True):
 					#print "t not in left"
 
 		pb.animate(n); print('')
-		I[left_images] = left_images_
-		I[right_images] = right_images_
-		I[steer] = steer_
-		I[motor] = motor_
-		I[state] = state_
+		global_dict[left_images] = left_images_
+		global_dict[right_images] = right_images_
+		global_dict[steer] = steer_
+		global_dict[motor] = motor_
+		global_dict[state] = state_
 		preview_fig = r+' previews'
 
 		figure(preview_fig)
@@ -424,7 +424,7 @@ def function_visualize_run(j=None,do_load_images=True,do_CA=True):
 					if ctr == N/2:
 						plt.title(img_title)
 		pause(0.01)
-VR = function_visualize_run
+function_visualize_run = function_visualize_run
 
 
 
@@ -434,10 +434,10 @@ def function_animate(t0,t1):
 	function_animate(t0,t1)
 		AR
 	"""
-	CR()
+	function_current_run()
 	dT = t1 - t0
 	assert(dT>0)
-	B = I[B_]
+	B = global_dict[B_]
 	T0 = t0 + B['data']['raw_timestamps'][0]
 	ctr = 0
 	s_timer = Timer(1)
@@ -462,7 +462,7 @@ def function_animate(t0,t1):
 				#mi(left_images[t],preview_fig,[N,N,5],do_clf=False)
 				#pause(0.0001)
 				try:
-					img = I[left_images][t]
+					img = global_dict[left_images][t]
 				except Exception as e:
 					cprint("********** Exception ***********************",'red')
 					print(e.message, e.args)
@@ -488,8 +488,8 @@ def function_run_loop():
 	print('')
 	while True:
 		try:
-			CR()
-			command = raw_input(I[run_] + ' >> ')
+			function_current_run()
+			command = raw_input(global_dict[run_] + ' >> ')
 			if command in ['q','quit','outta-here!']:
 				break
 			eval(command)
@@ -512,10 +512,10 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 	if run_num != None:
 		CA()
 		SR(run_num)
-		VR()
+		function_visualize_run()
 	min_seg_len = 30
 	seg_lens = []
-	B = I[B_]
+	B = global_dict[B_]
 	L = B['left_image_bound_to_data']
 	sos=B['data']['state_one_steps']
 
@@ -525,7 +525,7 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 
 	for i in range(len(sos)):
 		t = B['data']['raw_timestamps'][i]
-		if sos[i] > 0 and t in I[left_images] and t in I[right_images]:
+		if sos[i] > 0 and t in global_dict[left_images] and t in global_dict[right_images]:
 			if not in_segment:
 				in_segment = True
 				segment_list.append([])
@@ -544,9 +544,9 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 
 	
 	if not flip:
-		rn = opj(I[run_])
+		rn = opj(global_dict[run_])
 	else:
-		rn = opj('flip_'+I[run_])
+		rn = opj('flip_'+global_dict[run_])
 
 	if not os.path.exists(dst_path):
 		os.makedirs(dst_path)
@@ -567,8 +567,8 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 	else:
 		glabels['flip'] = np.array([0])	
 	for l in i_labels:
-		if l in I[run_labels][I[run_]]:
-			if I[run_labels][I[run_]][l]:
+		if l in global_dict[run_labels][global_dict[run_]]:
+			if global_dict[run_labels][global_dict[run_]][l]:
 				glabels[l] = np.array([1])
 			else:
 				glabels[l] = np.array([0])
@@ -583,9 +583,9 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 		state_list = []
 		for j in range(len(segment)):
 			t = segment[j]
-			limg = I[left_images][t]
-			rimg = I[right_images][t]
-			st = I[steer][t]
+			limg = global_dict[left_images][t]
+			rimg = global_dict[right_images][t]
+			st = global_dict[steer][t]
 			if flip:
 				st -= 49
 				st *= -1.0
@@ -596,8 +596,8 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 				left_image_list.append(limg)
 				right_image_list.append(rimg)
 			steer_list.append(st)
-			motor_list.append(I[motor][t])
-			state_list.append(I[state][t])
+			motor_list.append(global_dict[motor][t])
+			state_list.append(global_dict[state][t])
 		gsegments[opj(str(i),'left_timestamp')] = segment
 		gsegments[opj(str(i),'left')] = np.array(left_image_list)
 		gsegments[opj(str(i),'right')] = np.array(right_image_list)
@@ -605,7 +605,7 @@ def function_save_hdf5(run_num=None,dst_path=opj(bair_car_data_path,'hdf5/runs')
 		gsegments[opj(str(i),'motor')] = np.array(motor_list)
 		gsegments[opj(str(i),'state')] = np.array(state_list)
 	F.close()
-S5 = function_save_hdf5
+function_save_hdf5 = function_save_hdf5
 
 
 
@@ -729,16 +729,16 @@ if False:
 if False:
 	if True: # This needs to be made more general!
 		for i in range(65): #[18,19,20,21,23,24,26,27,28,29]:#range(21):
-			S5(i,flip=False)
-			S5(flip=True)
+			function_save_hdf5(i,flip=False)
+			function_save_hdf5(flip=True)
 
 if True:
-	for i in range(len(I[runs])):
+	for i in range(len(global_dict[runs])):
 		
-		if I[run_labels][I[runs][i]][reject_run] == False:
+		if global_dict[run_labels][global_dict[runs][i]][reject_run] == False:
 			print i
-			S5(i,flip=False)
-			S5(flip=True)
+			function_save_hdf5(i,flip=False)
+			function_save_hdf5(flip=True)
 	
 	if True:
 		hdf5s = sgg(opj(bair_car_data_path,'hdf5/runs/*.hdf5'))
@@ -790,13 +790,13 @@ if True:
 
 
 if False:
-	for l in I[run_labels]:
-		print I[run_labels][l]['reject_run']
-		if I[run_labels][l]['reject_run'] == False:
-			I[run_labels][l][aruco_ring] = True
-			I[run_labels][l][direct] = True
+	for l in global_dict[run_labels]:
+		print global_dict[run_labels][l]['reject_run']
+		if global_dict[run_labels][l]['reject_run'] == False:
+			global_dict[run_labels][l][aruco_ring] = True
+			global_dict[run_labels][l][direct] = True
 
 if False:
-	for i in range(len(I[runs])):
-		if I[run_labels][I[runs][i]][reject_run] == True:
+	for i in range(len(global_dict[runs])):
+		if global_dict[run_labels][global_dict[runs][i]][reject_run] == True:
 			print i

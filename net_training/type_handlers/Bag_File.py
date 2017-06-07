@@ -50,6 +50,10 @@ def load_images(bag_file_path,color_mode="rgb8",include_flip=True):
 
 def save_images(bag_file_src_path,bag_file_dst_path):
     
+    # If file already exists do nothing
+    if os.path.isfile(os.path.join(bag_file_dst_path)):
+        return
+    
     bag_img_dic = load_images(bag_file_src_path,color_mode="rgb8",include_flip=False)
     for side in bag_img_dic:
         for t in bag_img_dic[side]:
@@ -83,7 +87,7 @@ def bag_folders_save_images(bag_folders_src_path,bag_folders_dst_path):
 
 
 def bag_folders_transfer_meta(bag_folders_src_path,bag_folders_dst_path):
-    bag_folders_paths = sorted(os.listdir(bag_folders_src_path),key=natural_keys)
+    bag_folders_paths = sorted([os.path.join(bag_folders_src_path,file) for file in os.listdir(bag_folders_src_path)],key=natural_keys)
     for bag_folder_path in bag_folders_paths:
         unix('mkdir -p '+os.path.join(bag_folders_dst_path,fname(bag_folder_path)))
         meta_dirs = sorted(glob.glob(os.path.join(bag_folder_path,'.pre*')))
