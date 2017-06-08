@@ -47,9 +47,6 @@ ref=XX('left = traj/left'								) ;exec(ref)
 ref=XX('right = traj/right'								) ;exec(ref)
 ref=XX('N_ts = traj/ts'								) ;exec(ref)
 
-#plot(traj['camera_separation'])
-#plot(meo(left['t_vel'],10),'r-')
-#plot(ts-ts[0],meo(right['t_vel'],10),'g-')
 #plot(ts,meo((array(run_meta['motor'])-49)/6.0,10),'k')
 #plot(ts,meo(run_meta['encoder'],30),'r-')
 #plot(ts,array(run_meta['state'])/10.0,'c')
@@ -70,18 +67,10 @@ plot(N_ts-ts[0],left['t_vel'],'g')
 pause(0.001)
 
 
-
+meoencoder = meo(data['encoder'],60)
 
 def vec(heading,encoder):
 	velocity = encoder/2.3
-	"""
-	if heading > 360:
-		while heading > 360:
-			heading -= 360
-	elif heading < -360:
-		while heading < -360:
-			heading += 360
-	"""
 	a = [0,1]
 	a = array(rotatePoint([0,0],a,heading))
 	a *= velocity/30.0
@@ -95,7 +84,7 @@ xy = array([0.0,0.0])
 xys=[]
 for i in range(len(ts)):
 	#plot(xy[0],xy[1],'r.')
-	heading = data['gyro_heading'][i][0]
+	heading = *data['gyro_heading'][i][0]
 	encoder = data['encoder'][i]
 	
 	v = vec(heading,encoder)
@@ -107,56 +96,122 @@ pts_plot(array(xys))
 
 
 
+traj_valid = []
+for i in range(len(N_ts)):
+	t = N_ts[i]
+	valid = True
+	for side in ['left','right']:
+		if not check_trajectory_point(traj,side,i,t):
+			valid = False
+			break
+	if valid:
+		v = 1
+	else:
+		v = 0
+	traj_valid.append(v)
+
+def check_trajectory_point(traj,side,i,t):
+	assert(traj['ts'][i] <= t)
+	if traj['ts'][i] == t:
+		if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
+			return False
+		if traj[side]['t_vel'][i]<0.1: #TEMP
+			return False
+		elif traj['camera_separation'][i] > 0.5: # almost larger than length of car
+			return False
+		elif traj[side]['timestamp_gap'][i] > 0.5: # missed data points
+			return False
+		elif length([traj[side]['x'][i],traj[side]['y'][i]]) > C['Marker_Radius']:
+			return False
+		return True
+	assert(False)
+
+plot(N_ts,traj_valid,'.')
+
+
+
+def rlen(a):
+	return range(len(a))
+
+
+new_traj_x = (traj['left']['x'] + traj['right']['x'])/2.0
+new_traj_y = (traj['left']['y'] + traj['right']['y'])/2.0
+new_traj_x *= traj_valid
+new_traj_y *= traj_valid
+
+
+invalid_states = []
+invalid_state = [0,0]
+waiting_for_first_valid = 1
+waiting_for_valid = 2
+waiting_for_invalid = 3
+
+vstate = waiting_for_first_valid
+for i in rlen(traj_valid):
+	print (i,vstate)
+	if traj_valid[i] == 1:
+		if vstate == waiting_for_first_valid:
+			vstate = waiting_for_invalid
+		elif vstate == waiting_for_invalid:
+			pass
+		elif vstate == waiting_for_valid:
+			invalid_state[1] = i-1
+			invalid_states.append(invalid_state)
+			invalid_state = [0,0]
+			vstate = waiting_for_invalid
+		else:
+			assert(False)
+	elif traj_valid[i] == 0:
+		if vstate == waiting_for_first_valid:
+			pass
+		elif vstate == waiting_for_invalid:
+			invalid_state[0] = i
+			print invalid_state
+			vstate = waiting_for_valid
+		elif vstate == waiting_for_valid:
+			pass
+		else:
+			assert(False)
+
+
+
+new_traj_x = new_traj_x[30:-30]
+new_traj_y = new_traj_y[30:-30]
+
+for invalid_state in invalid_states:
+	start = new_traj_x[invalid_state[0]-1]
+	end = new_traj_x[invalid_state[1]+1]
+	l = invalid_state[1]-invalid_state[0]+1
+	for j in range(l):
+		new_traj_x[invalid_state[0]+j] = start + j/(1.0*l)*(end-start)
+
+
+aN_ts = N_ts[30:-30]
+assert(aN_ts[0]==ts[0])
+assert(len(aN_ts)==len(ts))
+meoencoder = array(meo(data['encoder'],120))
+
+still = False
+for i in rlen(ts):
+	if meoencoder[i] > 0.01:
+		still = False
+	else:
+		if still == False:
+			still = True
+			x = new_traj_x[i-1]
+			y = new_traj_y[i-1]
+		new_traj_x[i] = x
+		new_traj_y[i] = y
 
 
 """
->> N['Mr_Black']['direct_caffe_Fern_aruco_15Apr17_12h38m22s_Mr_Black']['other_trajectories']
-N
-0) Mr_Black:
-	0) direct_caffe_Fern_aruco_15Apr17_12h38m22s_Mr_Black:
-		0) other_trajectories:
-			[direct_caffe_Fern_aruco_15Apr17_19h39m02s_Mr_Yellow direct_caffe_Fern_aruco_15Apr17_12h38m01s_Mr_Silver direct_caffe_Fern_aruco_15Apr17_12h38m05s_Mr_Blue direct_caffe_Fern_aruco_15Apr17_12h38m03s_Mr_Orange] (len=4)
-		1) self_trajectory:
-			0) camera_separation:
-				[0.24 0.24 ... 863820.74 864383.35] (len=8435)
-			1) left:
-				0) t_vel:
-					[0.0 0.07 ... 13633.12 14917.3] (len=8435)
-				1) timestamp_gap:
-					[0.04 0.04 ... 1.0 1.0] (len=8435)
-				2) x:
-					[-1.85 -1.84 ... 635883.74 636296.5] (len=8435)
-				3) x_pix:
-					[392.0 392.0 ... -31793887.0 -31814525.0] (len=8435)
-				4) y:
-					[2.14 2.14 ... 427337.66 427614.93] (len=8435)
-				5) y_pix:
-					[406.0 407.0 ... 21367182.0 21381046.0] (len=8435)
-
-			2) right:
-				0) t_vel:
-					[0.0 0.04 ... 3348.89 3664.36] (len=8435)
-				1) timestamp_gap:
-					[0.04 0.04 ... 1.0 1.0] (len=8435)
-				2) x:
-					[-2.08 -2.08 ... -160618.08 -160724.36] (len=8435)
-				3) x_pix:
-					[403.0 403.0 ... 8031204.0 8036518.0] (len=8435)
-				4) y:
-					[2.08 2.08 ... 93015.77 93075.97] (len=8435)
-				5) y_pix:
-					[403.0 403.0 ... 4651088.0 4654098.0] (len=8435)
-
-			3) run_name:
-				 direct_caffe_Fern_aruco_15Apr17_12h38m22s_Mr_Black
-			4) ts:
-				[1492285137.42 1492285137.45 ... 1492285446.77 1492285446.81] (len=8435)
-
-
-	..38)
-
-..4)
-
-
-
+x=arange(0,np.pi*10,0.01)
+y = np.sin(x)
+y2 = 0.5*np.sin(5*x)
+y3 = 0.5*np.sin(10*x)
+y4 = 0.5*np.sin(20*x)
+figure(1)
+clf()
+plot(x,y+y2+y3+y4)
 """
+
