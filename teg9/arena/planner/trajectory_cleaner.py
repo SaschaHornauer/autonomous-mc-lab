@@ -49,23 +49,61 @@ ref=XX('N_ts = traj/ts'								) ;exec(ref)
 
 #plot(traj['camera_separation'])
 #plot(meo(left['t_vel'],10),'r-')
-#plot(meo(right['t_vel'],10),'g-')
+#plot(ts-ts[0],meo(right['t_vel'],10),'g-')
 #plot(ts,meo((array(run_meta['motor'])-49)/6.0,10),'k')
 #plot(ts,meo(run_meta['encoder'],30),'r-')
 #plot(ts,array(run_meta['state'])/10.0,'c')
 plot(ts-ts[0],(array(data['motor'])-49)/6.0,'k')
+plot(ts-ts[0],(array(data['steer'])-49)/20.0,'b')
 plot(ts-ts[0],data['encoder'],'r')
-plot(ts-ts[0],array(data['state'])/10.0,'y')
-plot(ts-ts[0],array(data['gyro'])/100.0,'b')
-plot(ts-ts[0],array(data['acc'])/10.0,'r')
+#plot(ts-ts[0],array(data['state'])/10.0,'y')
+#plot(ts-ts[0],array(data['gyro'])/100.0,'b')
+plot(ts-ts[0],array(data['gyro_heading'])/1000.0,'b')
+##plot(ts-ts[0],array(data['acc'])/10.0,'r')
 
 plot(N_ts-ts[0],left['t_vel'],'g')
-plot(N_ts-ts[0],left['x'],'c');plot(N_ts-ts[0],left['y'],'c')
-plot(N_ts-ts[0],right['x'],'c');plot(N_ts-ts[0],right['y'],'c')
+#plot(N_ts-ts[0],left['x'],'c');plot(N_ts-ts[0],left['y'],'c')
+#plot(N_ts-ts[0],right['x'],'c');plot(N_ts-ts[0],right['y'],'c')
 #xlim(0,4000)
 #ylim(-5,5)
 #xylim(-5,5,-5,5)
 pause(0.001)
+
+
+
+
+def vec(heading,encoder):
+	velocity = encoder/2.3
+	"""
+	if heading > 360:
+		while heading > 360:
+			heading -= 360
+	elif heading < -360:
+		while heading < -360:
+			heading += 360
+	"""
+	a = [0,1]
+	a = array(rotatePoint([0,0],a,heading))
+	a *= velocity/30.0
+	return array(a)
+
+figure(99);clf()
+plt_square();
+xylim(-15,15,-15,15)
+xy = array([0.0,0.0])
+
+xys=[]
+for i in range(len(ts)):
+	#plot(xy[0],xy[1],'r.')
+	heading = data['gyro_heading'][i][0]
+	encoder = data['encoder'][i]
+	
+	v = vec(heading,encoder)
+	xy += v
+	xys.append(array(xy))
+	print i#(heading,encoder,v)
+	#pause(0.0001)
+pts_plot(array(xys))
 
 
 

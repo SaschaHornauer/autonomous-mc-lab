@@ -1,5 +1,5 @@
-from kzpy3.teg9.data.utils.preprocess_bag_data import *
-from kzpy3.teg9.data.utils.Bag_File import *
+#from kzpy3.teg9.data.utils.preprocess_bag_data import *
+#from kzpy3.teg9.data.utils.Bag_File import *
 from kzpy3.misc.progress import *
 from kzpy3.vis import *
 
@@ -84,9 +84,41 @@ I = {}
 #bair_car_data_path = opjD('bair_car_data_new')
 bair_car_data_path = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
 #bair_car_data_path = opjD('bair_car_data_Main_Dataset')
+bair_car_data_path = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 
 
 
+
+def load_images(bag_file_path,color_mode="rgb8",include_flip=True):
+    #print "Bag_File.load_images:: loading " + bag_file_path
+    bag_img_dic = {}
+    sides=['left','right']
+    if bag_file_path.split('.')[-1] == 'bag':
+        PKL = False
+    elif bag_file_path.split('.')[-1] == 'pkl':
+        PKL = True
+    else:
+        assert(False)
+
+    if not PKL:
+        for s in sides:
+            bag_img_dic[s] = {}
+        bag = rosbag.Bag(bag_file_path)
+        for s in sides:
+            for m in bag.read_messages(topics=['/bair_car/zed/'+s+'/image_rect_color']):
+                t = round(m.timestamp.to_time(),3)
+                img = bridge.imgmsg_to_cv2(m[1],color_mode)
+                bag_img_dic[s][t] = img
+    else:
+        bag_img_dic = load_obj(bag_file_path)
+
+    if include_flip:
+        for s in sides:
+            bag_img_dic[s+'_flip'] = {}
+            for t in bag_img_dic[s]:
+                img = bag_img_dic[s][t]
+                bag_img_dic[s+'_flip'][t] = scipy.fliplr(img)
+    return bag_img_dic
 
 
 

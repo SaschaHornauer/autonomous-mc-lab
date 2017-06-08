@@ -1,13 +1,13 @@
->> N['Mr_Yellow']
+>> N['ts']
 N
-0) Mr_Black:
+0) camera_separation:
+	[0.11 0.08 ... 0.09 0.05] (len=85052)
+1) left:
 	...
-1) Mr_Blue:
+2) right:
 	...
-2) Mr_Orange:
-	...
-3) Mr_Silver:
-	...
-4) Mr_Yellow:
-	...
+3) run_name:
+	 direct_rewrite_test_28Apr17_18h09m52s_Mr_Black
+4) ts:
+	[1493428232.24 1493428232.27 ... 1493431143.91 1493431143.94] (len=85052)
 
