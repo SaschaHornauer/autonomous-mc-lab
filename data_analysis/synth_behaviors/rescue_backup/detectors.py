@@ -3,10 +3,9 @@ Created on Jun 5, 2017
 
 @author: Sascha Hornauer
 '''
-from namedlist import namedlist
 
-state_info = namedlist('state_info', 'state steering_signal motor_signal gyro_heading acc_data')    
 
+verbose = False
 tilt_x_threshold = 6.
 
 class Detector:
@@ -43,6 +42,7 @@ class Side_Tilted_Detector(Detector):
                 print "Tilted!!!" + str(incoming_state_info.acc_data.x)
                 rescue_needed = True
         except AttributeError as error:
-            print error
+            if verbose:
+                print error
         
         return rescue_needed, self.__class__.__name__
