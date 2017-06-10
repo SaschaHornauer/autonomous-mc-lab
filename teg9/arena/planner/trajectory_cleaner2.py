@@ -10,13 +10,14 @@ if 'N' not in locals():
 	print("Loading trajectory data . . .")
 	N = lo(C['trajectory_data_location'])
  
-run_name = 'direct_rewrite_test_28Apr17_18h09m52s_Mr_Black'
+run_name = 'direct_rewrite_test_28Apr17_18h09m52s_Mr_Black'#'direct_rewrite_test_25Apr17_13h21m03s_Mr_Black' #
 
 
 
 
 
 def get_metadata(run_name,bair_car_data_location):
+	print('get_metadata')
 	L = lo(opj(bair_car_data_location,'meta',run_name,'left_image_bound_to_data.pkl'))
 	ts,data_list = get_sorted_keys_and_data(L)
 	ts = array(ts)
@@ -28,13 +29,17 @@ def get_metadata(run_name,bair_car_data_location):
 		for d in data_types:
 			data[d].append(e[d])
 	for d in data_types:
+		for i in rlen(data[d]):
+			if not is_number(data[d][i]):
+				data[d][i] = 0
 		data[d] = array(data[d])
 	return ts,data
 
-def time_correct_traj(run_name,N):
+def time_correct_traj(run_name,ts,N):
 	"""
 	There is a time offset between the trajectory data and the older metadata timestamps.
 	"""
+	print('time_correct_traj')
 	car_name = car_name_from_run_name(run_name)
 	assert('TIME_CORRECTION_DONE' not in N[car_name][run_name])
 	traj = N[car_name][run_name]['self_trajectory']
@@ -49,6 +54,7 @@ def time_correct_traj(run_name,N):
 	return traj
 
 def check_trajectory_point(traj,side,i,t):
+	#print('check_trajectory_point')
 	if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
 		return False
 	if traj[side]['t_vel'][i]<0.1: #TEMP
@@ -62,6 +68,7 @@ def check_trajectory_point(traj,side,i,t):
 	return True
 
 def get_traj_valid(traj,ts):
+	print('get_traj_valid')
 	traj_valid = []
 	for i in range(len(ts)):
 		t = ts[i]
@@ -79,6 +86,7 @@ def get_traj_valid(traj,ts):
 
 
 def get_invalid_states(traj_valid):
+	print('get_invalid_states')
 	invalid_states = []
 	invalid_state = [0,0]
 	waiting_for_first_valid = 1
@@ -103,7 +111,6 @@ def get_invalid_states(traj_valid):
 				pass
 			elif vstate == waiting_for_invalid:
 				invalid_state[0] = i
-				print invalid_state
 				vstate = waiting_for_valid
 			elif vstate == waiting_for_valid:
 				pass
@@ -112,6 +119,7 @@ def get_invalid_states(traj_valid):
 	return invalid_states
 
 def interpolate_over_invalid(traj,invalid_states):
+	print('interpolate_over_invalid')
 	for c in ['x','y']:
 		for invalid_state in invalid_states:
 			start = traj[c][invalid_state[0]-1]
@@ -120,7 +128,8 @@ def interpolate_over_invalid(traj,invalid_states):
 			for j in range(l):
 				traj[c][invalid_state[0]+j] = start + j/(1.0*l)*(end-start)
 
-def interpolate_over_still(traj,data):
+def interpolate_over_still(traj,data,ts):
+	print('interpolate_over_still')
 	meoencoder = array(meo(data['encoder'],120))
 	for d in ['forward','backward']:
 		for c in ['x','y']:
@@ -153,62 +162,114 @@ def interpolate_over_still(traj,data):
 
 
 
-#def get_headings(traj):
-traj['heading'] = []
-traj['absolute_heading'] = []
-traj['relative_heading'] = []
-n = C['n_for_heading']
-pts = array(zip(traj['new_x'],traj['new_y']))
-for i in range(len(traj['new_x'])):
-	if i <= n:
-		traj['heading'].append(array([0,1]))
-		traj['relative_heading'].append(0)
-	else:
-		#print('here')
-		traj['heading'].append(normalized_vector_from_pts(pts[i-n+1:i]))
-		if pts[i-n][0] > pts[i][0]:
-			traj['heading'][i] *= -1.0
-		#if i > n+1 and np.degrees(angle_between(traj['heading'][i],traj['heading'][i-1])) > 45:
-		#		traj['heading'][i] = traj['heading'][i-1]
+def get_headings(traj):
+	print('get_headings')
+	traj['heading'] = []
+	traj['absolute_heading'] = []
+	traj['relative_heading'] = []
+	n = C['n_for_heading']
+	pts = array(zip(traj['new_x'],traj['new_y']))
+	for i in range(len(traj['new_x'])):
+		if i <= n:
+			traj['heading'].append(array([0,1]))
+			traj['relative_heading'].append(0)
+		else:
+			traj['heading'].append(normalized_vector_from_pts(pts[i-n+1:i]))
+			if pts[i-n][0] > pts[i][0]:
+				traj['heading'][i] *= -1.0
+			#if i > n+1 and np.degrees(angle_between(traj['heading'][i],traj['heading'][i-1])) > 45:
+			#		traj['heading'][i] = traj['heading'][i-1]
+	traj['heading'] = array(traj['heading'])
+	traj['heading_meo'] = 0.0*traj['heading']
+	traj['heading_meo'][:,0] = array(meo(traj['heading'][:,0],90))
+	traj['heading_meo'][:,1] = array(meo(traj['heading'][:,1],90))
+	traj['heading'] = traj['heading_meo']
+	for i in range(len(traj['new_x'])):		
 		traj['relative_heading'].append(angle_clockwise(traj['heading'][i],pts[i]))
 		traj['absolute_heading'].append(angle_clockwise(traj['heading'][i],[0,1]))
+	traj['relative_heading'] = array(meo(traj['relative_heading'],90))
+	traj['absolute_heading'] = array(traj['absolute_heading'])
+	traj['x'] = traj['new_x']
+	traj['y'] = traj['new_y']
+
+def del_traj_extra(traj):
+	print('get_headings')
+	for d in ['backward_x','new_x','new_y','camera_separation',
+		'backward_y','right','forward_x','heading_meo','forward_y','left']:
+		del traj[d]
+
+
+def create_and_save_traj(run_name,bair_car_data_location,N):
+	print
+	ts,data = get_metadata(run_name,bair_car_data_location)
+
+	traj = time_correct_traj(run_name,ts,N)
+
+	traj_valid = get_traj_valid(traj,ts)
+
+	for c in ['x','y']:
+		traj[c] = (traj['left'][c]+traj['right'][c])/2.0 * traj_valid
+
+	traj['encoder'] = meo(data['encoder'],60)
+
+	figure(1,figsize=(5,2)); clf(); plot(ts-ts[0],traj['encoder']);plt.title(run_name);pause(0.01)
+
+	invalid_states = get_invalid_states(traj_valid)
+
+	interpolate_over_invalid(traj,invalid_states)
+
+	interpolate_over_still(traj,data,ts)
+
+	get_headings(traj)
+
+	del_traj_extra(traj)
+
+	path = opjD('bair_car_data_new_28April2017','meta',run_name)
+	unix('mkdir -p '+path)
+	so(traj,opj(path,'traj.pkl'))
+	print('saved '+path+'/traj.pkl')
+	#return traj
 
 
 
 
+timer = Timer(0)
+for car_name in N.keys():
+	for run_name in N[car_name].keys():
+		print(opj(car_name,run_name))
+		print(timer.time())
+		try:
+			create_and_save_traj(run_name,bair_car_data_location,N)
+		except Exception as e:
+			print("********** Exception ***********************")
+			print(e.message, e.args)			
 
-ts,data = get_metadata(run_name,bair_car_data_location)
-
-traj = time_correct_traj(run_name,N)
-
-traj_valid = get_traj_valid(traj,ts)
-
-for c in ['x','y']:
-	traj[c] = (traj['left'][c]+traj['right'][c])/2.0 * traj_valid
-
-invalid_states = get_invalid_states(traj_valid)
-
-interpolate_over_invalid(traj,invalid_states)
-
-interpolate_over_still(traj,data)
-
-
-
-
-
-
-GRAPHICS = True
+GRAPHICS = False
 if GRAPHICS:
+	traj['ts'] = array(traj['ts'])
+	ts = traj['ts']
 	figure(5);clf()
-	plot(ts-ts[0],(array(data['motor'])-49)/6.0,'k')
-	plot(ts-ts[0],(array(data['steer'])-49)/20.0,'b')
-	plot(ts-ts[0],data['encoder'],'r')
-	plot(ts-ts[0],array(data['gyro_heading'])/1000.0,'b')
+	#plot(ts-ts[0],(array(data['motor'])-49)/6.0,'k')
+	#plot(ts-ts[0],(array(data['steer'])-49)/20.0,'b')
+	#plot(ts-ts[0],data['encoder'],'r')
+	#plot(ts-ts[0],array(data['gyro_heading'])/1000.0,'b')
+	plot(traj['x'],traj['y'],'.')
 	pause(0.001)
-	plot(ts-ts[0],traj_valid,'.')
+	#plot(ts-ts[0],traj_valid,'.')
+
+	#gyro_heading = data['gyro_heading'][:,0]
+	#for i in rlen(gyro_heading):
+	#	while gyro_heading[i] > 360:
+	#		gyro_heading[i] -= 360
+	#	while gyro_heading[i] < 0:
+	#		gyro_heading[i] += 360
+	#plot(ts-[0],gyro_heading,'r')
+	plot(ts-[0],traj['absolute_heading'],'g')
 
 ############## drive from heading test
 #
+
+"""
 def vec(heading,encoder):
 	velocity = encoder/2.3 # rough guess
 	a = [0,1]
@@ -217,18 +278,21 @@ def vec(heading,encoder):
 	return array(a)
 figure(99);clf()
 plt_square();
-xylim(-15,15,-15,15)
+l = 30
+xylim(-l,l,-l,l)
 xy = array([0.0,0.0])
 xys=[]
-for i in range(len(ts)):
-	#plot(xy[0],xy[1],'r.')
-	heading = data['gyro_heading'][i][0]
-	encoder = data['encoder'][i]
-	v = vec(heading,encoder)
-	xy += v
-	xys.append(array(xy))
-	print i#(heading,encoder,v)
-	#pause(0.0001)
-pts_plot(array(xys))
+if GRAPHICS:
+	for i in range(len(ts)):
+		#plot(xy[0],xy[1],'r.')
+		heading = data['gyro_heading'][i][0]
+		encoder = data['encoder'][i]
+		v = vec(heading,encoder)
+		xy += v
+		xys.append(array(xy))
+		print i#(heading,encoder,v)
+		#pause(0.0001)
+	pts_plot(array(xys))
+"""
 #
 ##############
