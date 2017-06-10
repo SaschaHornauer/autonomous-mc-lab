@@ -39,7 +39,6 @@ ref=XX('traj = N/`car_name/`run_name/self_trajectory'		) ;exec(ref)
 
 ref=XX('left = traj/left'								) ;exec(ref)
 ref=XX('right = traj/right'								) ;exec(ref)
-ref=XX('N_ts = traj/ts'								) ;exec(ref)
 left['x'] = left['x'][30:-30]
 left['y'] = left['y'][30:-30]
 left['t_vel'] = left['t_vel'][30:-30]

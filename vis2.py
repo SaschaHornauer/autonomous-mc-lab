@@ -394,6 +394,10 @@ def determinant(v,w):
    return v[0]*w[1]-v[1]*w[0]
 def inner_angle(v,w):
    cosx=dot_product(v,w)/(length(v)*length(w))
+   if cosx > 1.0:
+        cosx = 1.0
+   elif cosx < -1.0:
+        cosx = -1.0
    rad=acos(cosx) # in radians
    return rad*180/pi # returns degrees
 def angle_clockwise(A, B):
