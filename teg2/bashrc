@@ -54,7 +54,7 @@ alias ipy="ipython --no-banner"
 export PYTHONPATH=~:$PYTHONPATH
 #export PYTHONPATH=~/kzpy3/caf/layers:$PYTHONPATH
 #export PYTHONPATH=~/kzpy3/caf2/layers:$PYTHONPATH
-export PYTHONSTARTUP=~/kzpy3/vis.py
+export PYTHONSTARTUP=~/kzpy3/vis2.py
 export PATH=~/kzpy3/scripts:$PATH
 export PATH=~/caffe/build/tools:$PATH
 

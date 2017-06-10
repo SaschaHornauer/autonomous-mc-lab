@@ -1,4 +1,4 @@
-from kzpy3.utils import *
+from kzpy3.utils2 import *
 
 import matplotlib
 try:
@@ -246,18 +246,18 @@ def frames_to_video_with_ffmpeg(input_dir,output_path,img_range=(),rate=30):
         unix('avconv'+unix_str)
         success = True
     except Exception as e:
-        print "'avconv did not work.' ***************************************"
-        print e.message, e.args
-        print "***************************************"
+        print("'avconv did not work.' ***************************************")
+        print(e.message, e.args)
+        print("***************************************")
     if not success:
         try:
             print('Trying ffmpeg.')
             unix('ffmpeg'+unix_str)
             success = True
         except Exception as e:
-            print "'ffmeg did not work.' ***************************************"
-            print e.message, e.args
-            print "***************************************"
+            print("'ffmeg did not work.' ***************************************")
+            print(e.message, e.args)
+            print("***************************************")
     if success:
         print('frames_to_video_with_ffmpeg() had success with ' + frames_folder)
 
@@ -352,7 +352,7 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
         if name == None:
             name = D['name']
         mi(D['img'],name)
-        #print d2s('name =',name)
+        #prin(t d2s('name =',name))
     D['show'] = _show
     if len(xyz_sizes) == 2:
         D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
