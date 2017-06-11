@@ -3,7 +3,7 @@ pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 from arena.planner.Constants import C
 from data.utils.general import car_name_from_run_name
-from data.utils.general import get_metadata
+
 bair_car_data_location = C['bair_car_data_location']
 
 if 'N' not in locals():
@@ -16,7 +16,24 @@ run_name = 'direct_rewrite_test_28Apr17_18h09m52s_Mr_Black'#'direct_rewrite_test
 
 
 
-
+def get_metadata(run_name,bair_car_data_location):
+	print('get_metadata')
+	L = lo(opj(bair_car_data_location,'meta',run_name,'left_image_bound_to_data.pkl'))
+	ts,data_list = get_sorted_keys_and_data(L)
+	ts = array(ts)
+	data_types = data_list[0].keys()
+	data = {}
+	for d in data_types:
+		data[d] = []
+	for e in data_list:
+		for d in data_types:
+			data[d].append(e[d])
+	for d in data_types:
+		for i in rlen(data[d]):
+			if not is_number(data[d][i]):
+				data[d][i] = 0
+		data[d] = array(data[d])
+	return ts,data
 
 def time_correct_traj(run_name,ts,N):
 	"""

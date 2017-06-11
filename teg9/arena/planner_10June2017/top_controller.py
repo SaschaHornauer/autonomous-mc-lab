@@ -24,7 +24,7 @@ if 'the_arenas_ready' not in locals():
 	for a in arenas_tmp_lst:
 		an_arena = a(C['Origin'],C['Mult'],C['markers'],False,1.0,1.5)
 		the_arenas[an_arena['type']] = an_arena
-		break
+		#break
 	the_arenas_ready = True
 	#img = an_arena['Image']['img'] #!!!!!!!!!! TEMP
 	#img[img>1] = 0
@@ -36,7 +36,7 @@ for car_name in C['car_names']:
 	cars[car_name] =  Cars.Car(N,car_name,C['Origin'],C['Mult'],C['markers'])
 
 
-cars['Mr_Yellow']['runs']['direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow']['trajectory']['data']['t_to_indx']
+# cars['Mr_Yellow']['runs']['direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow']['trajectory']['data']['t_to_indx']
 
 #current_run = Runs.Run('direct_rewrite_test_25Apr17_16h09m24s_Mr_Black',cars,an_arena,C['bair_car_data_location'])
 current_run = Runs.Run('direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow',cars,an_arena,C['bair_car_data_location'])
@@ -135,7 +135,7 @@ for k in the_arenas:
 					plot(clock_potential_values,'gx-')
 					plot(potential_values+clock_potential_values,'ko-')
 					print Spatial_Relations.interpret_potential_values(list(potential_values+clock_potential_values))
-					#mci(current_run['our_car']['get_image'](current_run['run_name'],'right'),title='right',scale=2.0)
+					mci(current_run['our_car']['get_image'](current_run['run_name'],'right'),title='right',scale=2.0)
 		else:
 			continue
 			#clf()

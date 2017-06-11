@@ -35,3 +35,23 @@ def car_name_from_run_name(rn):
     return car_name
 
 car_colors = {'Mr_Yellow':(255,255,0), 'Mr_Silver':(255,255,255), 'Mr_Blue':(0,0,255), 'Mr_Orange':(255,0,0), 'Mr_Black':(100,100,100)}
+
+
+def get_metadata(run_name,bair_car_data_location):
+    print('get_metadata')
+    L = lo(opj(bair_car_data_location,'meta',run_name,'left_image_bound_to_data.pkl'))
+    ts,data_list = get_sorted_keys_and_data(L)
+    ts = array(ts)
+    data_types = data_list[0].keys()
+    data = {}
+    for d in data_types:
+        data[d] = []
+    for e in data_list:
+        for d in data_types:
+            data[d].append(e[d])
+    for d in data_types:
+        for i in rlen(data[d]):
+            if not is_number(data[d][i]):
+                data[d][i] = 0
+        data[d] = array(data[d])
+    return ts,data

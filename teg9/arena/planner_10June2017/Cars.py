@@ -158,7 +158,7 @@ def Car(N,car_name,origin,mult,markers):
 				opj(bag_folders_dst_meta_path,run_name),
 				opj(bag_folders_dst_rgb1to4_path,run_name),
 				print_b=True,
-				load_images=False)
+				load_right_images=True)
 	D['load_image_and_meta_data'] = _load_image_and_meta_data
 
 	print("created "+D['type']+": "+D['car_name'])
