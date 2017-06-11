@@ -12,7 +12,7 @@ import arena.planner.Spatial_Relations as Spatial_Relations
 if 'N' not in locals():
 	print("Loading trajectory data . . .")
 	N = lo(C['trajectory_data_location'])
-"""
+
 if 'the_arenas_ready' not in locals():
 	print("Creating arenas . . .")
 	args = []
@@ -28,7 +28,6 @@ if 'the_arenas_ready' not in locals():
 	the_arenas_ready = True
 	#img = an_arena['Image']['img'] #!!!!!!!!!! TEMP
 	#img[img>1] = 0
-"""
 
 if 'the_cars_ready' not in locals():
 	print("Loading cars . . .")
