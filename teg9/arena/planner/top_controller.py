@@ -1,4 +1,4 @@
-from kzpy3.utils import *
+from kzpy3.utils2 import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 import data.utils.animate as animate
@@ -12,7 +12,7 @@ import arena.planner.Spatial_Relations as Spatial_Relations
 if 'N' not in locals():
 	print("Loading trajectory data . . .")
 	N = lo(C['trajectory_data_location'])
-
+"""
 if 'the_arenas_ready' not in locals():
 	print("Creating arenas . . .")
 	args = []
@@ -28,15 +28,16 @@ if 'the_arenas_ready' not in locals():
 	the_arenas_ready = True
 	#img = an_arena['Image']['img'] #!!!!!!!!!! TEMP
 	#img[img>1] = 0
+"""
+
+if 'the_cars_ready' not in locals():
+	print("Loading cars . . .")
+	cars = {}
+	for car_name in C['car_names']:
+		cars[car_name] =  Cars.Car(N,car_name,C['Origin'],C['Mult'],C['markers'],C['bair_car_data_location'])
+	the_cars_ready = True
 
 
-
-cars = {}
-for car_name in C['car_names']:
-	cars[car_name] =  Cars.Car(N,car_name,C['Origin'],C['Mult'],C['markers'])
-
-
-cars['Mr_Yellow']['runs']['direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow']['trajectory']['data']['t_to_indx']
 
 #current_run = Runs.Run('direct_rewrite_test_25Apr17_16h09m24s_Mr_Black',cars,an_arena,C['bair_car_data_location'])
 current_run = Runs.Run('direct_rewrite_test_29Apr17_00h23m07s_Mr_Yellow',cars,an_arena,C['bair_car_data_location'])

@@ -1,21 +1,25 @@
->> traj['y']
-traj
-0) absolute_heading:
-	[32.06 73.44 ... 219.16 222.34] (len=17720)
-1) encoder:
-	[2.1 2.04 ... 0.0 0.0] (len=17720)
-2) heading:
-	[??? ??? ... ??? ???] (len=17720)
-3) relative_heading:
-	[167.15 167.15 ... 279.81 279.82] (len=17720)
-4) run_name:
-	 direct_rewrite_test_30Apr17_19h55m33s_Mr_Yellow
-5) t_vel:
-	[0.67 0.67 ... 0.25 0.25] (len=17720)
-6) ts:
-	[1493582170.07 1493582170.09 ... 1493582773.29 1493582773.33] (len=17720)
-7) x:
-	[1.31 1.29 ... 0.83 0.83] (len=17720)
-8) y:
-	[0.21 0.22 ... 0.02 0.02] (len=17720)
+>> current_run['our_car']['valid_time_and_index']
+current_run
+0) ...
+7) our_car:
+	0) Purpose:
+		 Car : Car object.
+	1) car_name:
+		 Mr_Yellow
+	2) get_image:
+		 <function _get_image at 0x10da44d70> <type 'function'>
+	3) load_image_and_meta_data:
+		 <function _load_image_and_meta_data at 0x10da44de8> <type 'function'>
+	4) rewind:
+		 <function _rewind at 0x10da44c80> <type 'function'>
+	5) runs:
+		...
+	6) state_info:
+		...
+	7) type:
+		 Car
+	8) valid_time_and_index:
+		 <function _valid_time_and_index at 0x10da44cf8> <type 'function'>
+
+..11)
 

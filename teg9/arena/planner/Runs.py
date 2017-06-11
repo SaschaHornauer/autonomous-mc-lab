@@ -1,4 +1,4 @@
-from kzpy3.utils import *
+from kzpy3.utils2 import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 import data.utils.animate as animate
@@ -24,7 +24,7 @@ def Run(run_name,cars,the_arena,bair_car_data_location):
 	if len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5: #'caffe2_z2_color_direct_local_01Jan13_00h01m07s_Mr_Yellow' in run_name:
 			print("len(gg(opjD(bair_car_data_location,'meta',run_name,'*'))) < 5")
 			return False
-	traj = our_car['runs'][run_name]['trajectory']
+	traj = our_car['runs'][run_name]['traj']
 	D['T0'] = traj['ts'][0]
 	D['Tn'] = traj['ts'][-1]
 	D['list_of_other_car_trajectories'] = our_car['runs'][run_name]['list_of_other_car_trajectories']
@@ -32,7 +32,7 @@ def Run(run_name,cars,the_arena,bair_car_data_location):
 		for c in C['car_names']:
 			D['cars'][c]['rewind']()
 	D['rewind'] = _rewind
-
+	"""
 	try:
 		our_car['load_image_and_meta_data'](run_name,bair_car_data_location)
 	except Exception as e:
@@ -40,6 +40,7 @@ def Run(run_name,cars,the_arena,bair_car_data_location):
 		print(our_car_name,run_name)
 		print(e.message, e.args)
 		return False
+	"""
 	car_spatial_dic,marker_spatial_dic = Spatial_Relations.setup_spatial_dics(D)
 	D['car_spatial_dic'] = car_spatial_dic
 	D['marker_spatial_dic'] = marker_spatial_dic

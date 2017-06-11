@@ -1,4 +1,4 @@
-from kzpy3.utils import *
+from kzpy3.utils2 import *
 pythonpaths(['kzpy3','kzpy3/teg9'])
 from vis2 import *
 import data.utils.general
@@ -6,27 +6,35 @@ from data.utils.general import car_name_from_run_name
 from arena.planner.Constants import C
 
 
-def Car(N,car_name,origin,mult,markers):
+def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 	D = {}
 	D['Purpose'] = d2s(inspect.stack()[0][3],':','Car object.')
 	D['car_name'] = car_name
 	D['type'] = 'Car'
 	D['runs'] = {}
-	D['n_for_heading'] = C['n_for_heading']
-	for run_name in N[car_name].keys():
+
+	def _load_run(N,run_name,bair_car_data_location):
+		print("load run "+run_name)
 		D['runs'][run_name] = {}
 		R = D['runs'][run_name]
-		R['trajectory'] = N[car_name][run_name]['self_trajectory']
+		ts,dat = data.utils.general.get_metadata(run_name,bair_car_data_location)
+		traj = lo(opj(bair_car_data_location,'meta',run_name,'traj.pkl'))
+		R['ts'] = array(ts)
+		R['data'] = dat
+		R['traj'] = traj
 		R['list_of_other_car_trajectories'] = []	
 		for other_run_name in N[car_name][run_name]['other_trajectories']:
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
+
+	for run_name in N[car_name].keys():
+		if len(gg(opj(bair_car_data_location,'meta',run_name,'*.pkl'))) < 6:
+			continue
+		_load_run(N,run_name,bair_car_data_location)
 	print("""
-		Remeber to smooth velocities and look at encoder values.
-		Also look at raw trajectories.
-		Also time to collision.
-		Clockwise?
+		Remeber time to collision.
 	""")
+
 
 	def _rewind():
 		D['state_info'] = {}
@@ -42,101 +50,21 @@ def Car(N,car_name,origin,mult,markers):
 	D['rewind']()
 
 
-	def _report_camera_positions(run_name,t):
-		near_t,near_i = _valid_time_and_index(run_name,t)
-		if not near_t:
-			return []
-		traj = D['runs'][run_name]['trajectory']
-		positions = []
-		for side in ['left','right']:
-			positions.append([traj[side]['x'][near_i],traj[side]['y'][near_i]])
-		D['state_info']['pts'].append(array(positions).mean(axis=0))
-		if len(D['state_info']['pts']) > 3*D['n_for_heading']:
-			D['state_info']['pts'] = D['state_info']['pts'][-2*D['n_for_heading']:]
-		if len(D['state_info']['pts']) >= D['n_for_heading']:
-			n = D['n_for_heading']
-			D['state_info']['heading'] = normalized_vector_from_pts(D['state_info']['pts'][-n:])
-			#print(d2s('>',length(D['state_info']['heading'])))
-			if D['state_info']['pts'][-n][0] > D['state_info']['pts'][-1][0]:
-				D['state_info']['heading'] *= -1.0
-			#print(d2s('>.',length(D['state_info']['heading'])))
-			#print(d2s('<',length(D['state_info']['heading_prev'])))
-			if D['state_info']['near_t'] - D['state_info']['near_t_prev'] < 0.1:
-				if np.degrees(angle_between(D['state_info']['heading'],D['state_info']['heading_prev'])) > 45:
-					#print_stars()
-					#print('Heading warning!!!')
-					#print_stars()
-					#print(d2s('>..',length(D['state_info']['heading'])))
-					D['state_info']['heading'] = D['state_info']['heading_prev']
-					#print(d2s('>...',length(D['state_info']['heading'])))
-			D['state_info']['relative_heading'] = (angle_clockwise(D['state_info']['heading'],D['state_info']['pts'][-1]))
-			D['state_info']['heading_prev'] = D['state_info']['heading'].copy()
-			D['state_info']['near_t_prev'] = D['state_info']['near_t']
-			D['state_info']['velocity'] = (traj['left']['t_vel']+traj['right']['t_vel'])/2.0
-
-		else:
-			D['state_info']['heading'] = None
-		#if D['state_info']['heading'] != None:
-			#print(d2s('>....',length(D['state_info']['heading'])))
-		return (D['state_info']['pts'][-1],D['state_info']['heading']) #positions
-	D['report_camera_positions'] = _report_camera_positions
-
-
-	def __check_trajectory_point(traj,side,i,t):
-		assert(traj['ts'][i] <= t)
-		if traj['ts'][i] == t:
-			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
-				print "traj[side]['t_vel'][i] > 3"
-				return False
-			if traj[side]['t_vel'][i]<0.1: #TEMP
-				print "raj[side]['t_vel'][i]<0.1"
-				return False
-			elif traj['camera_separation'][i] > 0.5: # almost larger than length of car
-				print "traj['camera_separation'][i] > 0.5"
-				return False
-			elif traj[side]['timestamp_gap'][i] > 0.5: # missed data points
-				print "traj[side]['timestamp_gap'][i] > 0.5"
-				return False
-			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
-				print "length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0])"
-				return False
-			return True
-		assert(False)
-
-	def _check_trajectory_point(traj,side,i,t):
-		assert(traj['ts'][i] <= t)
-		if traj['ts'][i] == t:
-			if traj[side]['t_vel'][i] > 3: # 1.788: # Above 4 mph
-				return False
-			if traj[side]['t_vel'][i]<0.1: #TEMP
-				return False
-			elif traj['camera_separation'][i] > 0.5: # almost larger than length of car
-				return False
-			elif traj[side]['timestamp_gap'][i] > 0.5: # missed data points
-				return False
-			elif length([traj[side]['x'][i],traj[side]['y'][i]]) > length(markers['xy'][0]):
-				return False
-			return True
-		assert(False)
-
-
 	def _valid_time_and_index(run_name,t):
-		traj = D['runs'][run_name]['trajectory']
+		traj = D['traj']
 		if t>traj['ts'][0] and t<traj['ts'][-1]:
 			near_t = -1
-			for i in range(D['state_info']['near_i'],len(traj['ts'])):
+			for i in range(D['near_i'],len(traj['ts'])):
 				if traj['ts'][i-1]<t and traj['ts'][i]>=t:
 					near_t = traj['ts'][i]
 					near_i = i
 					break
 			if near_t > 0:
-				D['state_info']['near_i'] = near_i
-				D['state_info']['near_t'] = near_t
-				for side in ['left','right']:
-					if not _check_trajectory_point(traj,side,near_i,near_t):
-						return False,False
+				D['near_i'] = near_i
+				D['near_t'] = near_t
 				return near_t,near_i
 		return False,False
+	D['valid_time_and_index'] = _valid_time_and_index
 
 
 	def _get_image(run_name,side):
@@ -163,8 +91,6 @@ def Car(N,car_name,origin,mult,markers):
 
 	print("created "+D['type']+": "+D['car_name'])
 	return D
-
-
 
 
 

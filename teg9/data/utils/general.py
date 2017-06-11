@@ -1,4 +1,4 @@
-from kzpy3.utils import *
+from kzpy3.utils2 import *
 import cv2
 
 def get_new_Data_dic(_=None):
