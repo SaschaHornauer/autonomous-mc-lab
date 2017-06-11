@@ -120,7 +120,7 @@ def get_invalid_states(traj_valid):
 
 def interpolate_over_invalid(traj,invalid_states):
 	print('interpolate_over_invalid')
-	for c in ['x','y']:
+	for c in ['x','y','t_vel']:
 		for invalid_state in invalid_states:
 			start = traj[c][invalid_state[0]-1]
 			end = traj[c][invalid_state[1]+1]
@@ -132,7 +132,7 @@ def interpolate_over_still(traj,data,ts):
 	print('interpolate_over_still')
 	meoencoder = array(meo(data['encoder'],120))
 	for d in ['forward','backward']:
-		for c in ['x','y']:
+		for c in ['x','y','t_vel']:
 			traj[d+'_'+c] = traj[c].copy()
 	still = False
 	for i in range(0,len(ts)):
@@ -143,8 +143,10 @@ def interpolate_over_still(traj,data,ts):
 				still = True
 				x = traj['forward_x'][i-1]
 				y = traj['forward_y'][i-1]
+				v = traj['forward_t_vel'][i-1]
 			traj['forward_x'][i] = x
 			traj['forward_y'][i] = y
+			traj['forward_t_vel'][i] = v
 	still = False
 	for i in range(len(ts)-2,0,-1):
 		if meoencoder[i] > 0.01:
@@ -154,10 +156,13 @@ def interpolate_over_still(traj,data,ts):
 				still = True
 				x = traj['backward_x'][i+1]
 				y = traj['backward_y'][i+1]
+				v = traj['backward_t_vel'][i+1]
 			traj['backward_x'][i] = x
 			traj['backward_y'][i] = y
+			traj['backward_t_vel'][i] = v
 	traj['new_x'] = array(meo((traj['backward_x']+traj['forward_x'])/2.0,60))
 	traj['new_y'] = array(meo((traj['backward_y']+traj['forward_y'])/2.0,60))
+	traj['new_t_vel'] = array(meo((traj['backward_t_vel']+traj['forward_t_vel'])/2.0,60))
 
 
 
@@ -172,7 +177,6 @@ def get_headings(traj):
 	for i in range(len(traj['new_x'])):
 		if i <= n:
 			traj['heading'].append(array([0,1]))
-			traj['relative_heading'].append(0)
 		else:
 			traj['heading'].append(normalized_vector_from_pts(pts[i-n+1:i]))
 			if pts[i-n][0] > pts[i][0]:
@@ -191,10 +195,11 @@ def get_headings(traj):
 	traj['absolute_heading'] = array(traj['absolute_heading'])
 	traj['x'] = traj['new_x']
 	traj['y'] = traj['new_y']
+	traj['t_vel'] = traj['new_t_vel']
 
 def del_traj_extra(traj):
 	print('get_headings')
-	for d in ['backward_x','new_x','new_y','camera_separation',
+	for d in ['backward_x','new_x','new_y','camera_separation','backward_t_vel','forward_t_vel','new_t_vel',
 		'backward_y','right','forward_x','heading_meo','forward_y','left']:
 		del traj[d]
 
@@ -207,7 +212,7 @@ def create_and_save_traj(run_name,bair_car_data_location,N):
 
 	traj_valid = get_traj_valid(traj,ts)
 
-	for c in ['x','y']:
+	for c in ['x','y','t_vel']:
 		traj[c] = (traj['left'][c]+traj['right'][c])/2.0 * traj_valid
 
 	traj['encoder'] = meo(data['encoder'],60)
@@ -225,6 +230,7 @@ def create_and_save_traj(run_name,bair_car_data_location,N):
 	del_traj_extra(traj)
 
 	path = opjD('bair_car_data_new_28April2017','meta',run_name)
+	path = opjD(bair_car_data_location,'meta',run_name)
 	unix('mkdir -p '+path)
 	so(traj,opj(path,'traj.pkl'))
 	print('saved '+path+'/traj.pkl')
@@ -238,9 +244,9 @@ for car_name in N.keys():
 	for run_name in N[car_name].keys():
 		print(opj(car_name,run_name))
 		print(timer.time())
-		try:
+		if True:#try:
 			create_and_save_traj(run_name,bair_car_data_location,N)
-		except Exception as e:
+		else: #except Exception as e:
 			print("********** Exception ***********************")
 			print(e.message, e.args)			
 

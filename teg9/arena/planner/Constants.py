@@ -10,9 +10,9 @@ def Constants():
 
 	D['_bair_car_data_location'] = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
 	D['__bair_car_data_location'] = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
-	D['bair_car_data_location'] = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+	D['_bair_car_data_location'] = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
 	D['____bair_car_data_location'] = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
-	D['_____bair_car_data_location'] = opjD('bair_car_data_new_28April2017')
+	D['bair_car_data_location'] = opjD('bair_car_data_new_28April2017')
 
 	D['trajectory_data_location'] = opjD('N.pkl')
 
