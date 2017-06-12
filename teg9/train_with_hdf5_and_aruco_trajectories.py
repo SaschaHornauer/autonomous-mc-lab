@@ -17,8 +17,8 @@ if False:
 	MODEL = 'z2_color'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
-	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
-	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
+	#weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	weights_file_path = opjh('caffe_models/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -27,8 +27,8 @@ if True:
 	MODEL = 'z2_color_aruco'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
-	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
-	#weights_file_path = opjh('caffe_models/z2_color.caffemodel')
+	#weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	weights_file_path = opjh('caffe_models/z2_color/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -73,7 +73,7 @@ def sample_dic:
 
 
 
-if False:
+if True:
 	CS_('load aruco trajectory data')
 	Aruco_Steering_Trajectories = {}
 	aruco_data_location = opjD('output_data')
@@ -92,7 +92,10 @@ if False:
 					Aruco_Steering_Trajectories[run_name][mode] = {}
 				timestamps = ast[run_name][mode]['near_t']
 				steer = ast[run_name][mode]['steer']
-				velocity = ast[run_name][mode]['velocity']
+				temp = ast[run_name][mode]['velocity']
+				velocity = []
+				for v in temp:
+					velocity.append(np.float(v))
 				other_car_inverse_distances = ast[run_name][mode]['other_car_inverse_distances']
 				marker_inverse_distances = ast[run_name][mode]['marker_inverse_distances']				
 				assert(len(timestamps) == len(steer))
@@ -137,7 +140,7 @@ if False:
 
 	so(Aruco_Steering_Trajectories,opjD('Aruco_Steering_Trajectories.pkl'))
 
-if True:
+if False:
 	print("Loading Aruco_Steering_Trajectories . . .")
 	Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories.pkl'))
 	#Aruco_Steering_Trajectories = lo(opjD('Aruco_Steering_Trajectories_26May2017.pkl'))
@@ -161,12 +164,15 @@ import_str = import_str.replace("REPO",REPO)
 import_str = import_str.replace("CAF",CAF)
 import_str = import_str.replace("MODEL",MODEL)
 exec(import_str)
-
+############################################
+#
 if weights_file_path:
 	print(d2s("Copying weights from",weights_file_path,"to",Solver.solver))
 	Solver.solver.net.copy_from(weights_file_path)
 else:
 	print(d2s("No weights loaded to",Solver.solver))
+#
+###########################
 time.sleep(0)
 
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
@@ -187,6 +193,7 @@ print('\nloading low_steer... (takes awhile)')
 low_steer = load_obj(opj(hdf5_segment_metadata_path,'low_steer'))
 print('\nloading high_steer... (takes awhile)')
 high_steer = load_obj(opj(hdf5_segment_metadata_path,'high_steer'))
+print('done')
 len_high_steer = len(high_steer)
 len_low_steer = len(low_steer)
 
@@ -365,22 +372,18 @@ loss_threshold = 0.08
 velocity_data = []
 velocity_data_timer = Timer(60)
 even_ctr = 0
+
 while True:
 
 	for b in range(Solver.batch_size):
 		data = None
 		while data == None:
+
 			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
 		Solver.put_data_into_model(data,Solver.solver,b)
-	
-	if Solver.solver.net.blobs['target_cars'].data[-1,:].max() == 0:
-		if even_ctr == 0:
-			continue
-		elif even_ctr > 10:
-			even_ctr = 0
-	else:
-		even_ctr += 1
-	
+	if len(data['target_cars']) == 0:
+		continue
+
 	Solver.solver.step(1) # The training step. Everything below is for display.
 
 	rate_ctr += 1
@@ -399,7 +402,7 @@ while True:
 			del high_loss_dic[data['id']]
 			#print(d2s('removed',data['id'],'from high_loss_dic'))
 	loss_dic[data['id']] = the_loss
-	
+
 	if len(loss) >= 10000/Solver.batch_size:
 		loss10000.append(array(loss[-10000:]).mean())
 		loss = []

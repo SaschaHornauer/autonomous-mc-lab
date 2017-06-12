@@ -19,8 +19,8 @@ train_val_lst = [d2s('#',model_path),d2s('#',time_str('Pretty'))]
 train_val_lst += [
 	d2s('#',model_path),
 	d2s('#',time_str('Pretty')),
-	protos.dummy('target_cars',(batch_size,8)),
-	protos.dummy('target_markers',(batch_size,8)),
+	protos.dummy('target_cars',(batch_size,11)),
+	protos.dummy('target_markers',(batch_size,11)),
 	protos.dummy('target_velocity',(batch_size,1)),
 	protos.dummy('steer_motor_target_data',(batch_size,20)),
 	protos.dummy('metadata',(batch_size,6,14,26)),
@@ -42,9 +42,9 @@ train_val_lst += [
 
 	protos.ip("ip2","ip1",20,"xavier",std=0),
 	protos.euclidean("euclidean","steer_motor_target_data","ip2"),
-	protos.ip("ip_cars","ip1",8,"xavier",std=0),
+	protos.ip("ip_cars","ip1",11,"xavier",std=0),
 	protos.euclidean("euclidean_cars","target_cars","ip_cars"),
-	protos.ip("ip_markers","ip1",8,"xavier",std=0),
+	protos.ip("ip_markers","ip1",11,"xavier",std=0),
 	protos.euclidean("euclidean_markers","target_markers","ip_markers"),
 	protos.ip("ip_velocity","ip1",1,"xavier",std=0),
 	protos.euclidean("euclidean_velocity","target_velocity","ip_velocity")
@@ -59,7 +59,7 @@ solver_lst =  [
 	test_iter=1,
 	test_interval=1000000,
 	test_initialization='false',
-	base_lr = 0.005,
+	base_lr = 0.000001,
 	momentum=0.0001,
 	weight_decay='0.000005',
 	lr_policy="inv",
@@ -125,7 +125,10 @@ def put_data_into_model(data,solver,b=0):
 	solver.net.blobs['metadata'].data[b,4,:,:] = Play
 	solver.net.blobs['metadata'].data[b,5,:,:] = Furtive
 
-	solver.net.blobs['target_cars'].data[b,:] = data['target_cars']
+	if len(data['target_cars']) > 0:
+		solver.net.blobs['target_cars'].data[b,:] = data['target_cars']
+	else:
+		solver.net.blobs['target_cars'].data[b,:] *= 0
 	solver.net.blobs['target_markers'].data[b,:] = data['target_markers']
 	solver.net.blobs['target_velocity'].data[b,:] = data['target_velocity']
 

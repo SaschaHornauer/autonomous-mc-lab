@@ -24,6 +24,7 @@ def multi_process_bag_folders(bag_folders_path_lst,meta_path,visualize=0):
     for pl in bag_folders_path_lst:
         print pl
         bag_folders = sgg(opj(pl,'*'))
+        assert(len(bag_folders) > 0)
         try:
             for bf in bag_folders:
                 print bf
@@ -40,6 +41,7 @@ def multi_process_bag_folders(bag_folders_path_lst,meta_path,visualize=0):
 def multi_preprocess_bagfiles(bag_folder_path,meta_path,visualize=0):
     print bag_folder_path
     bag_files = sgg(opj(bag_folder_path,'*.bag'))
+    assert(len(bag_files) > 0)
     run_name = fname(pname(bag_files[0]))
     if len(gg(opj(meta_path,run_name))) == 0:
         print("Making "+opj(meta_path,run_name))
@@ -89,7 +91,7 @@ def preprocess_bagfiles(A,path,visualize):
             
             if visualize > 0:
                 if np.mod(ctr,visualize) == 0:
-                    print(d2c(fname(path),s,t,A[s][t]['distances_marker']))
+                    #print(d2c(fname(path),s,t,A[s][t]['distances_marker']))
                     k = mci(img)
                     if k == ord('q'):
                         break
@@ -227,7 +229,7 @@ May24_g = ['/media/karlzipser/bdd_data_11a/Mr_Yellow_Fern_11April2017/processed'
 
 May28 = ['/media/karlzipser/ExtraDrive4/Mr_Yellow_27May2017/processed',
     '/media/karlzipser/ExtraDrive2/Mr_Orange_27May2017/processed',
-    '/media/karlzipser/ExtraDrive1/Mr_Black_27May2017']
+    '/media/karlzipser/ExtraDrive1/Mr_Black_27May2017/processed']
 
 
 
@@ -239,7 +241,9 @@ May28 = ['/media/karlzipser/ExtraDrive4/Mr_Yellow_27May2017/processed',
 
 if True:
     CS_("Get raw marker data from bag file images to pkl files.",fname(__file__))
-    multi_process_bag_folders(May28,meta_path,100)
+    multi_process_bag_folders(['/media/karlzipser/rosbags/Mr_Black_3June2017/new'],
+        '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017/meta',
+        1)
 
 
 

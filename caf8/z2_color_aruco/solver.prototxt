@@ -1,16 +1,11 @@
-
-# /Users/karlzipser/kzpy3/caf8/z2_color_aruco
-# Wednesday, 31 May 2017, 09:10:31 PM
-
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Thursday, 01 Jun 2017, 11:36:54 PM
+# Monday, 12 Jun 2017, 12:18:47 AM
 
-
-net: "/Users/karlzipser/kzpy3/caf8/z2_color_aruco/train_val.prototxt"
+net: "/home/karlzipser/kzpy3/caf8/z2_color_aruco/train_val.prototxt"
 test_iter: 1
 test_interval: 1000000
 test_initialization: false
-base_lr: 0.005  
+base_lr: 1e-05  
 momentum: 0.0001
 weight_decay: 0.000005
 lr_policy: "inv"
@@ -19,5 +14,5 @@ power: 0.75
 display: 20000
 max_iter: 10000000
 snapshot: 100000
-snapshot_prefix: "/Users/karlzipser/Desktop/z2_color_aruco/z2_color_aruco"
+snapshot_prefix: "/home/karlzipser/Desktop/z2_color_aruco/z2_color_aruco"
 	

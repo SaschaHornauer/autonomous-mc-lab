@@ -82,6 +82,12 @@ def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 		return array(D['runs'][current_run_name]['traj']['heading'][near_i])
 	D['current_heading'] = _current_heading
 
+	def _current_velocity():
+		near_i = D['near_i']
+		current_run_name = D['current_run_name']
+		return array(D['runs'][current_run_name]['traj']['t_vel'][near_i])
+	D['current_velocity'] = _current_velocity
+
 	def _current_relative_heading():
 		near_i = D['near_i']
 		current_run_name = D['current_run_name']

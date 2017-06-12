@@ -1,7 +1,7 @@
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Thursday, 01 Jun 2017, 11:36:54 PM
+# Monday, 12 Jun 2017, 12:18:47 AM
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Thursday, 01 Jun 2017, 11:36:54 PM
+# Monday, 12 Jun 2017, 12:18:47 AM
 
 layer {
 	name: "target_cars"
@@ -10,7 +10,7 @@ layer {
 	dummy_data_param {
 		shape {
 			dim: 1
-			dim: 8
+			dim: 11
 		}
 	}
 }
@@ -23,7 +23,7 @@ layer {
 	dummy_data_param {
 		shape {
 			dim: 1
-			dim: 8
+			dim: 11
 		}
 	}
 }
@@ -270,7 +270,7 @@ layer {
 	bottom: "ip1"
 	top: "ip_cars"
 	inner_product_param {
-		num_output: 8
+		num_output: 11
 		weight_filler {
 			type: "xavier" 
 		}
@@ -294,7 +294,7 @@ layer {
 	bottom: "ip1"
 	top: "ip_markers"
 	inner_product_param {
-		num_output: 8
+		num_output: 11
 		weight_filler {
 			type: "xavier" 
 		}
