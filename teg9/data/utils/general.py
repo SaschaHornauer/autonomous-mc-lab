@@ -55,3 +55,23 @@ def get_metadata(run_name,bair_car_data_location):
                 data[d][i] = 0
         data[d] = array(data[d])
     return ts,data
+
+
+def get_bag_pkl_images(run_name,bair_car_data_location):
+    print "get_bag_pkl_images"
+    bag_pkls = sgg(opj(bair_car_data_location,'rgb_1to4',run_name,'*.bag.pkl'))
+    images = {}
+    images['left'] = {}
+    images['right'] = {}
+    assert(len(bag_pkls) > 0)
+    indx = 0
+    for b in bag_pkls:
+        print b
+        o = load_obj(b)
+        for side in ['left','right']:
+            ts = sorted(o[side].keys())
+            for t in ts:
+                images[side][t] = o[side][t]
+    return images
+
+

@@ -21,7 +21,7 @@ def Other_Object(the_name,the_type):
 		D['angle'] = None
 		D['dist'] = None
 	D['reinit'] = _reinit
-	def _process_spatial_relations(xy_our,our_heading,t):
+	def _process_spatial_relations(xy_our,our_heading):
 		xy_other = D['xy']
 		if len(xy_other) > 0:
 			if our_heading != None:
@@ -60,21 +60,24 @@ def setup_spatial_dics(current_run):
 
 
 def update_spatial_dics(current_run,car_spatial_dic,marker_spatial_dic,t):
-	report = current_run['our_car']['report_camera_positions'](current_run['run_name'],t)
-	if len(report) == 2:
-		xy_our,our_heading = report
+	success = current_run['our_car']['establish_valid_time_and_index'](current_run['run_name'],t)
+	if success:
+		xy_our = current_run['our_car']['current_xy']()
+		our_heading = current_run['our_car']['current_heading']()
 		list_of_other_car_trajectories = current_run['our_car']['runs'][current_run['run_name']]['list_of_other_car_trajectories']
 		for l in list_of_other_car_trajectories:
 			other_car_name = l[0]
 			other_car_run_name = l[1]
-			report = current_run['cars'][other_car_name]['report_camera_positions'](other_car_run_name,t)
+			success = current_run['cars'][other_car_name]['establish_valid_time_and_index'](other_car_run_name,t)
 			car_spatial_dic[other_car_name]['reinit']()
-			if len(report) == 2:
-				xy,heading = report
+			if success:
+				xy = current_run['cars'][other_car_name]['current_xy']()	
+				heading = current_run['cars'][other_car_name]['current_heading']()
 				car_spatial_dic[other_car_name]['xy'] = xy
-				car_spatial_dic[other_car_name]['process_spatial_relations'](xy_our,our_heading,t)
+				car_spatial_dic[other_car_name]['process_spatial_relations'](xy_our,our_heading)
+
 		for m in marker_spatial_dic.keys():
-			marker_spatial_dic[m]['process_spatial_relations'](xy_our,our_heading,t)
+			marker_spatial_dic[m]['process_spatial_relations'](xy_our,our_heading)
 		return True
 	else:
 		return False
@@ -122,17 +125,17 @@ def get_angle_distance_view(current_run,spatial_dic,are_markers=False):
 
 
 def get_sample_points(pts,angles,pfield,heading):
-    sample_points = []
-    potential_values = []
-    heading = heading.copy()
-    heading *= 0.5 # 50 cm, about the length of the car
-    for the_arena in angles:
-        sample_points.append( rotatePoint([0,0],heading,the_arena) )
-    for sp in sample_points:
-        pix = pfield['Image']['floats_to_pixels']([sp[0]+array(pts)[-1,0],sp[1]+array(pts)[-1,1]])
-        potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
-        #pfield['Image']['img'][pix[0],pix[1]] = 1 # for checking
-    return potential_values
+	sample_points = []
+	potential_values = []
+	heading = heading.copy()
+	heading *= 0.5 # 50 cm, about the length of the car
+	for the_arena in angles:
+		sample_points.append( rotatePoint([0,0],heading,the_arena) )
+	for sp in sample_points:
+		pix = pfield['Image']['floats_to_pixels']([sp[0]+array(pts)[0],sp[1]+array(pts)[1]])
+		potential_values.append(pfield['Image']['img'][pix[0],pix[1]])
+		#pfield['Image']['img'][pix[0],pix[1]] = 1 # for checking
+	return potential_values
 
 
 def interpret_potential_values(potential_values):

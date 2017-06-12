@@ -1,25 +1,20 @@
->> current_run['our_car']['valid_time_and_index']
-current_run
-0) ...
-7) our_car:
-	0) Purpose:
-		 Car : Car object.
-	1) car_name:
-		 Mr_Yellow
-	2) get_image:
-		 <function _get_image at 0x10da44d70> <type 'function'>
-	3) load_image_and_meta_data:
-		 <function _load_image_and_meta_data at 0x10da44de8> <type 'function'>
-	4) rewind:
-		 <function _rewind at 0x10da44c80> <type 'function'>
-	5) runs:
-		...
-	6) state_info:
-		...
-	7) type:
-		 Car
-	8) valid_time_and_index:
-		 <function _valid_time_and_index at 0x10da44cf8> <type 'function'>
+>> cars['Mr_Black']['runs']['direct_rewrite_test_28Apr17_18h09m52s_Mr_Black']
+cars
+0) Mr_Black:
+	0) ...
+	12) runs:
+		0) direct_rewrite_test_28Apr17_16h42m54s_Mr_Black:
+			...
+		1) direct_rewrite_test_28Apr17_17h14m56s_Mr_Black:
+			...
+		2) direct_rewrite_test_28Apr17_17h23m15s_Mr_Black:
+			...
+		3) direct_rewrite_test_28Apr17_17h50m34s_Mr_Black:
+			...
+		4) direct_rewrite_test_28Apr17_18h09m52s_Mr_Black:
+			...
 
-..11)
+	..13)
+
+..4)
 

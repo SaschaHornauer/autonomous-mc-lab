@@ -46,18 +46,25 @@ def caffe_motor_callback(msg):
     global M
     M['caffe_motor'] = msg.data
 
+def caffe_motor_callback(msg):
+    global M
+    M['caffe_camera'] = msg.data
+
 def data_saving_callback(msg):
     global M
     M['data_saving'] = msg.data
 
 
+
 rospy.init_node('run_arduino',anonymous=True)
 rospy.Subscriber('cmd/steer', std_msgs.msg.Int32, callback=caffe_steer_callback)
 rospy.Subscriber('cmd/motor', std_msgs.msg.Int32, callback=caffe_motor_callback)
+rospy.Subscriber('cmd/camera', std_msgs.msg.Int32, callback=caffe_camera_callback)
 
 M['state_pub'] = rospy.Publisher('state', std_msgs.msg.Int32, queue_size=5) 
 M['steer_pub'] = rospy.Publisher('steer', std_msgs.msg.Int32, queue_size=5) 
 M['motor_pub'] = rospy.Publisher('motor', std_msgs.msg.Int32, queue_size=5) 
+M['camera_pub'] = rospy.Publisher('camera', std_msgs.msg.Int32, queue_size=5) 
 M['encoder_pub'] = rospy.Publisher('encoder', std_msgs.msg.Float32, queue_size=5)
 M['gyro_pub'] = rospy.Publisher('gyro', geometry_msgs.msg.Vector3, queue_size=100)
 M['gyro_heading_pub'] = rospy.Publisher('gyro_heading', geometry_msgs.msg.Vector3, queue_size=100)
@@ -78,9 +85,7 @@ def arduino_imu_thread():
 def arduino_sig_thread():
     ard_SIG.run_loop(Arduinos,M)
 
-def arduino_master_thread():
-    #while M['Stop_Arduinos'] == False or not rospy.is_shutdown():
-    
+def arduino_master_thread():    
     try:
         if os.environ['STOP'] == 'True':
             assert(False)
@@ -92,9 +97,6 @@ def arduino_master_thread():
 
             if reload_timer.check():
                 reload(rp)
-                #reload(kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params)
-                #from kzpy3.teg2.bdd_car_versions.bdd_car_rewrite.runtime_params import *
-                #model_name_pub.publish(std_msgs.msg.String(weights_file_path))
                 reload_timer.reset()
                 M['steer_gain'] = rp.steer_gain
                 M['motor_gain'] = rp.motor_gain
@@ -116,7 +118,7 @@ def arduino_master_thread():
             try:
                 #pass
                 #print (shape(M['acc_lst']),M['acc_lst_mean'])
-                print(M['PID'],M['aruco_evasion_active'],int(M['caffe_steer_pwm']),M['current_state'].name,M['steer_pwm_lst'][-1],M['steer_percent'],M['motor_percent'],M['acc'],M['gyro'],M['head'])#,M['gyro'],M['head'],M['encoder'])
+                print(M['PID'],int(M['caffe_steer_pwm']),M['current_state'].name,M['steer_pwm_lst'][-1],M['steer_percent'],M['motor_percent'],M['acc'],M['gyro'],M['head'])#,M['gyro'],M['head'],M['encoder'])
             except:
                 pass
 

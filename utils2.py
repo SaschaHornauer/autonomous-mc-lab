@@ -656,7 +656,7 @@ def pythonpaths(paths):
         sys.path.append(opjh(p))
 
 
-def find_files_recursively(src,pattern,place='',FILES_ONLY=False,DIRS_ONLY=False):
+def find_files_recursively(src,pattern,FILES_ONLY=False,DIRS_ONLY=False):
     """
     https://stackoverflow.com/questions/2186525/use-a-glob-to-find-files-recursively-in-python
     """
@@ -686,7 +686,6 @@ def find_files_recursively(src,pattern,place='',FILES_ONLY=False,DIRS_ONLY=False
                 print(d2s(time_str('Pretty'),ctr,'matches'))
                 timer.reset()
     data = {}
-    data['place'] = place
     data['paths'] = folders
     data['parent_folders'] = [fname(f) for f in folders.keys()]
     return data

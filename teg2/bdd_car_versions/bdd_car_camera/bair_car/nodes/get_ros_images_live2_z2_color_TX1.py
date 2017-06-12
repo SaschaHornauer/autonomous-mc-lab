@@ -75,6 +75,7 @@ try:
 
 	steer_cmd_pub = rospy.Publisher('cmd/steer', std_msgs.msg.Int32, queue_size=100)
 	motor_cmd_pub = rospy.Publisher('cmd/motor', std_msgs.msg.Int32, queue_size=100)
+	camera_cmd_pub = rospy.Publisher('cmd/camera', std_msgs.msg.Int32, queue_size=100)
 
 	caffe_enter_timer = Timer(2)
 	caf_steer_previous = 49
@@ -101,6 +102,7 @@ try:
 					print "waiting before entering caffe mode..."
 					steer_cmd_pub.publish(std_msgs.msg.Int32(49))
 					motor_cmd_pub.publish(std_msgs.msg.Int32(49))
+					camera_cmd_pub.publish(std_msgs.msg.Int32(49))
 					time.sleep(0.1)
 					continue
 				else:
@@ -149,8 +151,11 @@ try:
 						if caf_steer < 0:
 							caf_steer = 0
 
+						caf_camera = caf_steer
+
 						if state in [3,6,10]:			
 							steer_cmd_pub.publish(std_msgs.msg.Int32(caf_steer))
+							camera_cmd_pub.publish(std_msgs.msg.Int32(caf_camera))
 						if state in [6,7,10]:
 							motor_cmd_pub.publish(std_msgs.msg.Int32(caf_motor))
 
