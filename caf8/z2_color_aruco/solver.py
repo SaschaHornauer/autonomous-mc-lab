@@ -40,6 +40,9 @@ train_val_lst += [
 	protos.ip("ip1","conv2_pool",512,"xavier",std=0),
 	protos.relu('ip1'),
 
+
+
+
 	protos.ip("ip2","ip1",20,"xavier",std=0),
 	protos.euclidean("euclidean","steer_motor_target_data","ip2"),
 	protos.ip("ip_cars","ip1",11,"xavier",std=0),
@@ -47,7 +50,10 @@ train_val_lst += [
 	protos.ip("ip_markers","ip1",11,"xavier",std=0),
 	protos.euclidean("euclidean_markers","target_markers","ip_markers"),
 	protos.ip("ip_velocity","ip1",1,"xavier",std=0),
-	protos.euclidean("euclidean_velocity","target_velocity","ip_velocity")
+	protos.euclidean("euclidean_velocity","target_velocity","ip_velocity"),
+	protos.concat('ip1_concat',["ip1","ip_cars","ip_markers"],1),
+	protos.ip("ip2_new","ip1_concat",20,"xavier",std=0),
+	protos.euclidean("euclidean_new","steer_motor_target_data","ip2_new"),
 ]
 
 
@@ -59,7 +65,7 @@ solver_lst =  [
 	test_iter=1,
 	test_interval=1000000,
 	test_initialization='false',
-	base_lr = 0.000001,
+	base_lr = 0.0000001,
 	momentum=0.0001,
 	weight_decay='0.000005',
 	lr_policy="inv",
@@ -67,7 +73,7 @@ solver_lst =  [
 	power=0.75,
 	display=20000,
 	max_iter=10000000,
-	snapshot=100000
+	snapshot=50000
 	)]
 #
 ##############################################################################
