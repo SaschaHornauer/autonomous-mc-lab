@@ -11,16 +11,18 @@ import data.utils.general
 # clockwise = 270° relative angle, to wall = 0°, counter-clockwise = 90°
 
 # Add potential measures and relative heading value
-GRAPHICS = True
-SAVE_DATA = False
-T_OFFSET_VALUE = 28
+GRAPHICS = False
+SAVE_DATA = True
+T_OFFSET_VALUE = 0
 TIME_STEP = 1/30.0
 
 print_stars();print('*')
+print(d2s('GRAPHICS =',GRAPHICS))
+print(d2s('SAVE_DATA =',SAVE_DATA))
 print(d2s('T_OFFSET_VALUE =',T_OFFSET_VALUE))
 print(d2s('TIME_STEP =',TIME_STEP))
-pause(1.0);
 print('*');print_stars()
+raw_input('<enter> to continue')
 
 
 if 'N' not in locals():
@@ -83,7 +85,8 @@ for car_name in [C['car_names'][0]]:
 				output_data[run_name][mode]['marker_inverse_distances'] = []
 				output_data[run_name][mode]['other_car_inverse_distances'] = []
 				output_data[run_name][mode]['relative_heading'] = []
-				output_data[run_name][mode]['current_direction'] = []
+				output_data[run_name][mode]['clock_potential_values'] = []
+
 
 
 
@@ -103,7 +106,7 @@ for car_name in [C['car_names'][0]]:
 						if heading != None:
 							car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
 
-							if len(car_angle_dist_view) > 0:
+							if True:#len(car_angle_dist_view) > 0:
 
 								other_cars_in_view_xy_list = []
 								for c in current_run['car_spatial_dic'].keys():
@@ -147,25 +150,18 @@ for car_name in [C['car_names'][0]]:
 								else:
 									direction = 'out'
 
-								print(direction,int(relative_heading),int(relative_heading),int(360-wise_delta),int(wise_delta))
+								
 
-
-								if direction == 'clockwise':
-									if not clockwise:
-										clockwise = True
-								elif direction == 'counter-clockwise':
-									if clockwise:
-										clockwise = False
 
 								clock_potential_values = z2o(arange(len(potential_values)))
-								if clockwise:
+								if direction == 'clockwise':
 									clock_potential_values = 1 - clock_potential_values
-								clock_potential_values *= 5.0*length(0.5+current_run['our_car']['current_xy']())/C['Marker_Radius'] #???
+								clock_potential_values *= 2.0*length(current_run['our_car']['current_xy']())/C['Marker_Radius']
 
 								if relative_heading >= 0 and relative_heading < 90:
-									clock_potential_values *= abs(95-relative_heading)/90.0
+									clock_potential_values *= abs(90-relative_heading)/90.0
 								elif relative_heading >= 270 and relative_heading <= 360:
-									clock_potential_values *= abs(relative_heading-265)/90.0
+									clock_potential_values *= abs(relative_heading-270)/90.0
 								else:
 									clock_potential_values *= 0
 
@@ -181,7 +177,8 @@ for car_name in [C['car_names'][0]]:
 								new_steer = Spatial_Relations.interpret_potential_values(list(potential_values+clock_potential_values))
 
 
-
+								if GRAPHICS:
+									print(direction,int(relative_heading),new_steer)
 
 
 								output_data[run_name][mode]['marker_inverse_distances'].append(marker_angle_dist_view)
@@ -191,17 +188,20 @@ for car_name in [C['car_names'][0]]:
 								output_data[run_name][mode]['near_t'].append(current_run['our_car']['near_t'])
 								output_data[run_name][mode]['near_i'].append(current_run['our_car']['near_i'])
 								output_data[run_name][mode]['velocity'].append(current_run['our_car']['current_velocity']())
+								output_data[run_name][mode]['relative_heading'].append(relative_heading)
+								output_data[run_name][mode]['clock_potential_values'].append(clock_potential_values)
+	
 
 								if GRAPHICS:
 									Runs.show_arena_with_cars(current_run,an_arena,t)
 									figure('view')
 									clf()
 									xylim(0,11,0,2)
+									plot(potential_values+clock_potential_values,'ko-')
 									plot(car_angle_dist_view,'y.-')
 									plot(marker_angle_dist_view,'b.-')
 									plot(potential_values,'r.-')
 									plot(clock_potential_values,'gx-')
-									#plot(potential_values+clock_potential_values,'ko-')
 									plt.title(d2s(new_steer))
 									pause(0.0001)
 									mci(images['left'][current_run['our_car']['near_t']],delay=1,title='images',scale=2.0)
