@@ -9,7 +9,19 @@ import arena.planner.Runs as Runs
 import arena.planner.Spatial_Relations as Spatial_Relations
 import data.utils.general
 # clockwise = 270° relative angle, to wall = 0°, counter-clockwise = 90°
-GRAPHICS = False
+
+# Add potential measures and relative heading value
+GRAPHICS = True
+SAVE_DATA = False
+T_OFFSET_VALUE = 28
+TIME_STEP = 1/30.0
+
+print_stars();print('*')
+print(d2s('T_OFFSET_VALUE =',T_OFFSET_VALUE))
+print(d2s('TIME_STEP =',TIME_STEP))
+pause(1.0);
+print('*');print_stars()
+
 
 if 'N' not in locals():
 	print("Loading trajectory data . . .")
@@ -17,14 +29,15 @@ if 'N' not in locals():
 
 if 'the_arenas_ready' not in locals():
 	print("Creating arenas . . .")
-	args = []
-	arenas_tmp_lst = [Potential_Fields.Follow_Arena_Potential_Field,Potential_Fields.Direct_Arena_Potential_Field,
-		Potential_Fields.Play_Arena_Potential_Field,
-		Potential_Fields.Furtive_Arena_Potential_Field]
+	arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field]#,
+		#Potential_Fields.Follow_Arena_Potential_Field,
+		#Potential_Fields.Play_Arena_Potential_Field,
+		#Potential_Fields.Furtive_Arena_Potential_Field]
 	the_arenas = {}
 	for a in arenas_tmp_lst:
 		an_arena = a(C['Origin'],C['Mult'],C['markers'],False,1.0,1.5)
 		the_arenas[an_arena['type']] = an_arena
+	del arenas_tmp_lst
 	the_arenas_ready = True
 
 if 'the_cars_ready' not in locals():
@@ -34,9 +47,9 @@ if 'the_cars_ready' not in locals():
 		cars[car_name] =  Cars.Car(N,car_name,C['Origin'],C['Mult'],C['markers'],C['bair_car_data_location'])
 	the_cars_ready = True
 
-unix('mkdir -p '+opjD('output_data'))
+if SAVE_DATA:
+	unix('mkdir -p '+opjD('output_data'))
 
-output_data = {}
 
 for car_name in [C['car_names'][0]]:
 
@@ -47,22 +60,21 @@ for car_name in [C['car_names'][0]]:
 			current_run = Runs.Run(run_name,cars,an_arena,C['bair_car_data_location'])
 
 			if GRAPHICS:
-				images = data.utils.general.get_bag_pkl_images(current_run['run_name'],'/Volumes/SSD_2TB/bair_car_data_new_28April2017')
+				images = data.utils.general.get_bag_pkl_images(current_run['run_name'],C['bair_car_data_location'])
 
 			output_data[run_name] = {}
 			output_name = opjD('output_data',run_name+'.output_data.pkl')
 
-
-			if len(gg(output_name)) > 0:
-				print(output_name+' exists, continuing.')
-				continue
+			if SAVE_DATA:
+				if len(gg(output_name)) > 0:
+					print(output_name+' exists, continuing.')
+					continue
 
 			for k in the_arenas:
 
 				an_arena = the_arenas[k]
 				mode = an_arena['type']
 				output_data[run_name][mode] = {}
-				output_data[run_name][mode]['sample_points'] = []
 				output_data[run_name][mode]['potential_values'] = []
 				output_data[run_name][mode]['steer'] = []
 				output_data[run_name][mode]['velocity'] = []
@@ -70,25 +82,28 @@ for car_name in [C['car_names'][0]]:
 				output_data[run_name][mode]['near_i'] = []
 				output_data[run_name][mode]['marker_inverse_distances'] = []
 				output_data[run_name][mode]['other_car_inverse_distances'] = []
+				output_data[run_name][mode]['relative_heading'] = []
+				output_data[run_name][mode]['current_direction'] = []
 
-				T_OFFSET_VALUE = 0
+
+
 
 				ctr_timer = Timer(0)
 				timer = Timer(5)
 				ctr = 0
-				wise_delta = 10
+				wise_delta = 20
 				current_run['rewind']()
 				clockwise = True
-				for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],3/30.):
+				for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],TIME_STEP):
 					if timer.check():
-						pd2s(dp(ctr/ctr_timer.time()/30.0),dp(t-current_run['T0']),dp(100.0*(t-current_run['T0'])/(current_run['Tn']-current_run['T0'])),'%')
+						pd2s(dp(ctr/ctr_timer.time()/30.0),'Hz',dp(t-current_run['T0']),'seconds in',dp(100.0*(t-current_run['T0'])/(current_run['Tn']-current_run['T0'])),'%')
 						timer.reset()
 					if Spatial_Relations.update_spatial_dics(current_run,current_run['car_spatial_dic'],current_run['marker_spatial_dic'],t):
 						heading = current_run['our_car']['current_heading']()
 						if heading != None:
 							car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
 
-							if True:#len(car_angle_dist_view) > 0:
+							if len(car_angle_dist_view) > 0:
 
 								other_cars_in_view_xy_list = []
 								for c in current_run['car_spatial_dic'].keys():
@@ -111,7 +126,6 @@ for car_name in [C['car_names'][0]]:
 										dists.append(dist)
 									if len(dists) > 0:
 										if min(dists) <= 1:
-											#print "A"
 											pass
 										else:
 											for i in range(len(dists)):
@@ -119,10 +133,12 @@ for car_name in [C['car_names'][0]]:
 												if dist >= 1 and dist < 8:
 													potential_values[i] *= 1.0/(9.0-dist)
 								else:
-									potential_values = 3*array(potential_values)
-								
-								relative_heading = current_run['our_car']['current_relative_heading']()
-								if relative_heading > 360-wise_delta or relative_heading <= wise_delta:
+									potential_values = 3*array(potential_values) # ????
+
+
+								relative_heading = angle_clockwise(current_run['our_car']['current_heading'](),current_run['our_car']['current_xy']())
+								#relative_heading = current_run['our_car']['current_relative_heading']() # this is problematic because of smoothing, thus recalculate now
+								if relative_heading > 360-wise_delta or relative_heading <= wise_delta or length(current_run['our_car']['current_xy']()) < 1.0:
 									direction = 'in'
 								elif relative_heading > wise_delta and relative_heading <= 180-wise_delta:
 									direction = 'counter-clockwise'
@@ -130,6 +146,10 @@ for car_name in [C['car_names'][0]]:
 									direction = 'clockwise'
 								else:
 									direction = 'out'
+
+								print(direction,int(relative_heading),int(relative_heading),int(360-wise_delta),int(wise_delta))
+
+
 								if direction == 'clockwise':
 									if not clockwise:
 										clockwise = True
@@ -140,7 +160,7 @@ for car_name in [C['car_names'][0]]:
 								clock_potential_values = z2o(arange(len(potential_values)))
 								if clockwise:
 									clock_potential_values = 1 - clock_potential_values
-								clock_potential_values *= 5.0*length(0.5+current_run['our_car']['current_xy']())/C['Marker_Radius']
+								clock_potential_values *= 5.0*length(0.5+current_run['our_car']['current_xy']())/C['Marker_Radius'] #???
 
 								if relative_heading >= 0 and relative_heading < 90:
 									clock_potential_values *= abs(95-relative_heading)/90.0
@@ -149,9 +169,20 @@ for car_name in [C['car_names'][0]]:
 								else:
 									clock_potential_values *= 0
 
+
+
+
+
 								ctr += 1
 
+
+
+
 								new_steer = Spatial_Relations.interpret_potential_values(list(potential_values+clock_potential_values))
+
+
+
+
 
 								output_data[run_name][mode]['marker_inverse_distances'].append(marker_angle_dist_view)
 								output_data[run_name][mode]['other_car_inverse_distances'].append(car_angle_dist_view)
@@ -165,21 +196,23 @@ for car_name in [C['car_names'][0]]:
 									Runs.show_arena_with_cars(current_run,an_arena,t)
 									figure('view')
 									clf()
-									xylim(0,11,0,5)
-									plot(car_angle_dist_view,'r.-')
+									xylim(0,11,0,2)
+									plot(car_angle_dist_view,'y.-')
 									plot(marker_angle_dist_view,'b.-')
-									plot(potential_values,'rx-')
+									plot(potential_values,'r.-')
 									plot(clock_potential_values,'gx-')
-									plot(potential_values+clock_potential_values,'ko-')
+									#plot(potential_values+clock_potential_values,'ko-')
+									plt.title(d2s(new_steer))
 									pause(0.0001)
 									mci(images['left'][current_run['our_car']['near_t']],delay=1,title='images',scale=2.0)
 						else:
 							continue
 
-			so(output_data,output_name)
-			print('saved '+output_name)
-			print(output_data[run_name].keys())
-			print_stars()
+			if SAVE_DATA:
+				so(output_data,output_name)
+				print('saved '+output_name)
+				print(output_data[run_name].keys())
+				print_stars()
 
 
 		except Exception as e:
