@@ -11,10 +11,11 @@ import data.utils.general
 # clockwise = 270° relative angle, to wall = 0°, counter-clockwise = 90°
 
 # Add potential measures and relative heading value
-GRAPHICS = False
-SAVE_DATA = True
-T_OFFSET_VALUE = 0
+GRAPHICS = True
+SAVE_DATA = False
+T_OFFSET_VALUE = 20
 TIME_STEP = 1/30.0
+desired_direction = 'clockwise'
 
 print_stars();print('*')
 print(d2s('GRAPHICS =',GRAPHICS))
@@ -29,18 +30,24 @@ if 'N' not in locals():
 	print("Loading trajectory data . . .")
 	N = lo(C['trajectory_data_location'])
 
-if 'the_arenas_ready' not in locals():
-	print("Creating arenas . . .")
-	arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field]#,
-		#Potential_Fields.Follow_Arena_Potential_Field,
-		#Potential_Fields.Play_Arena_Potential_Field,
-		#Potential_Fields.Furtive_Arena_Potential_Field]
-	the_arenas = {}
-	for a in arenas_tmp_lst:
-		an_arena = a(C['Origin'],C['Mult'],C['markers'],False,1.0,1.5)
-		the_arenas[an_arena['type']] = an_arena
-	del arenas_tmp_lst
-	the_arenas_ready = True
+if True: #len(gg(opjD('the_arenas.pkl'))) == 0:
+	if 'the_arenas_ready' not in locals():
+		print("Creating arenas . . .")
+		arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field]#,
+			#Potential_Fields.Follow_Arena_Potential_Field,
+			#Potential_Fields.Play_Arena_Potential_Field,
+			#Potential_Fields.Furtive_Arena_Potential_Field]
+		the_arenas = {}
+		for a in arenas_tmp_lst:
+			an_arena = a(C['Origin'],C['Mult'],C['markers'],False,1.0,1.5)
+			the_arenas[an_arena['type']] = an_arena
+		del arenas_tmp_lst
+		the_arenas_ready = True
+
+	#so(opjD('the_arenas'),the_arenas)
+else:
+	pass
+	#the_arenas = lo(opjD('the_arenas'))
 
 if 'the_cars_ready' not in locals():
 	print("Loading cars . . .")
@@ -57,7 +64,7 @@ for car_name in [C['car_names'][0]]:
 
 	for run_name in cars[car_name]['runs'].keys():
 		output_data = {}
-		try:
+		if True:#try:
 
 			current_run = Runs.Run(run_name,cars,an_arena,C['bair_car_data_location'])
 
@@ -96,7 +103,7 @@ for car_name in [C['car_names'][0]]:
 				ctr = 0
 				wise_delta = 20
 				current_run['rewind']()
-				clockwise = True
+				#clockwise = True
 				for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],TIME_STEP):
 					if timer.check():
 						pd2s(dp(ctr/ctr_timer.time()/30.0),'Hz',dp(t-current_run['T0']),'seconds in',dp(100.0*(t-current_run['T0'])/(current_run['Tn']-current_run['T0'])),'%')
@@ -106,7 +113,7 @@ for car_name in [C['car_names'][0]]:
 						if heading != None:
 							car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
 
-							if True:#len(car_angle_dist_view) > 0:
+							if True: #len(car_angle_dist_view) > 0:
 
 								other_cars_in_view_xy_list = []
 								for c in current_run['car_spatial_dic'].keys():
@@ -136,39 +143,61 @@ for car_name in [C['car_names'][0]]:
 												if dist >= 1 and dist < 8:
 													potential_values[i] *= 1.0/(9.0-dist)
 								else:
-									potential_values = 3*array(potential_values) # ????
+									potential_values = 3*array(potential_values)
 
-
-								relative_heading = angle_clockwise(current_run['our_car']['current_heading'](),current_run['our_car']['current_xy']())
-								if np.isnan(relative_heading):
-									relative_heading = relative_heading_prev
-								relative_heading_prev = relative_heading
-								#relative_heading = current_run['our_car']['current_relative_heading']() # this is problematic because of smoothing, thus recalculate now
-								if relative_heading > 360-wise_delta or relative_heading <= wise_delta or length(current_run['our_car']['current_xy']()) < 1.0:
-									direction = 'in'
-								elif relative_heading > wise_delta and relative_heading <= 180-wise_delta:
-									direction = 'counter-clockwise'
-								elif relative_heading > 180+wise_delta and relative_heading <= 360-wise_delta:
-									direction = 'clockwise'
-								else:
-									direction = 'out'
 
 								
-
+								relative_heading = current_run['our_car']['current_relative_heading']()
+								direction = current_run['our_car']['current_direction']()
+								
+			
 
 								clock_potential_values = z2o(arange(len(potential_values)))
-								if direction == 'clockwise':
-									clock_potential_values = 1 - clock_potential_values
-								clock_potential_values *= 2.0*length(current_run['our_car']['current_xy']())/C['Marker_Radius']
 
-								if relative_heading >= 0 and relative_heading < 90:
-									clock_potential_values *= abs(90-relative_heading)/90.0
-								elif relative_heading >= 270 and relative_heading <= 360:
-									clock_potential_values *= abs(relative_heading-270)/90.0
+								direction_matches_desired = False
+
+								if desired_direction == 'clockwise':
+									if direction == 'clockwise':
+										clock_potential_values *= 2.0*length(current_run['our_car']['current_xy']())/C['Marker_Radius']
+										direction_matches_desired = True
+									elif direction in ['counter-clockwise']:
+										clock_potential_values = 1 - clock_potential_values
+										#clock_potential_values *= 2.0
+									elif direction in ['out']:
+										clock_potential_values *= 0.0
+										#clock_potential_values *= 2.0
+									elif direction in ['in']:
+										clock_potential_values = 1 - clock_potential_values
+										#clock_potential_values *= 2.0
+									else:
+										assert(False)
+								elif desired_direction == 'counter-clockwise':
+									if direction == 'counter-clockwise':
+										clock_potential_values = 1 - clock_potential_values
+										clock_potential_values *= 2.0*length(current_run['our_car']['current_xy']())/C['Marker_Radius']
+										direction_matches_desired = True
+									elif direction in ['clockwise']:
+										clock_potential_values = 1 - clock_potential_values
+										#clock_potential_values *= 2.0
+									elif direction in ['in']:
+										pass
+									elif direction in ['out']:
+										clock_potential_values *= 0.0
+										#clock_potential_values *= 2.0
+									else:
+										assert(False)
 								else:
-									clock_potential_values *= 0
+									assert(False)
 
 
+
+								if direction_matches_desired:
+									if relative_heading >= 0 and relative_heading < 90:
+										clock_potential_values *= abs(90-relative_heading)/90.0
+									elif relative_heading >= 270 and relative_heading <= 360:
+										clock_potential_values *= abs(relative_heading-270)/90.0
+									else:
+										clock_potential_values *= 0
 
 
 
@@ -181,7 +210,7 @@ for car_name in [C['car_names'][0]]:
 
 
 								if GRAPHICS:
-									print(direction,int(relative_heading),new_steer)
+									print(desired_direction,direction,int(relative_heading),new_steer,int(t-current_run['T0']))
 
 
 								output_data[run_name][mode]['marker_inverse_distances'].append(marker_angle_dist_view)
@@ -218,8 +247,10 @@ for car_name in [C['car_names'][0]]:
 				print_stars()
 
 
-		except Exception as e:
-			print("********** Exception ***********************")
-			print(e.message, e.args)
+		else:
+			pass
+			#except Exception as e:
+			#print("********** Exception ***********************")
+			#print(e.message, e.args)
 
 
