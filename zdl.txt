@@ -1,24 +1,11 @@
->> l['direct_Fern_aruco_1_11Apr17_23h24m50s_Mr_Yellow']['Direct_Arena_Potential_Field']['velocity']
-l
-0) direct_Fern_aruco_1_11Apr17_23h24m50s_Mr_Yellow:
+>> o['direct_rewrite_test_28Apr17_17h14m56s_Mr_Black']['Direct_Arena_Potential_Field']['relative_heading']
+o
+0) direct_rewrite_test_28Apr17_17h14m56s_Mr_Black:
 	0) Direct_Arena_Potential_Field:
-		0) marker_inverse_distances:
-			[??? ??? ... ??? ???] (len=27767)
-		1) near_i:
-			[4 6 ... 82504 82507] (len=27767)
-		2) near_t:
-			[1491953129.68 1491953129.76 ... 1491955906.17 1491955906.28] (len=27767)
-		3) other_car_inverse_distances:
-			[[] [] ... ??? ???] (len=27767)
-		4) potential_values:
-			[??? ??? ... ??? ???] (len=27767)
-		5) sample_points:
-			[]
-		6) steer:
-			[9 9 ... 99 99] (len=27767)
-		7) velocity:
-			[??? ??? ... ??? ???] (len=27767)
+		0) ...
+		6) relative_heading:
+			[337.7 337.7 ... 14.39 14.39] (len=11030)
+		..8)
 
-	..3)
 
 

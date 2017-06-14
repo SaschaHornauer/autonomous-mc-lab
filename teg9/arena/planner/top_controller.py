@@ -88,7 +88,7 @@ for car_name in [C['car_names'][0]]:
 				output_data[run_name][mode]['clock_potential_values'] = []
 
 
-
+				relative_heading_prev = 0
 
 
 				ctr_timer = Timer(0)
@@ -140,6 +140,9 @@ for car_name in [C['car_names'][0]]:
 
 
 								relative_heading = angle_clockwise(current_run['our_car']['current_heading'](),current_run['our_car']['current_xy']())
+								if np.isnan(relative_heading):
+									relative_heading = relative_heading_prev
+								relative_heading_prev = relative_heading
 								#relative_heading = current_run['our_car']['current_relative_heading']() # this is problematic because of smoothing, thus recalculate now
 								if relative_heading > 360-wise_delta or relative_heading <= wise_delta or length(current_run['our_car']['current_xy']()) < 1.0:
 									direction = 'in'
