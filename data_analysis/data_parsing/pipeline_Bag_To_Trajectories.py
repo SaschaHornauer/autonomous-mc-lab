@@ -58,8 +58,14 @@ def process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers):
                 topic_list.append('/bair_car/zed/' + camera_side + '/image_rect_color')
                 topic_map['/bair_car/zed/' + camera_side + '/image_rect_color'] = camera_side
                 
+            topic_list.append('/bair_car/gyro')
+                
             for topic, message, timestamp  in bag.read_messages(topics=topic_list):
                 
+                if topic == '/bair_car/gyro':
+                    angles_to_markers['left'][timestamp] = {}
+                    angles_to_markers['left'][timestamp]['heading'] = message 
+                    continue
                 camera_side = topic_map[topic]
                 
                 timestamp = round(timestamp.to_sec(), 3)
@@ -70,6 +76,7 @@ def process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers):
                 angles_to_markers[camera_side][timestamp]['angles_surfaces'] = angles_surfaces
                 angles_to_markers[camera_side][timestamp]['distances_marker'] = distances_marker
                 angles_to_markers[camera_side][timestamp]['markers'] = markers
+                
 
 
 
@@ -269,6 +276,8 @@ def process_run_data(run_name,marker_pkl_path,M):
                 angles_to_center = M[car_name][run_name][side]['raw_marker_data'][t]['angles_to_center']
                 angles_surfaces = M[car_name][run_name][side]['raw_marker_data'][t]['angles_surfaces']
                 distances_marker = M[car_name][run_name][side]['raw_marker_data'][t]['distances_marker']
+                print M[car_name][run_name][side]['raw_marker_data'][t]['heading']
+                sys.exit(0)
                 _,x_avg,y_avg,median_distance_to_markers = get_camera_position(angles_to_center,angles_surfaces,distances_marker)
                 if is_number(x_avg) and is_number(y_avg) and is_number(median_distance_to_markers):
                     M[car_name][run_name][side]['time_stamps'].append(t)
@@ -349,10 +358,10 @@ if __name__ == '__main__':
         markers_xy_dic[m] = xy
 
     root_folder_name = sys.argv[1]
-    #start = timer()
-    #process_run_folder(root_folder_name, 'meta')
-    #end = timer()
-    #print end - start
+    start = timer()
+    process_run_folder(root_folder_name, 'meta')
+    end = timer()
+    print end - start
     markers_pkl_to_trajectories_pkl(root_folder_name)
     
     print ("""

@@ -15,7 +15,7 @@ from timeit import default_timer as timer
 from cv_bridge import CvBridge, CvBridgeError
 import rosbag
 from tensorflow.contrib.learn.python.learn.graph_actions import run_n
-from data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile_Handler
+from kzpy3.data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile_Handler
 
 
 distance = 8  # m
@@ -309,7 +309,7 @@ if __name__ == '__main__':
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
-    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
+    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
     
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/'
     bagfiles =  [os.path.join(bagfile_path,file) for file in os.listdir(bagfile_path) if os.path.isfile(os.path.join(bagfile_path,file))] 
@@ -323,7 +323,7 @@ if __name__ == '__main__':
     
     for bagfile in bagfiles:
         bag_handler = Image_Bagfile_Handler(bagfile)
-    
+        print "Loading bagfiles"
         own_xy = []
         other_xy = []
         own_fov = []
@@ -341,11 +341,15 @@ if __name__ == '__main__':
                 run_names.append(entry['run_name'])
         try:
             for timestamp in timestamps:
-                cv_image, timestamp = bag_handler.get_image(timestamp)
                 
+                cv_image, timestamp, synced = bag_handler.get_image(timestamp)
+                if not synced:
+                    continue
                 if(cv_image == None):
                     continue
-                    
+                
+                
+                
                 cv2.imshow('frame', cv_image)
                 key = cv2.waitKey(1000 / 30) & 0xFF
                 if key == ord('q'):
