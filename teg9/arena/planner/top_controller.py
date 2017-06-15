@@ -13,7 +13,7 @@ import data.utils.general
 # Add potential measures and relative heading value
 GRAPHICS = True
 SAVE_DATA = False
-T_OFFSET_VALUE = 20
+T_OFFSET_VALUE = 0
 TIME_STEP = 1/30.0
 desired_direction = 'clockwise'
 
@@ -23,8 +23,8 @@ print(d2s('SAVE_DATA =',SAVE_DATA))
 print(d2s('T_OFFSET_VALUE =',T_OFFSET_VALUE))
 print(d2s('TIME_STEP =',TIME_STEP))
 print('*');print_stars()
-raw_input('<enter> to continue')
-
+#raw_input('<enter> to continue')
+PAUSE = False
 
 if 'N' not in locals():
 	print("Loading trajectory data . . .")
@@ -67,7 +67,7 @@ for car_name in [C['car_names'][0]]:
 		if True:#try:
 
 			current_run = Runs.Run(run_name,cars,an_arena,C['bair_car_data_location'])
-
+			current_run['rewind']()
 			if GRAPHICS:
 				images = data.utils.general.get_bag_pkl_images(current_run['run_name'],C['bair_car_data_location'])
 
@@ -100,11 +100,22 @@ for car_name in [C['car_names'][0]]:
 
 				ctr_timer = Timer(0)
 				timer = Timer(5)
+				pause_timer = Timer(10)
 				ctr = 0
 				wise_delta = 20
 				current_run['rewind']()
 				#clockwise = True
-				for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],TIME_STEP):
+
+				#for t in arange(current_run['T0']+T_OFFSET_VALUE,current_run['Tn'],TIME_STEP):
+				t = current_run['T0']+T_OFFSET_VALUE
+				while t <= current_run['Tn']:
+					if pause_timer.check():
+						ri = raw_input('hit enter to continue, or cc or cw: ')
+						if ri == "cc":
+							desired_direction = "counter-clockwise"
+						elif ri == "cw":
+							desired_direction = "clockwise"
+						pause_timer.reset()
 					if timer.check():
 						pd2s(dp(ctr/ctr_timer.time()/30.0),'Hz',dp(t-current_run['T0']),'seconds in',dp(100.0*(t-current_run['T0'])/(current_run['Tn']-current_run['T0'])),'%')
 						timer.reset()
@@ -113,8 +124,12 @@ for car_name in [C['car_names'][0]]:
 						if heading != None:
 							car_angle_dist_view = Spatial_Relations.get_angle_distance_view(current_run,'car_spatial_dic')
 
-							if True: #len(car_angle_dist_view) > 0:
-
+							##################
+							#
+							if len(car_angle_dist_view) > 0 and current_run['our_car']['current_velocity']()>0.6:
+							#
+							##################
+							
 								other_cars_in_view_xy_list = []
 								for c in current_run['car_spatial_dic'].keys():
 									if current_run['car_spatial_dic'][c]['in_view']:
@@ -158,32 +173,35 @@ for car_name in [C['car_names'][0]]:
 
 								if desired_direction == 'clockwise':
 									if direction == 'clockwise':
+										#t += TIME_STEP;continue
+										clock_potential_values = 1 - clock_potential_values
 										clock_potential_values *= 2.0*length(current_run['our_car']['current_xy']())/C['Marker_Radius']
 										direction_matches_desired = True
 									elif direction in ['counter-clockwise']:
-										clock_potential_values = 1 - clock_potential_values
-										#clock_potential_values *= 2.0
+										#t += TIME_STEP;continue
+										pass
 									elif direction in ['out']:
+										#t += TIME_STEP;continue
 										clock_potential_values *= 0.0
-										#clock_potential_values *= 2.0
 									elif direction in ['in']:
+										#t += TIME_STEP;continue
 										clock_potential_values = 1 - clock_potential_values
-										#clock_potential_values *= 2.0
 									else:
 										assert(False)
 								elif desired_direction == 'counter-clockwise':
 									if direction == 'counter-clockwise':
-										clock_potential_values = 1 - clock_potential_values
+										#t += TIME_STEP;continue
 										clock_potential_values *= 2.0*length(current_run['our_car']['current_xy']())/C['Marker_Radius']
 										direction_matches_desired = True
 									elif direction in ['clockwise']:
+										#t += TIME_STEP;continue
 										clock_potential_values = 1 - clock_potential_values
-										#clock_potential_values *= 2.0
 									elif direction in ['in']:
+										#t += TIME_STEP;continue
 										pass
 									elif direction in ['out']:
+										#t += TIME_STEP;continue
 										clock_potential_values *= 0.0
-										#clock_potential_values *= 2.0
 									else:
 										assert(False)
 								else:
@@ -210,7 +228,7 @@ for car_name in [C['car_names'][0]]:
 
 
 								if GRAPHICS:
-									print(desired_direction,direction,int(relative_heading),new_steer,int(t-current_run['T0']))
+									print(desired_direction,direction,int(relative_heading),new_steer,int(t-current_run['T0']),dp(current_run['our_car']['current_velocity']()))
 
 
 								output_data[run_name][mode]['marker_inverse_distances'].append(marker_angle_dist_view)
@@ -225,7 +243,9 @@ for car_name in [C['car_names'][0]]:
 	
 
 								if GRAPHICS:
+									
 									Runs.show_arena_with_cars(current_run,an_arena,t)
+									
 									figure('view')
 									clf()
 									xylim(0,11,0,2)
@@ -236,9 +256,45 @@ for car_name in [C['car_names'][0]]:
 									plot(clock_potential_values,'gx-')
 									plt.title(d2s(new_steer))
 									pause(0.0001)
-									mci(images['left'][current_run['our_car']['near_t']],delay=1,title='images',scale=2.0)
-						else:
-							continue
+									
+									k = mci(images['left'][current_run['our_car']['near_t']],delay=1,title='images',scale=2.0)
+									if k != -1:
+										pd2s("k =",k)
+										if not PAUSE:
+											time_step = TIME_STEP
+										if k == ord('q'):
+											print('q')
+											break
+										if k == ord('d'):
+											print('done')
+											DONE = True
+											cv2.destroyAllWindows()
+											sys.exit()
+										elif k == ord('k'):
+											pd2s('t from',t)
+											TIME_STEP *= -1
+											pd2s('to',t)
+										elif k == ord('l'):
+											t += 2
+										elif k == ord(' '):
+											if PAUSE:
+												PAUSE = False
+												TIME_STEP = time_step
+												print("<<end pause>>")
+											else:
+												PAUSE = True
+												time_step = TIME_STEP
+												TIME_STEP = 0
+												print("<<pause>>")
+
+						t += TIME_STEP
+					else:
+						t += TIME_STEP
+
+						continue
+
+					
+
 
 			if SAVE_DATA:
 				so(output_data,output_name)
