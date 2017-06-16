@@ -37,7 +37,7 @@ for im in import_list + import_from_list + import_as_list:
             except:
                 print('Failed to import '+im[1]+' as '+im[2])           
 
-print("*** Note, kzpy3/teg2/bashrc now does: 'export PYTHONSTARTUP=~/kzpy3/vis2.py' ***")
+#print("*** Note, kzpy3/teg2/bashrc now does: 'export PYTHONSTARTUP=~/kzpy3/vis2.py' ***")
 
 
 ####################################
@@ -51,9 +51,18 @@ if False:
 #
 ####################################
 
+
+
+
 def print_stars(n=1):
     for i in range(n):
         print("""*************************************************""")
+def print_stars0(n=1):
+    print_stars()
+    print("*")
+def print_stars1(n=1):
+    print("*")
+    print_stars()
 
 
 
@@ -773,7 +782,7 @@ def zdl(d,dic_show_ends,*alst):
     list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,ZD_Dictionary_name]+dic_str.split('\n'))
 
 
-def zd_set(d,dic_show_ends=24):
+def zdset(d,dic_show_ends=24):
     import inspect
     frame = inspect.currentframe()
     frame = inspect.getouterframes(frame)[1]
@@ -789,6 +798,8 @@ def zd_set(d,dic_show_ends=24):
     ZD_Dictionary = d
     ZD_Dictionary_name = names[0]
     ZD_dic_show_ends = dic_show_ends
+
+
 
 
 def zd(*alst):
@@ -954,4 +965,13 @@ def XX(in_str):
     return exec_str
 
 
+def remove_functions_from_dic(d):
+    for k in d.keys():
+        if callable(d[k]):
+            d[k] = 'FUNCTION_PLACEHOLDER'
 
+
+
+
+
+    

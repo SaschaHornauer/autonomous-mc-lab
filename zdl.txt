@@ -1,11 +1,5 @@
->> o['direct_rewrite_test_28Apr17_17h14m56s_Mr_Black']['Direct_Arena_Potential_Field']['relative_heading']
-o
-0) direct_rewrite_test_28Apr17_17h14m56s_Mr_Black:
-	0) Direct_Arena_Potential_Field:
-		0) ...
-		6) relative_heading:
-			[337.7 337.7 ... 14.39 14.39] (len=11030)
-		..8)
-
-
+>> p['processes']
+p
+0) processes:
+	[??? ??? ... ??? ???] (len=10)
 

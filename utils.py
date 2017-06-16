@@ -868,6 +868,22 @@ def zd_set(d,dic_show_ends=24):
     ZD_Dictionary_name = names[0]
     ZD_dic_show_ends = dic_show_ends
 
+def zdset(d,dic_show_ends=24):
+    import inspect
+    frame = inspect.currentframe()
+    frame = inspect.getouterframes(frame)[1]
+    string = inspect.getframeinfo(frame[0]).code_context[0].strip()
+    args = string[string.find('(') + 1:-1].split(',')
+    names = []
+    for i in args:
+        if i.find('=') != -1:
+            names.append(i.split('=')[1].strip())
+        else:
+            names.append(i)
+    global ZD_Dictionary,ZD_Dictionary_name,ZD_dic_show_ends
+    ZD_Dictionary = d
+    ZD_Dictionary_name = names[0]
+    ZD_dic_show_ends = dic_show_ends
 
 def zd(*alst):
     alst = list(alst)
