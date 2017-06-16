@@ -40,7 +40,7 @@ fast.
 ''' 
 
 
-def process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers):
+def process_markers_in_bagfiles(abs_bagfolder_name, car_data_dict):
     
     bridge = CvBridge()
     
@@ -59,27 +59,36 @@ def process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers):
                 topic_map['/bair_car/zed/' + camera_side + '/image_rect_color'] = camera_side
                 
             topic_list.append('/bair_car/gyro_heading')
+            topic_list.append('/bair_car/encoder')
                 
             for topic, message, timestamp  in bag.read_messages(topics=topic_list):
                 
                 timestamp = round(timestamp.to_sec(), 3)
                 
                 if topic == '/bair_car/gyro_heading':
-                    angles_to_markers['left'][timestamp] = {}
-                    angles_to_markers['left'][timestamp]['gyro_x'] = message.x
-                    angles_to_markers['left'][timestamp]['gyro_y'] = message.y
-                    angles_to_markers['left'][timestamp]['gyro_z'] = message.z
+                    car_data_dict['left'][timestamp] = {}
+                    car_data_dict['left'][timestamp]['gyro_x'] = message.x
+                    car_data_dict['left'][timestamp]['gyro_y'] = message.y
+                    car_data_dict['left'][timestamp]['gyro_z'] = message.z
                     continue
+                
+                
+                if topic == '/bair_car/encoder':
+                    car_data_dict['left'][timestamp] = {}
+                    car_data_dict['left'][timestamp]['encoder'] = message
+                    continue
+                
+                
                 camera_side = topic_map[topic]
                 
                 
-                angles_to_markers[camera_side][timestamp] = {}
+                car_data_dict[camera_side][timestamp] = {}
                 img = bridge.imgmsg_to_cv2(message, color_mode)
                 angles_to_center, angles_surfaces, distances_marker, markers = get_angles_and_distance(img)
-                angles_to_markers[camera_side][timestamp]['angles_to_center'] = angles_to_center
-                angles_to_markers[camera_side][timestamp]['angles_surfaces'] = angles_surfaces
-                angles_to_markers[camera_side][timestamp]['distances_marker'] = distances_marker
-                angles_to_markers[camera_side][timestamp]['markers'] = markers
+                car_data_dict[camera_side][timestamp]['angles_to_center'] = angles_to_center
+                car_data_dict[camera_side][timestamp]['angles_surfaces'] = angles_surfaces
+                car_data_dict[camera_side][timestamp]['distances_marker'] = distances_marker
+                car_data_dict[camera_side][timestamp]['markers'] = markers
                 
 
 
@@ -99,15 +108,15 @@ def create_marker_data(abs_bagfolder_name, meta_path_name):
         return 
 
     # Create a pkl file with marker information
-    angles_to_markers = {}
-    angles_to_markers['bag_folder_path'] = abs_bagfolder_name
+    car_data_dict = {}
+    car_data_dict['bag_folder_path'] = abs_bagfolder_name
     for camera_side in ['left', 'right']:
-        angles_to_markers[camera_side] = {}
+        car_data_dict[camera_side] = {}
 
     
-    process_markers_in_bagfiles(abs_bagfolder_name, angles_to_markers)
+    process_markers_in_bagfiles(abs_bagfolder_name, car_data_dict)
     
-    pickle.dump(angles_to_markers, open(os.path.join(abs_bagfolder_name, meta_path_name, 'marker_data.pkl'), "wb"), -1)
+    pickle.dump(car_data_dict, open(os.path.join(abs_bagfolder_name, meta_path_name, 'marker_data.pkl'), "wb"), -1)
         
 
 def process_run_folder(run_folder_path, meta_path_name):
@@ -135,6 +144,7 @@ def init_car_path(marker_data_pkl, side):
     tmp_dict['x_avg'] = []
     tmp_dict['y_avg'] = []
     tmp_dict['gyro_xyz'] = []
+    tmp_dict['encoder'] = []
     tmp_dict['time_stamps'] = []
     tmp_dict['median_distance_to_markers'] = []
     tmp_dict['raw_time_stamps'] = sorted(tmp_dict['raw_marker_data'].keys())
@@ -333,6 +343,7 @@ def get_xp_pts(traj_dict,run_name,timestamps,traj_dictult,Origin,dt):
         pts[side]['timestamp_gap'] = timestamp_spline(traj_dict,run_name,side)(pts['ts'])
         if side == 'left':
             pts[side]['gyro_xyz'] = traj_dict[car_name][run_name][side]['gyro_xyz']
+            pts[side]['encoder'] = traj_dict[car_name][run_name][side]['encoder']
         pts[side]['x_pix'] = (-traj_dictult*array(pts[side]['x'])+Origin).astype(int)
         pts[side]['y_pix'] = (traj_dictult*array(pts[side]['y'])+Origin).astype(int)
         plot(pts[side]['x'],pts[side]['y'],'o');xylim(-5,5,-5,5)
@@ -384,6 +395,11 @@ def process_run_data(run_name, marker_pkl_path, marker_dict):
                 if side=='left' and 'gyro_x' in marker_dict[car_name][run_name][side]['raw_marker_data'][t].keys():
                     gyro_xyz = (marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['gyro_x'],marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['gyro_y'],marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['gyro_z'])
                     marker_dict[car_name][run_name][side]['gyro_xyz'].append(gyro_xyz)
+                
+                if side=='left' and 'encoder' in marker_dict[car_name][run_name][side]['raw_marker_data'][t].keys():  
+                    encoder = marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['encoder']  
+                    marker_dict[car_name][run_name][side]['encoder'].append(encoder) 
+                    
                     
             marker_dict[car_name][run_name][side]['x_smooth'] = mean_exclude_outliers(marker_dict[car_name][run_name][side]['x_avg'], 60, 0.33, 0.66)
             marker_dict[car_name][run_name][side]['y_smooth'] = mean_exclude_outliers(marker_dict[car_name][run_name][side]['y_avg'], 60, 0.33, 0.66)

@@ -57,34 +57,11 @@ def calculate_headings(gyro_values):
         y_norm = gyro_xyz[1]%360.0
         z_norm = gyro_xyz[2]%360.0
         
-        #headings.append(np.deg2rad(np.mean((x_norm,y_norm,z_norm))))
         headings.append(np.deg2rad(x_norm))
+        
         
     return headings
         
-        
-# gravity_x = 0.0
-# gravity_y = 0.0
-# gravity_z = 0.0
-#         
-# 
-# def remove_gravity(acc_x,acc_y,acc_z):
-#     
-#     global gravity_x
-#     global gravity_y
-#     global gravity_z
-#     
-#     alpha = 0.8;
-#    
-#     gravity_x = alpha * gravity_x + (1. - alpha) * acc_x;
-#     gravity_y = alpha * gravity_y + (1. - alpha) * acc_y;
-#     gravity_z = alpha * gravity_z + (1. - alpha) * acc_z;
-# 
-#     acc_x =- gravity_x;
-#     acc_y =- gravity_y;
-#     acc_z =- gravity_z;
-#             
-#     return acc_x, acc_y, acc_z
 
 class Trajectory_List():
     
@@ -263,8 +240,8 @@ class Collision_Scanner():
                         # If other_xy is None then there is no other trajectory recorded at that point in time
                         if other_xy == None:
                             continue
-                        if True:
-                        #if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
+                        
+                        if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
                             encounters_cars_timesteps_xy[own_carname][other_carname].append({'run_name':trajectories_dict[own_carname].keys()[0],'fov':own_fov,'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
     
                 list_index += 1
