@@ -1,5 +1,28 @@
->> p['processes']
-p
-0) processes:
-	[??? ??? ... ??? ???] (len=10)
+>> o['direct_rewrite_test_21Apr17_16h50m20s_Mr_Silver']['Follow_Arena_Potential_Field']['velocity']
+o
+0) direct_rewrite_test_21Apr17_16h50m20s_Mr_Silver:
+	0) ...
+	1) Follow_Arena_Potential_Field:
+		0) clock_potential_values:
+			[??? ??? ... ??? ???] (len=6779)
+		1) desired_direction:
+			[1 1 ... 1 1] (len=6779)
+		2) marker_inverse_distances:
+			[??? ??? ... ??? ???] (len=6779)
+		3) near_i:
+			[2 3 ... 6770 6771] (len=6779)
+		4) near_t:
+			[1492818662.17 1492818662.21 ... 1492818888.05 1492818888.08] (len=6779)
+		5) other_car_inverse_distances:
+			[[] [] ... [] []] (len=6779)
+		6) potential_values:
+			[[0.41 0.4 ... 0.39 0.39] (len=11) [0.41 0.4 ... 0.39 0.39] (len=11) ... [0.38 0.38 ... 0.38 0.38] (len=11) [0.38 0.38 ... 0.38 0.38] (len=11)] (len=6779)
+		7) relative_heading:
+			[214.38 214.38 ... 197.73 197.73] (len=6779)
+		8) steer:
+			[0 0 ... 99 99] (len=6779)
+		9) velocity:
+			[0.11 0.11 ... 0.0 0.0] (len=6779)
+
+
 
