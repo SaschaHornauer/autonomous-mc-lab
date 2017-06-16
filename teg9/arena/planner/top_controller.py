@@ -15,8 +15,6 @@ import data.utils.general
 
 
 
-
-
 PROCESS_NUM = int(sys.argv[1])
 
 pd2s('PROCESS_NUM =',PROCESS_NUM)
@@ -91,7 +89,7 @@ car_name = current_car_name
 
 for run_name in cars[car_name]['runs'].keys():
 	output_data = {}
-	if True:#try:
+	try:
 
 		current_run = Runs.Run(run_name,cars,an_arena,C['bair_car_data_location'])
 		current_run['rewind']()
@@ -331,20 +329,9 @@ for run_name in cars[car_name]['runs'].keys():
 			print_stars()
 
 
-	else:
-		pass
-		#except Exception as e:
-		#print("********** Exception ***********************")
-		#print(e.message, e.args)
-
-if False:
-
-	def f(ar):
-		direction = ar['direction']
-		rate = ar['rate']
-		return rate+direction
-
-	print f({'direction':48.0,'rate':2.0})
-
+	except Exception as e:
+		print("********** Exception ***********************")
+		print(e.message, e.args)
+		print_stars()
 
 

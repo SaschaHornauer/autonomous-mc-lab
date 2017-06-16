@@ -51,9 +51,18 @@ if False:
 #
 ####################################
 
+
+
+
 def print_stars(n=1):
     for i in range(n):
         print("""*************************************************""")
+def print_stars0(n=1):
+    print_stars()
+    print("*")
+def print_stars1(n=1):
+    print("*")
+    print_stars()
 
 
 
