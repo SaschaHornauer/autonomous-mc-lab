@@ -86,24 +86,22 @@ def mi(
             mi(load_img_folder_to_dict(opjh('Desktop','conv5')),1,[3,4,0])
     """
     if type(image_matrix) == str:
-        mi(load_img_folder_to_dict(image_matrix),image_matrix,subplot_array,img_title,img_xlabel,img_ylabel,cmap,toolBar)
+        l=load_img_folder_to_list(image_matrix)
+        mi(l)
         return
 
     if type(image_matrix) == list:
-        if np.array(subplot_array).max() < 2:
-            subplot_array = [1,len(image_matrix),0]
-        for i in range(len(image_matrix)):
-            mi(image_matrix[i],figure_num,[subplot_array[0],subplot_array[1],i+1],img_title,img_xlabel,img_ylabel,cmap,toolBar)
+        l=1.0*array(image_matrix)
+        l/=l.max()
+        mi(vis_square(l))
         return
 
     if type(image_matrix) == dict:
-        if np.array(subplot_array).max() < 2:
-            subplot_array = [1,len(image_matrix),0]
-        i = 0
         img_keys = sorted(image_matrix.keys(),key=natural_keys)
+        l = []
         for k in img_keys:
-            mi(image_matrix[k],figure_num,[subplot_array[0],subplot_array[1],i+1],img_title,img_xlabel,img_ylabel,cmap,toolBar)
-            i += 1
+            l.append(image_matrix[k])
+        mi(l)
         return        
 
     if toolBar == False:
@@ -140,8 +138,23 @@ def mi(
 #
 ######################
 
+"""
+l=load_img_folder_to_list('/Users/karlzipser/caffe_models/temp')
+l=1.0*array(l)
+l/=l.max()
+mi(vis_square(l))
+"""
 
+def load_img_folder_to_dict(img_folder):
+    '''Assume that *.* selects only images.'''
+    img_fns = gg(opj(img_folder,'*.*'))
+    imgs = {}
+    for f in img_fns:
+        imgs[fname(f)] = imread(f)
+    return imgs
 
+def load_img_folder_to_list(img_folder):
+    return dict_to_sorted_list(load_img_folder_to_dict(img_folder))
 
 
 
@@ -226,11 +239,14 @@ def mci(img,delay=33,title='animate',scale=1.0,color_mode=cv2.COLOR_RGB2BGR):
 def mcia(img_block,delay=33,title='animate',scale=1.0,color_mode=cv2.COLOR_RGB2BGR):
     assert(len(shape(img_block)) == 4)
     for i in range(shape(img_block)[0]):
-        k = mci(img_block[i,:,:,:],delay,title,scale,color_mode)
+        k = mci(img_block[i,:,:,:],delay=delay,title=title,scale=scale,color_mode=color_mode)
         if k == ord('q'):
             return
 
 
+def mcia_folder(path,delay=33,title='animate',scale=1.0,color_mode=cv2.COLOR_RGB2BGR):
+    l=load_img_folder_to_list(path)
+    mcia(array(l),delay=delay,title=title,scale=scale,color_mode=cv2.COLOR_RGB2BGR)
 
 
 def frames_to_video_with_ffmpeg(input_dir,output_path,img_range=(),rate=30):
@@ -354,6 +370,8 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
         mi(D['img'],name)
         #prin(t d2s('name =',name))
     D['show'] = _show
+    def _clear():
+        D['img'] *= 0.0
     if len(xyz_sizes) == 2:
         D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
     elif len(xyz_sizes) == 3:
@@ -365,6 +383,78 @@ def Image(xyz_sizes,origin,mult,data_type=np.uint8):
 
 #
 ###############
+
+
+
+###########
+# https://stackoverflow.com/questions/35281427/fast-python-plotting-library-to-draw-plots-directly-on-2d-numpy-array-image-buff
+def Plot(xy_pix_sizes,origin,xy_mults):
+    D = {}
+    D['origin'] = origin
+    D['xy_mults'] = xy_mults
+    D['Purpose'] = d2s(inspect.stack()[0][3],':','A cv2 ploter.')
+    D['name'] = 'Image'
+    def _floats_to_pixels(xy):
+        xy = array(xy)
+        xyn = 0*xy
+        if len(shape(xy)) == 1:
+            xyn[0] = D['mult'] * xy[0]
+            xyn[0] += D['origin']
+            xyn[1] = D['mult'] * xy[1]
+            xyn[1] += D['origin']
+        else:
+            xyn[:,0] = D['mult'] * xy[:,0]
+            xyn[:,0] += D['origin']
+            xyn[:,1] = D['mult'] * xy[:,1]
+            xyn[:,1] += D['origin']
+        return np.ndarray.astype(xyn,int)
+    def _pixel_to_float(xy):
+        xy = array(xy)
+        xyn = 0.0*xy
+        assert(len(shape(xy)) == 1)
+        xyn[0] = xy[0] - D['origin']
+        xyn[0] /= (1.0*D['mult'])
+        xyn[1] = xy[1] - D['origin']
+        xyn[1] /= (1.0*D['mult'])
+        return np.ndarray.astype(xyn,float)
+    D['floats_to_pixels'] = _floats_to_pixels
+    D['pixel_to_float'] = _pixel_to_float
+    def _pts_plot(xy,c='b'):
+        if len(xy) < 1:
+            print('warning, asked to plot empty pts')
+            return
+        xy_pix = D['floats_to_pixels'](xy)
+        if len(shape(xy)) == 1:
+            pass# plot(xy_pix[1],xy_pix[0],c+'.')
+        else:
+            pass #plot(xy_pix[:,1],xy_pix[:,0],c+'.')
+    D['pts_plot'] = _pts_plot
+    def _apply_fun(f):
+        for x in range(0,2*D['origin']):
+            for y in range(0,2*D['origin']):
+                xy_float = D['pixel_to_float']((x,y))
+                D['img'][x][y] = f(xy_float[0],xy_float[1])    # ???  
+    D['apply_fun'] = _apply_fun
+    def _show(name=None):
+        if name == None:
+            name = D['name']
+        mi(D['img'],name)
+        #prin(t d2s('name =',name))
+    D['show'] = _show
+    def _clear():
+        D['img'] *= 0.0
+    if len(xyz_sizes) == 2:
+        D['img'] = zeros((xyz_sizes[0],xyz_sizes[1]),data_type)
+    elif len(xyz_sizes) == 3:
+        D['img'] = zeros((xyz_sizes[0],xyz_sizes[1],xyz_sizes[2]),data_type)
+    else:
+        assert(False)
+    return D
+#
+###############
+
+
+
 
 def xylim(a,b,c,d):
     xlim(a,b)
