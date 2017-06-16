@@ -61,10 +61,9 @@ if 'N' not in locals():
 if True: #len(gg(opjD('the_arenas.pkl'))) == 0:
 	if 'the_arenas_ready' not in locals():
 		print("Creating arenas . . .")
-		arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field],
-			Potential_Fields.Follow_Arena_Potential_Field]#,
-			#Potential_Fields.Play_Arena_Potential_Field,
-			#Potential_Fields.Furtive_Arena_Potential_Field]
+		arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field,Potential_Fields.Follow_Arena_Potential_Field]#,
+		#Potential_Fields.Play_Arena_Potential_Field,
+		#Potential_Fields.Furtive_Arena_Potential_Field]
 		the_arenas = {}
 		for a in arenas_tmp_lst:
 			an_arena = a(C['Origin'],C['Mult'],C['markers'],False,1.0,1.5)
