@@ -12,30 +12,6 @@ def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 	D['car_name'] = car_name
 	D['type'] = 'Car'
 	D['runs'] = {}
-	D['wise_delta'] = 10
-
-	def _relative_heading_and_direction(run_name):
-		traj = D['runs'][run_name]['traj']
-		traj['direction'] = []
-		for i in range(len(traj['heading'])):
-			xy = [traj['x'][i],traj['y'][i]]
-			traj['relative_heading'][i] = angle_clockwise(traj['heading'][i],xy)
-			if np.isnan(traj['relative_heading'][i]):
-				if i > 0:
-					traj['relative_heading'][i] = traj['relative_heading'][i-1]
-				else:
-					traj['relative_heading'][i] = 0
-			relative_heading = traj['relative_heading'][i]
-			wise_delta = D['wise_delta']
-			if relative_heading > 360-wise_delta or relative_heading <= wise_delta or length(xy) < 1.0:
-				direction = 'in'
-			elif relative_heading > wise_delta and relative_heading <= 180-wise_delta:
-				direction = 'counter-clockwise'
-			elif relative_heading > 180+wise_delta and relative_heading <= 360-wise_delta:
-				direction = 'clockwise'
-			else:
-				direction = 'out'
-			traj['direction'].append(direction)
 
 	def _load_run(N,run_name,bair_car_data_location):
 		print("load run "+run_name)
@@ -50,7 +26,6 @@ def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 		for other_run_name in N[car_name][run_name]['other_trajectories']:
 			other_car_name = car_name_from_run_name(other_run_name)
 			R['list_of_other_car_trajectories'].append( [other_car_name,other_run_name] )
-		_relative_heading_and_direction(run_name)
 
 	for run_name in N[car_name].keys():
 		if len(gg(opj(bair_car_data_location,'meta',run_name,'*.pkl'))) < 6:
@@ -107,23 +82,11 @@ def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 		return array(D['runs'][current_run_name]['traj']['heading'][near_i])
 	D['current_heading'] = _current_heading
 
-	def _current_velocity():
-		near_i = D['near_i']
-		current_run_name = D['current_run_name']
-		return array(D['runs'][current_run_name]['traj']['t_vel'][near_i])
-	D['current_velocity'] = _current_velocity
-
 	def _current_relative_heading():
 		near_i = D['near_i']
 		current_run_name = D['current_run_name']
 		return array(D['runs'][current_run_name]['traj']['relative_heading'][near_i])
 	D['current_relative_heading'] = _current_relative_heading
-
-	def _current_direction():
-		near_i = D['near_i']
-		current_run_name = D['current_run_name']
-		return D['runs'][current_run_name]['traj']['direction'][near_i]
-	D['current_direction'] = _current_direction
 
 
 	print("created "+D['type']+": "+D['car_name'])

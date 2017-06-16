@@ -8,22 +8,11 @@ def Constants():
 
 	D = {}
 
-	bair_car_data_location_list = [opjD('bair_car_data_new_28April2017'),
-		'/Volumes/SSD_2TB/bair_car_data_new_28April2017']
-
-	D['bair_car_data_location'] = False
-	for b in bair_car_data_location_list:
-		print b
-		if len(gg(b)) > 0:
-			D['bair_car_data_location'] = b
-			print_stars();print('*')
-			print('bair_car_data_location = '+D['bair_car_data_location'])
-			print('*');print_stars()
-			pause(1)
-			break
-	if D['bair_car_data_location'] == False:
-		print('bair_car_data_location not found!!!!!!')
-		assert(False)
+	D['_bair_car_data_location'] = '/media/karlzipser/bair_car_data_new_bkp1/bair_car_data_new_28April2017'
+	D['__bair_car_data_location'] = '/media/karlzipser/SSD_2TB/bair_car_data_new_28April2017'
+	D['_bair_car_data_location'] = '/Volumes/SSD_2TB/bair_car_data_new_28April2017'
+	D['____bair_car_data_location'] = '/media/karlzipser/ExtraDrive4/bair_car_data_new_28April2017'
+	D['bair_car_data_location'] = opjD('bair_car_data_new_28April2017')
 
 	D['trajectory_data_location'] = opjD('N.pkl')
 

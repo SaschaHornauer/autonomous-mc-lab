@@ -1,7 +1,7 @@
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Monday, 12 Jun 2017, 12:18:47 AM
+# Tuesday, 13 Jun 2017, 02:35:12 PM
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Monday, 12 Jun 2017, 12:18:47 AM
+# Tuesday, 13 Jun 2017, 02:35:12 PM
 
 layer {
 	name: "target_cars"
@@ -332,6 +332,43 @@ layer {
 	bottom: "target_velocity"
 	bottom: "ip_velocity"
 	top: "euclidean_velocity"
+	loss_weight: 1
+}
+	
+
+layer {
+	type: 'Concat'
+	name: 'ip1_concat'
+	bottom: "ip1"
+	bottom: "ip_cars"
+	bottom: "ip_markers"
+	top: 'ip1_concat'
+	concat_param {
+		axis: 1
+	}
+}
+		
+
+layer {
+	name: "ip2_new"
+	type: "InnerProduct"
+	bottom: "ip1_concat"
+	top: "ip2_new"
+	inner_product_param {
+		num_output: 20
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "euclidean_new"
+	type: "EuclideanLoss"
+	bottom: "steer_motor_target_data"
+	bottom: "ip2_new"
+	top: "euclidean_new"
 	loss_weight: 1
 }
 	
