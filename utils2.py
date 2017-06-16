@@ -773,7 +773,7 @@ def zdl(d,dic_show_ends,*alst):
     list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,ZD_Dictionary_name]+dic_str.split('\n'))
 
 
-def zd_set(d,dic_show_ends=24):
+def zdset(d,dic_show_ends=24):
     import inspect
     frame = inspect.currentframe()
     frame = inspect.getouterframes(frame)[1]
@@ -789,6 +789,8 @@ def zd_set(d,dic_show_ends=24):
     ZD_Dictionary = d
     ZD_Dictionary_name = names[0]
     ZD_dic_show_ends = dic_show_ends
+
+
 
 
 def zd(*alst):
@@ -954,4 +956,13 @@ def XX(in_str):
     return exec_str
 
 
+def remove_functions_from_dic(d):
+    for k in d.keys():
+        if callable(d[k]):
+            d[k] = 'FUNCTION_PLACEHOLDER'
 
+
+
+
+
+    

@@ -72,17 +72,10 @@ def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 
 	def _establish_valid_time_and_index(run_name,t):
 		traj = D['runs'][run_name]['traj']
-		if t >= D['near_t']:
-			A = D['near_i']
-			B = len(traj['ts'])
-			C = 1
-		else:
-			A = D['near_i']
-			B = 0
-			C = -1
 		if t>traj['ts'][0] and t<traj['ts'][-1]:
 			near_t = -1
-			for i in range(A,B,C):
+			#for i in range(D['near_i'],len(traj['ts'])):
+			for i in range(0,len(traj['ts'])):
 				if traj['ts'][i-1]<t and traj['ts'][i]>=t:
 					near_t = traj['ts'][i]
 					near_i = i
@@ -118,13 +111,13 @@ def Car(N,car_name,origin,mult,markers,bair_car_data_location):
 	def _current_velocity():
 		near_i = D['near_i']
 		current_run_name = D['current_run_name']
-		return D['runs'][current_run_name]['traj']['t_vel'][near_i]
+		return array(D['runs'][current_run_name]['traj']['t_vel'][near_i])
 	D['current_velocity'] = _current_velocity
 
 	def _current_relative_heading():
 		near_i = D['near_i']
 		current_run_name = D['current_run_name']
-		return D['runs'][current_run_name]['traj']['relative_heading'][near_i]
+		return array(D['runs'][current_run_name]['traj']['relative_heading'][near_i])
 	D['current_relative_heading'] = _current_relative_heading
 
 	def _current_direction():
