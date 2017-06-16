@@ -368,7 +368,10 @@ if __name__ == '__main__':
     col_scanner = Collision_Scanner()
     encounter_situations = col_scanner.get_encounters(trajectories_dict)
     
-    plt.ion()
+    animate = False
+    
+    if animate:   
+        plt.ion()
     
     for bagfile in bagfiles:
         bag_handler = Image_Bagfile_Handler(bagfile)
@@ -398,15 +401,41 @@ if __name__ == '__main__':
                         continue
                     if(cv_image == None):
                         continue
-                    plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1])
+                    
+                    if animate:   
+                        delete_forms = []
+                        delete_forms.append(plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1],color='red'))
+                        delete_forms.append(plt.scatter(other_xy[timestamp][0],other_xy[timestamp][1],color='blue'))
+                        
+                        triangle = own_fov[timestamp]
+                        p1 = triangle.a
+                        p2 = triangle.b
+                        p3 = triangle.c
+                        
+                        delete_forms.append(plt.plot([p1.x, p2.x], [p1.y, p2.y], 'k-'))
+                        delete_forms.append(plt.plot([p2.x, p3.x], [p2.y, p3.y], 'k-'))
+                        delete_forms.append(plt.plot([p3.x, p1.x], [p3.y, p1.y], 'k-'))
+    
+                        delete_forms.append(plt.scatter(other_xy[timestamp][0],other_xy[timestamp][1],color='blue'))
+                        
+                        plt.pause(0.00001)
+                        
+                        for form in delete_forms:
+                            try:
+                                form.pop(0).remove()
+                            except:
+                                form.remove()
+                    
+                    
                     
                     cv2.imshow('frame', cv_image)
-                    key = cv2.waitKey(1000/30) & 0xFF
+                    key = cv2.waitKey(1) & 0xFF
                     
                     if key == ord('q'):
                         break
-                    #plt.show()
-                    plt.pause(0.01)
-                    #plt.clf()
+                    
+                    
+                            
+                        
             except StopIteration:
                 continue
