@@ -42,7 +42,48 @@ class MyIter():
     
     def peek(self):
         return self._current_value
+
+
+
+
+    
+
+def calculate_headings(gyro_values):
+    
+    headings = []
+    
+    for gyro_xyz in gyro_values:
+        x_norm = gyro_xyz[0]%360.0
+        y_norm = gyro_xyz[1]%360.0
+        z_norm = gyro_xyz[2]%360.0
         
+        headings.append(np.deg2rad(np.mean((x_norm,y_norm,z_norm))))
+        
+    return headings
+        
+        
+# gravity_x = 0.0
+# gravity_y = 0.0
+# gravity_z = 0.0
+#         
+# 
+# def remove_gravity(acc_x,acc_y,acc_z):
+#     
+#     global gravity_x
+#     global gravity_y
+#     global gravity_z
+#     
+#     alpha = 0.8;
+#    
+#     gravity_x = alpha * gravity_x + (1. - alpha) * acc_x;
+#     gravity_y = alpha * gravity_y + (1. - alpha) * acc_y;
+#     gravity_z = alpha * gravity_z + (1. - alpha) * acc_z;
+# 
+#     acc_x =- gravity_x;
+#     acc_y =- gravity_y;
+#     acc_z =- gravity_z;
+#             
+#     return acc_x, acc_y, acc_z
 
 class Trajectory_List():
     
@@ -66,7 +107,12 @@ class Trajectory_List():
         mid_xy = (((right_x + left_x) / 2.), ((left_y + right_y) / 2.))
         timestamps = traj_dictionary[car_name][run_name]['self_trajectory']['ts']
         
-        return zip(timestamps, zip(mid_xy[0], mid_xy[1]))
+        gyro_values = traj_dictionary[car_name][run_name]['self_trajectory']['left']['gyro_xyz']
+        
+        headings = calculate_headings(gyro_values)
+        
+        
+        return zip(timestamps, zip(mid_xy[0], mid_xy[1]), headings)
     
     def align_trajectories(self):
         
@@ -156,7 +202,6 @@ class Collision_Scanner():
         global distance
         global fov_angle
         
-        
         encounters_cars_timesteps_xy = defaultdict(lambda: dict())
         for own_carname in trajectories_dict:
             for other_carname in trajectories_dict:
@@ -198,9 +243,11 @@ class Collision_Scanner():
                 # Calculate the heading based on values in the future or past, depending
                 # on whether we are close to the beginning or end of the trajectory
                 local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index:list_index + smooth_factor] if own_xy != None]
+                heading = own_trajectory[list_index][2]
                 
-                
-                heading = get_heading(local_own_xys)
+#                 heading = get_heading(local_own_xys)
+#                 
+#                 print heading- headingA
                 own_fov = self.get_fov_triangle(local_own_xys[0], heading, fov_angle, distance)
                 
                 for other_carname in aligned_list:
@@ -297,6 +344,7 @@ pause = False
 if __name__ == '__main__':
     
     trajectories_path = sys.argv[1]
+    print "Opening trajectories file " + str(trajectories_path)
     trajectories_dict = pickle.load(open(trajectories_path, "rb"))
     
     
@@ -317,42 +365,48 @@ if __name__ == '__main__':
     # Timestamps from the last car are taken. In the future it would be good to check
     # if the timestamps differ for different cars
     
-    # encounters_cars_timesteps_xy = defaultdict(lambda: defaultdict(dict))
     col_scanner = Collision_Scanner()
     encounter_situations = col_scanner.get_encounters(trajectories_dict)
+    
+    plt.ion()
     
     for bagfile in bagfiles:
         bag_handler = Image_Bagfile_Handler(bagfile)
         print "Loading bagfiles"
-        own_xy = []
-        other_xy = []
-        own_fov = []
+
         timestamps = []
         run_names = []
         
     #     for own_carname in encounter_situations:
+    
+        own_xy = {}
+        other_xy = {}
+        own_fov = {}
         own_carname = 'Mr_Black'
         for other_carname in encounter_situations[own_carname]:
             for entry in encounter_situations[own_carname][other_carname]:
                 timestamps.append(entry['timestamp'])
-                own_xy.append(entry['own_xy'])
-                other_xy.append(entry['other_ts_xy'][1])
-                own_fov.append(entry['fov'])
+                own_xy[entry['timestamp']] = entry['own_xy']
+                other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
+                own_fov[entry['timestamp']] = entry['fov']
                 run_names.append(entry['run_name'])
-        try:
-            for timestamp in timestamps:
-                
-                cv_image, timestamp, synced = bag_handler.get_image(timestamp)
-                if not synced:
-                    continue
-                if(cv_image == None):
-                    continue
-                
-                
-                
-                cv2.imshow('frame', cv_image)
-                key = cv2.waitKey(1000 / 30) & 0xFF
-                if key == ord('q'):
-                    break
-        except StopIteration:
-            continue
+            try:
+                for timestamp in timestamps:
+                    
+                    cv_image, timestamp, synced = bag_handler.get_image(timestamp)
+                    if not synced:
+                        continue
+                    if(cv_image == None):
+                        continue
+                    plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1])
+                    
+                    cv2.imshow('frame', cv_image)
+                    key = cv2.waitKey(1000/30) & 0xFF
+                    
+                    if key == ord('q'):
+                        break
+                    #plt.show()
+                    plt.pause(0.01)
+                    #plt.clf()
+            except StopIteration:
+                continue
