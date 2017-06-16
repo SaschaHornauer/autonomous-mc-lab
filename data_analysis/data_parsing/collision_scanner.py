@@ -16,7 +16,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import rosbag
 from tensorflow.contrib.learn.python.learn.graph_actions import run_n
 from kzpy3.data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile_Handler
-
+import angles
 
 distance = 8  # m
 fov_angle = 66.0  # deg
@@ -57,7 +57,8 @@ def calculate_headings(gyro_values):
         y_norm = gyro_xyz[1]%360.0
         z_norm = gyro_xyz[2]%360.0
         
-        headings.append(np.deg2rad(np.mean((x_norm,y_norm,z_norm))))
+        #headings.append(np.deg2rad(np.mean((x_norm,y_norm,z_norm))))
+        headings.append(np.deg2rad(x_norm))
         
     return headings
         
@@ -213,8 +214,7 @@ class Collision_Scanner():
         for car_name in trajectories_dict:
             traj_list.add_trajectory(car_name, trajectories_dict)
     
-        aligned_list = traj_list.align_trajectories()         
-        
+        aligned_list = traj_list.align_trajectories()
         
         for own_carname in aligned_list:
             
@@ -226,8 +226,7 @@ class Collision_Scanner():
                 list_index += 1
                 
             own_trajectory = aligned_list[own_carname]
-            smooth_factor = smooth_heading_over_timesteps
-            
+            smooth_factor = smooth_heading_over_timesteps            
             
             while list_index < len(own_trajectory):
                 
@@ -244,6 +243,8 @@ class Collision_Scanner():
                 # on whether we are close to the beginning or end of the trajectory
                 local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index:list_index + smooth_factor] if own_xy != None]
                 heading = own_trajectory[list_index][2]
+                
+                #heading = heading - np.pi/12.
                 
 #                 heading = get_heading(local_own_xys)
 #                 
@@ -262,8 +263,8 @@ class Collision_Scanner():
                         # If other_xy is None then there is no other trajectory recorded at that point in time
                         if other_xy == None:
                             continue
-                        
-                        if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
+                        if True:
+                        #if own_fov.isInside(Point(other_xy[1][0], other_xy[1][1])):
                             encounters_cars_timesteps_xy[own_carname][other_carname].append({'run_name':trajectories_dict[own_carname].keys()[0],'fov':own_fov,'timestamp':own_trajectory[list_index][0],'own_xy':own_trajectory[list_index][1],'other_ts_xy':other_xy})
     
                 list_index += 1
@@ -368,12 +369,18 @@ if __name__ == '__main__':
     col_scanner = Collision_Scanner()
     encounter_situations = col_scanner.get_encounters(trajectories_dict)
     
-    animate = False
+    animate = True
     
     if animate:   
         plt.ion()
+        
+    skip_no_bagfiles = 4
+    i = 0
     
     for bagfile in bagfiles:
+        i += 1
+        if i < skip_no_bagfiles:
+            continue
         bag_handler = Image_Bagfile_Handler(bagfile)
         print "Loading bagfiles"
 
@@ -385,57 +392,60 @@ if __name__ == '__main__':
         own_xy = {}
         other_xy = {}
         own_fov = {}
+        
+        # TODO: Get this for all cars
         own_carname = 'Mr_Black'
-        for other_carname in encounter_situations[own_carname]:
-            for entry in encounter_situations[own_carname][other_carname]:
-                timestamps.append(entry['timestamp'])
-                own_xy[entry['timestamp']] = entry['own_xy']
-                other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
-                own_fov[entry['timestamp']] = entry['fov']
-                run_names.append(entry['run_name'])
-            try:
-                for timestamp in timestamps:
+        #for other_carname in encounter_situations[own_carname]:
+        other_carname = 'Mr_Blue'
+        for entry in encounter_situations[own_carname][other_carname]:
+            timestamps.append(entry['timestamp'])
+            own_xy[entry['timestamp']] = entry['own_xy']
+            other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
+            own_fov[entry['timestamp']] = entry['fov']
+            run_names.append(entry['run_name'])
+        try:
+            for timestamp in timestamps:
+                
+                cv_image, timestamp, synced = bag_handler.get_image(timestamp)
+                if not synced:
+                    continue
+                if(cv_image == None):
+                    continue
+                
+                if animate:   
+                    delete_forms = []
+                    delete_forms.append(plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1],color='red'))
+                    delete_forms.append(plt.scatter(other_xy[timestamp][0],other_xy[timestamp][1],color='blue'))
                     
-                    cv_image, timestamp, synced = bag_handler.get_image(timestamp)
-                    if not synced:
-                        continue
-                    if(cv_image == None):
-                        continue
+                    triangle = own_fov[timestamp]
+                    p1 = triangle.a
+                    p2 = triangle.b
+                    p3 = triangle.c
                     
-                    if animate:   
-                        delete_forms = []
-                        delete_forms.append(plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1],color='red'))
-                        delete_forms.append(plt.scatter(other_xy[timestamp][0],other_xy[timestamp][1],color='blue'))
+                    delete_forms.append(plt.plot([p1.x, p2.x], [p1.y, p2.y], 'k-'))
+                    delete_forms.append(plt.plot([p2.x, p3.x], [p2.y, p3.y], 'k-'))
+                    delete_forms.append(plt.plot([p3.x, p1.x], [p3.y, p1.y], 'k-'))
+
+                    delete_forms.append(plt.scatter(other_xy[timestamp][0],other_xy[timestamp][1],color='blue'))
+                    
+                    plt.pause(0.00001)
+                    
+                    for form in delete_forms:
+                        try:
+                            form.pop(0).remove()
+                        except:
+                            form.remove()
+                
+                
+                
+                cv2.imshow('frame', cv_image)
+                key = cv2.waitKey(1) & 0xFF
+                
+                if key == ord('q'):
+                    break
+                
+                
                         
-                        triangle = own_fov[timestamp]
-                        p1 = triangle.a
-                        p2 = triangle.b
-                        p3 = triangle.c
-                        
-                        delete_forms.append(plt.plot([p1.x, p2.x], [p1.y, p2.y], 'k-'))
-                        delete_forms.append(plt.plot([p2.x, p3.x], [p2.y, p3.y], 'k-'))
-                        delete_forms.append(plt.plot([p3.x, p1.x], [p3.y, p1.y], 'k-'))
-    
-                        delete_forms.append(plt.scatter(other_xy[timestamp][0],other_xy[timestamp][1],color='blue'))
-                        
-                        plt.pause(0.00001)
-                        
-                        for form in delete_forms:
-                            try:
-                                form.pop(0).remove()
-                            except:
-                                form.remove()
                     
-                    
-                    
-                    cv2.imshow('frame', cv_image)
-                    key = cv2.waitKey(1) & 0xFF
-                    
-                    if key == ord('q'):
-                        break
-                    
-                    
-                            
-                        
-            except StopIteration:
-                continue
+        except StopIteration:
+            continue
