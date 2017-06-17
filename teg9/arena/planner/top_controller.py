@@ -334,4 +334,6 @@ for run_name in cars[car_name]['runs'].keys():
 		print(e.message, e.args)
 		print_stars()
 
-
+print_stars1()
+print("FINISHED")
+print_stars2()
