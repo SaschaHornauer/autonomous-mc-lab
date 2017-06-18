@@ -3,7 +3,7 @@ REPO = 'kzpy3'
 CAF = 'caf8'
 MODEL = 'z2_color_aruco'
 
-from kzpy3.utils import *
+from kzpy3.utils2 import *
 import kzpy3.caf8.protos as protos
 
 ##############################################################################
@@ -19,10 +19,15 @@ train_val_lst = [d2s('#',model_path),d2s('#',time_str('Pretty'))]
 train_val_lst += [
 	d2s('#',model_path),
 	d2s('#',time_str('Pretty')),
-	protos.dummy('target_cars',(batch_size,11)),
-	protos.dummy('target_markers',(batch_size,11)),
-	protos.dummy('target_velocity',(batch_size,1)),
-	protos.dummy('steer_motor_target_data',(batch_size,20)),
+
+	protos.dummy('other_car_inverse_distances',(batch_size,11)),
+	protos.dummy('marker_inverse_distances',(batch_size,11)),
+	protos.dummy('potential_values',(batch_size,11)),
+	protos.dummy('clock_potential_values',(batch_size,11)),
+	protos.dummy('steer',(batch_size,1)),
+	protos.dummy('motor',(batch_size,1)),
+	protos.dummy('velocity',(batch_size,1)),
+
 	protos.dummy('metadata',(batch_size,6,14,26)),
 	protos.dummy('ZED_data_pool2',(batch_size,12,94,168)),
 	protos.scale('ZED_data_pool2_scale','ZED_data_pool2',0.003921,-0.5),
@@ -43,17 +48,31 @@ train_val_lst += [
 
 
 
-	protos.ip("ip2","ip1",20,"xavier",std=0),
-	protos.euclidean("euclidean","steer_motor_target_data","ip2"),
-	protos.ip("ip_cars","ip1",11,"xavier",std=0),
-	protos.euclidean("euclidean_cars","target_cars","ip_cars"),
-	protos.ip("ip_markers","ip1",11,"xavier",std=0),
-	protos.euclidean("euclidean_markers","target_markers","ip_markers"),
+
+
+	protos.ip("ip_other_car_inverse_distances","ip1",11,"xavier",std=0),
+	protos.euclidean("euclidean_other_car_inverse_distances","other_car_inverse_distances","ip_other_car_inverse_distances"),
+
+	protos.ip("ip_marker_inverse_distances","ip1",11,"xavier",std=0),
+	protos.euclidean("euclidean_marker_inverse_distances","marker_inverse_distances","ip_marker_inverse_distances"),
+
+	protos.ip("ip_potential_values","ip1",11,"xavier",std=0),
+	protos.euclidean("euclidean_potential_values","potential_values","ip_potential_values"),
+
+	protos.ip("ip_clock_potential_values","ip1",11,"xavier",std=0),
+	protos.euclidean("euclidean_clock_potential_values","clock_potential_values","ip_clock_potential_values"),
+
+
 	protos.ip("ip_velocity","ip1",1,"xavier",std=0),
-	protos.euclidean("euclidean_velocity","target_velocity","ip_velocity"),
-	protos.concat('ip1_concat',["ip1","ip_cars","ip_markers"],1),
-	protos.ip("ip2_new","ip1_concat",20,"xavier",std=0),
-	protos.euclidean("euclidean_new","steer_motor_target_data","ip2_new"),
+	protos.euclidean("euclidean_velocity","velocity","ip_velocity"),
+
+
+	protos.concat('ip_concat',["ip_other_car_inverse_distances","ip_marker_inverse_distances",
+		"ip_potential_values","ip_clock_potential_values","ip_velocity"],1),
+	protos.ip("ip2_steer","ip_concat",1,"xavier",std=0),
+	protos.euclidean("euclidean_steer","steer","ip2_steer"),
+	protos.ip("ip2_motor","ip_concat",1,"xavier",std=0),
+	protos.euclidean("euclidean_motor","motor","ip2_motor"),
 ]
 
 
@@ -65,7 +84,7 @@ solver_lst =  [
 	test_iter=1,
 	test_interval=1000000,
 	test_initialization='false',
-	base_lr = 0.0000001,
+	base_lr = 0.001,
 	momentum=0.0001,
 	weight_decay='0.000005',
 	lr_policy="inv",
@@ -106,41 +125,39 @@ def put_data_into_model(data,solver,b=0):
 				ctr += 1
 
 	Racing = 0
-	Caf = 0
+	Desired_Direction = 0
 	Follow = 0
 	Direct = 0
 	Play = 0
 	Furtive = 0
-	if data['labels']['racing']:
-		Racing = 1.0
-	if data['states'][0] == 6:
-		Caf = 1.0
-	if data['labels']['follow']:
+	if data['behavioral_mode'] == 'Follow_Arena_Potential_Field':
 		Follow = 1.0
-	if data['labels']['direct']:
+	if data['behavioral_mode'] == 'Direct_Arena_Potential_Field':
 		Direct = 1.0
-	if data['labels']['play']:
+	if data['behavioral_mode'] == 'Play_Arena_Potential_Field':
 		Play = 1.0
-	if data['labels']['furtive']:
+	if data['behavioral_mode'] == 'Furtive_Arena_Potential_Field':
 		Furtive = 1.0
 
+
 	solver.net.blobs['metadata'].data[b,0,:,:] = Racing
-	solver.net.blobs['metadata'].data[b,1,:,:] = Caf
+	solver.net.blobs['metadata'].data[b,1,:,:] = data['desired_direction']
 	solver.net.blobs['metadata'].data[b,2,:,:] = Follow
 	solver.net.blobs['metadata'].data[b,3,:,:] = Direct
 	solver.net.blobs['metadata'].data[b,4,:,:] = Play
 	solver.net.blobs['metadata'].data[b,5,:,:] = Furtive
 
-	if len(data['target_cars']) > 0:
-		solver.net.blobs['target_cars'].data[b,:] = data['target_cars']
+	if len(data['other_car_inverse_distances']) > 0:
+		solver.net.blobs['other_car_inverse_distances'].data[b,:] = data['other_car_inverse_distances']
 	else:
-		solver.net.blobs['target_cars'].data[b,:] *= 0
-	solver.net.blobs['target_markers'].data[b,:] = data['target_markers']
-	solver.net.blobs['target_velocity'].data[b,:] = data['target_velocity']
+		solver.net.blobs['other_car_inverse_distances'].data[b,:] *= 0
+	solver.net.blobs['marker_inverse_distances'].data[b,:] = data['marker_inverse_distances']
+	solver.net.blobs['potential_values'].data[b,:] = data['potential_values']
+	solver.net.blobs['clock_potential_values'].data[b,:] = data['clock_potential_values']
+	solver.net.blobs['velocity'].data[b,:] = data['velocity']
 
-
-	solver.net.blobs['steer_motor_target_data'].data[b,:10] = data['steer'][-10:]/99.
-	solver.net.blobs['steer_motor_target_data'].data[b,10:] = data['motor'][-10:]/99.
+	solver.net.blobs['steer'].data[b,:] = data['steer']/99.
+	solver.net.blobs['motor'].data[b,:] = data['motor'][-1]/99.
 	#
 	##########################################################
 

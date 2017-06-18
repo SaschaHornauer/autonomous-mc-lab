@@ -777,7 +777,10 @@ def zdl(d,dic_show_ends,*alst):
         ks.append(k)
     out_str = ">> "+ZD_Dictionary_name #names[0]
     for k in ks:
-        out_str += "['"+k+"']"
+        if is_number(k):
+            out_str += '['+str(k)+']'
+        else:
+            out_str += "['"+k+"']"
     cprint(out_str,'yellow')
     list_of_strings_to_txt_file(opjh('kzpy3','zdl.txt'),[out_str,ZD_Dictionary_name]+dic_str.split('\n'))
 
@@ -835,7 +838,10 @@ def zda(d,dic_show_ends,*alst):
         ks.append(k)
     out_str = ">> "+names[0]
     for k in ks:
-        out_str += "['"+k+"']"
+        if is_number(k):
+            out_str += '['+str(k)+']'
+        else:
+            out_str += "['"+k+"']"
     cprint(out_str,'yellow')
     return d
 

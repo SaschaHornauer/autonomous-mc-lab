@@ -1,12 +1,12 @@
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Tuesday, 13 Jun 2017, 02:35:12 PM
+# Saturday, 17 Jun 2017, 06:41:53 PM
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Tuesday, 13 Jun 2017, 02:35:12 PM
+# Saturday, 17 Jun 2017, 06:41:53 PM
 
 layer {
-	name: "target_cars"
+	name: "other_car_inverse_distances"
 	type: "DummyData"
-	top: "target_cars"
+	top: "other_car_inverse_distances"
 	dummy_data_param {
 		shape {
 			dim: 1
@@ -17,9 +17,9 @@ layer {
 	
 
 layer {
-	name: "target_markers"
+	name: "marker_inverse_distances"
 	type: "DummyData"
-	top: "target_markers"
+	top: "marker_inverse_distances"
 	dummy_data_param {
 		shape {
 			dim: 1
@@ -30,9 +30,35 @@ layer {
 	
 
 layer {
-	name: "target_velocity"
+	name: "potential_values"
 	type: "DummyData"
-	top: "target_velocity"
+	top: "potential_values"
+	dummy_data_param {
+		shape {
+			dim: 1
+			dim: 11
+		}
+	}
+}
+	
+
+layer {
+	name: "clock_potential_values"
+	type: "DummyData"
+	top: "clock_potential_values"
+	dummy_data_param {
+		shape {
+			dim: 1
+			dim: 11
+		}
+	}
+}
+	
+
+layer {
+	name: "steer"
+	type: "DummyData"
+	top: "steer"
 	dummy_data_param {
 		shape {
 			dim: 1
@@ -43,13 +69,26 @@ layer {
 	
 
 layer {
-	name: "steer_motor_target_data"
+	name: "motor"
 	type: "DummyData"
-	top: "steer_motor_target_data"
+	top: "motor"
 	dummy_data_param {
 		shape {
 			dim: 1
-			dim: 20
+			dim: 1
+		}
+	}
+}
+	
+
+layer {
+	name: "velocity"
+	type: "DummyData"
+	top: "velocity"
+	dummy_data_param {
+		shape {
+			dim: 1
+			dim: 1
 		}
 	}
 }
@@ -241,34 +280,10 @@ layer {
 	
 
 layer {
-	name: "ip2"
+	name: "ip_other_car_inverse_distances"
 	type: "InnerProduct"
 	bottom: "ip1"
-	top: "ip2"
-	inner_product_param {
-		num_output: 20
-		weight_filler {
-			type: "xavier" 
-		}
-	}
-}
-	
-
-layer {
-	name: "euclidean"
-	type: "EuclideanLoss"
-	bottom: "steer_motor_target_data"
-	bottom: "ip2"
-	top: "euclidean"
-	loss_weight: 1
-}
-	
-
-layer {
-	name: "ip_cars"
-	type: "InnerProduct"
-	bottom: "ip1"
-	top: "ip_cars"
+	top: "ip_other_car_inverse_distances"
 	inner_product_param {
 		num_output: 11
 		weight_filler {
@@ -279,20 +294,20 @@ layer {
 	
 
 layer {
-	name: "euclidean_cars"
+	name: "euclidean_other_car_inverse_distances"
 	type: "EuclideanLoss"
-	bottom: "target_cars"
-	bottom: "ip_cars"
-	top: "euclidean_cars"
+	bottom: "other_car_inverse_distances"
+	bottom: "ip_other_car_inverse_distances"
+	top: "euclidean_other_car_inverse_distances"
 	loss_weight: 1
 }
 	
 
 layer {
-	name: "ip_markers"
+	name: "ip_marker_inverse_distances"
 	type: "InnerProduct"
 	bottom: "ip1"
-	top: "ip_markers"
+	top: "ip_marker_inverse_distances"
 	inner_product_param {
 		num_output: 11
 		weight_filler {
@@ -303,11 +318,59 @@ layer {
 	
 
 layer {
-	name: "euclidean_markers"
+	name: "euclidean_marker_inverse_distances"
 	type: "EuclideanLoss"
-	bottom: "target_markers"
-	bottom: "ip_markers"
-	top: "euclidean_markers"
+	bottom: "marker_inverse_distances"
+	bottom: "ip_marker_inverse_distances"
+	top: "euclidean_marker_inverse_distances"
+	loss_weight: 1
+}
+	
+
+layer {
+	name: "ip_potential_values"
+	type: "InnerProduct"
+	bottom: "ip1"
+	top: "ip_potential_values"
+	inner_product_param {
+		num_output: 11
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "euclidean_potential_values"
+	type: "EuclideanLoss"
+	bottom: "potential_values"
+	bottom: "ip_potential_values"
+	top: "euclidean_potential_values"
+	loss_weight: 1
+}
+	
+
+layer {
+	name: "ip_clock_potential_values"
+	type: "InnerProduct"
+	bottom: "ip1"
+	top: "ip_clock_potential_values"
+	inner_product_param {
+		num_output: 11
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "euclidean_clock_potential_values"
+	type: "EuclideanLoss"
+	bottom: "clock_potential_values"
+	bottom: "ip_clock_potential_values"
+	top: "euclidean_clock_potential_values"
 	loss_weight: 1
 }
 	
@@ -329,7 +392,7 @@ layer {
 layer {
 	name: "euclidean_velocity"
 	type: "EuclideanLoss"
-	bottom: "target_velocity"
+	bottom: "velocity"
 	bottom: "ip_velocity"
 	top: "euclidean_velocity"
 	loss_weight: 1
@@ -338,11 +401,13 @@ layer {
 
 layer {
 	type: 'Concat'
-	name: 'ip1_concat'
-	bottom: "ip1"
-	bottom: "ip_cars"
-	bottom: "ip_markers"
-	top: 'ip1_concat'
+	name: 'ip_concat'
+	bottom: "ip_other_car_inverse_distances"
+	bottom: "ip_marker_inverse_distances"
+	bottom: "ip_potential_values"
+	bottom: "ip_clock_potential_values"
+	bottom: "ip_velocity"
+	top: 'ip_concat'
 	concat_param {
 		axis: 1
 	}
@@ -350,12 +415,12 @@ layer {
 		
 
 layer {
-	name: "ip2_new"
+	name: "ip2_steer"
 	type: "InnerProduct"
-	bottom: "ip1_concat"
-	top: "ip2_new"
+	bottom: "ip_concat"
+	top: "ip2_steer"
 	inner_product_param {
-		num_output: 20
+		num_output: 1
 		weight_filler {
 			type: "xavier" 
 		}
@@ -364,11 +429,35 @@ layer {
 	
 
 layer {
-	name: "euclidean_new"
+	name: "euclidean_steer"
 	type: "EuclideanLoss"
-	bottom: "steer_motor_target_data"
-	bottom: "ip2_new"
-	top: "euclidean_new"
+	bottom: "steer"
+	bottom: "ip2_steer"
+	top: "euclidean_steer"
+	loss_weight: 1
+}
+	
+
+layer {
+	name: "ip2_motor"
+	type: "InnerProduct"
+	bottom: "ip_concat"
+	top: "ip2_motor"
+	inner_product_param {
+		num_output: 1
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "euclidean_motor"
+	type: "EuclideanLoss"
+	bottom: "motor"
+	bottom: "ip2_motor"
+	top: "euclidean_motor"
 	loss_weight: 1
 }
 	
