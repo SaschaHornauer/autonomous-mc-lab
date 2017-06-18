@@ -2,6 +2,13 @@ from kzpy3.utils2 import *
 
 
 def text_to_file(txt,path):
+	text_to_file_({'txt':txt,'path':path})
+	#with open(path, "w") as text_file:
+	#	text_file.write("{0}".format(txt))
+
+def text_to_file_(d):
+	txt = d['txt']
+	path = d['path']
 	with open(path, "w") as text_file:
 		text_file.write("{0}".format(txt))
 

@@ -18,7 +18,7 @@ for im in import_list + import_from_list + import_as_list:
     if type(im) == str:
         try:
             exec('import '+im)
-            print("imported "+im)
+            #print("imported "+im)
         except:
             print('Failed to import '+im)
     else:
@@ -26,14 +26,14 @@ for im in import_list + import_from_list + import_as_list:
         if im[0] == 'FROM':
             try:
                 exec('from '+im[1]+' import '+im[2])
-                print("from "+im[1]+" imported "+im[2])
+                #print("from "+im[1]+" imported "+im[2])
             except:
                 print('Failed to from '+im[1]+' import '+im[2])
         else:
             assert(im[0] == 'AS')
             try:
                 exec('import '+im[1]+' as '+im[2])
-                print("imported "+im[1]+" as "+im[2])
+                #print("imported "+im[1]+" as "+im[2])
             except:
                 print('Failed to import '+im[1]+' as '+im[2])           
 
@@ -978,6 +978,26 @@ def remove_functions_from_dic(d):
 
 
 
+def even_len(d):
+    l = d['l']
+    return np.mod(len(l),2) == 0
+
+def args_to_dic(d):
+    pargs = d['pargs']
+    if type(pargs) == str:
+        pargs = pargs.split(' ')
+    assert(even_len({'l':pargs}))
+    rargs = {}
+    for i in range(0,len(pargs),2):
+        assert(pargs[i][0] == '-')
+        k = pargs[i][1:]
+        val = pargs[i+1]
+        exec(d2n("rargs['",k,"'] = ","'",val,"'"))
+        if type(rargs[k]) == str and rargs[k][0] == '{' and rargs[k][-1] == '}':
+            exec('rargs[k] = '+rargs[k])
+        elif type(rargs[k]) == str and rargs[k][0] == '[' and rargs[k][-1] == ']':
+            exec('rargs[k] = '+rargs[k])
+    return rargs
 
 
     
