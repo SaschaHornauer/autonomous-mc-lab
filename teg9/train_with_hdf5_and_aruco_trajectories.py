@@ -28,8 +28,8 @@ if True:
 	MODEL = 'z2_color_aruco'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
-	#weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
-	weights_file_path = opjh('caffe_models/z2_color/z2_color.caffemodel')
+	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	#weights_file_path = opjh('caffe_models/z2_color/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -189,15 +189,7 @@ import_str = import_str.replace("REPO",REPO)
 import_str = import_str.replace("CAF",CAF)
 import_str = import_str.replace("MODEL",MODEL)
 exec(import_str)
-############################################
-#
-if weights_file_path:
-	print(d2s("Copying weights from",weights_file_path,"to",Solver.solver))
-	Solver.solver.net.copy_from(weights_file_path)
-else:
-	print(d2s("No weights loaded to",Solver.solver))
-#
-###########################
+
 time.sleep(0)
 
 hdf5_runs_path = opj(bair_car_data_path,'hdf5/runs')
@@ -365,6 +357,18 @@ velocity_data = []
 velocity_data_timer = Timer(60)
 even_ctr = 0
 
+
+############################################
+#
+if weights_file_path:
+	print(d2s("Copying weights from",weights_file_path,"to",Solver.solver))
+	Solver.solver.net.copy_from(weights_file_path)
+else:
+	print(d2s("No weights loaded to",Solver.solver))
+#
+###########################
+
+
 while True:
 
 	for b in range(Solver.batch_size):
@@ -376,8 +380,8 @@ while True:
 
 
 		Solver.put_data_into_model(data,Solver.solver,b)
-	if False: #len(data['target_cars']) == 0:
-		if np.random.random()<1:
+	if len(data['other_car_inverse_distances']) == 0:
+		if np.random.random()<0.8:
 			continue
 
 	Solver.solver.step(1) # The training step. Everything below is for display.
@@ -429,8 +433,8 @@ while True:
 		if Solver.solver.net.blobs['metadata'].data[0,5,0,0] > 0:
 			print 'furtive'
 		print(d2s('len(counter_dic),counts',(len(counter_dic),counts)))
-		cprint(array_to_int_list(Solver.solver.net.blobs['steer'].data[-1,:][:]),'green','on_red')
-		cprint(array_to_int_list(Solver.solver.net.blobs['ip2_steer'].data[-1,:][:]),'red','on_green')
+		print(array_to_int_list(Solver.solver.net.blobs['steer'].data[-1,:][:]),array_to_int_list(Solver.solver.net.blobs['motor'].data[-1,:][:]))
+		print(array_to_int_list(Solver.solver.net.blobs['ip3_steer'].data[-1,:][:]),array_to_int_list(Solver.solver.net.blobs['ip3_motor'].data[-1,:][:]))
 		velocity_data.append([Solver.solver.net.blobs['velocity'].data[-1,0], Solver.solver.net.blobs['ip_velocity'].data[-1,0]])
 		if DISPLAY:
 			fctr = 0

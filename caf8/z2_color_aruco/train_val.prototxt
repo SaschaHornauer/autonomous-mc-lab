@@ -1,7 +1,7 @@
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Saturday, 17 Jun 2017, 06:41:53 PM
+# Sunday, 18 Jun 2017, 11:15:38 AM
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Saturday, 17 Jun 2017, 06:41:53 PM
+# Sunday, 18 Jun 2017, 11:15:38 AM
 
 layer {
 	name: "other_car_inverse_distances"
@@ -323,7 +323,7 @@ layer {
 	bottom: "marker_inverse_distances"
 	bottom: "ip_marker_inverse_distances"
 	top: "euclidean_marker_inverse_distances"
-	loss_weight: 1
+	loss_weight: 0.1
 }
 	
 
@@ -347,7 +347,7 @@ layer {
 	bottom: "potential_values"
 	bottom: "ip_potential_values"
 	top: "euclidean_potential_values"
-	loss_weight: 1
+	loss_weight: 0.1
 }
 	
 
@@ -371,7 +371,7 @@ layer {
 	bottom: "clock_potential_values"
 	bottom: "ip_clock_potential_values"
 	top: "euclidean_clock_potential_values"
-	loss_weight: 1
+	loss_weight: 0.1
 }
 	
 
@@ -395,7 +395,7 @@ layer {
 	bottom: "velocity"
 	bottom: "ip_velocity"
 	top: "euclidean_velocity"
-	loss_weight: 1
+	loss_weight: 0.1
 }
 	
 
@@ -415,10 +415,68 @@ layer {
 		
 
 layer {
-	name: "ip2_steer"
+	name: "ip2__steer"
 	type: "InnerProduct"
 	bottom: "ip_concat"
-	top: "ip2_steer"
+	top: "ip2__steer"
+	inner_product_param {
+		num_output: 20
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "ip2__steer_relu"
+	type: "ReLU"
+	bottom: "ip2__steer"
+	top: "ip2__steer"
+}
+	
+
+layer {
+	name: "ip3_steer"
+	type: "InnerProduct"
+	bottom: "ip2__steer"
+	top: "ip3_steer"
+	inner_product_param {
+		num_output: 1
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "ip2__motor"
+	type: "InnerProduct"
+	bottom: "ip_concat"
+	top: "ip2__motor"
+	inner_product_param {
+		num_output: 20
+		weight_filler {
+			type: "xavier" 
+		}
+	}
+}
+	
+
+layer {
+	name: "ip2__motor_relu"
+	type: "ReLU"
+	bottom: "ip2__motor"
+	top: "ip2__motor"
+}
+	
+
+layer {
+	name: "ip3_motor"
+	type: "InnerProduct"
+	bottom: "ip2__motor"
+	top: "ip3_motor"
 	inner_product_param {
 		num_output: 1
 		weight_filler {
@@ -432,23 +490,9 @@ layer {
 	name: "euclidean_steer"
 	type: "EuclideanLoss"
 	bottom: "steer"
-	bottom: "ip2_steer"
+	bottom: "ip3_steer"
 	top: "euclidean_steer"
-	loss_weight: 1
-}
-	
-
-layer {
-	name: "ip2_motor"
-	type: "InnerProduct"
-	bottom: "ip_concat"
-	top: "ip2_motor"
-	inner_product_param {
-		num_output: 1
-		weight_filler {
-			type: "xavier" 
-		}
-	}
+	loss_weight: 0.1
 }
 	
 
@@ -456,8 +500,8 @@ layer {
 	name: "euclidean_motor"
 	type: "EuclideanLoss"
 	bottom: "motor"
-	bottom: "ip2_motor"
+	bottom: "ip3_motor"
 	top: "euclidean_motor"
-	loss_weight: 1
+	loss_weight: 0.1
 }
 	

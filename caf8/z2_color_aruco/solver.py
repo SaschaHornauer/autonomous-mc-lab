@@ -12,7 +12,7 @@ model_path = opjh(REPO,CAF,MODEL)
 
 batch_size = 1
 
-
+loss_weight = 0.1
 
 train_val_lst = [d2s('#',model_path),d2s('#',time_str('Pretty'))]
 
@@ -54,25 +54,33 @@ train_val_lst += [
 	protos.euclidean("euclidean_other_car_inverse_distances","other_car_inverse_distances","ip_other_car_inverse_distances"),
 
 	protos.ip("ip_marker_inverse_distances","ip1",11,"xavier",std=0),
-	protos.euclidean("euclidean_marker_inverse_distances","marker_inverse_distances","ip_marker_inverse_distances"),
+	protos.euclidean("euclidean_marker_inverse_distances","marker_inverse_distances","ip_marker_inverse_distances",loss_weight),
 
 	protos.ip("ip_potential_values","ip1",11,"xavier",std=0),
-	protos.euclidean("euclidean_potential_values","potential_values","ip_potential_values"),
+	protos.euclidean("euclidean_potential_values","potential_values","ip_potential_values",loss_weight),
 
 	protos.ip("ip_clock_potential_values","ip1",11,"xavier",std=0),
-	protos.euclidean("euclidean_clock_potential_values","clock_potential_values","ip_clock_potential_values"),
+	protos.euclidean("euclidean_clock_potential_values","clock_potential_values","ip_clock_potential_values",loss_weight),
 
 
 	protos.ip("ip_velocity","ip1",1,"xavier",std=0),
-	protos.euclidean("euclidean_velocity","velocity","ip_velocity"),
+	protos.euclidean("euclidean_velocity","velocity","ip_velocity",loss_weight),
 
 
 	protos.concat('ip_concat',["ip_other_car_inverse_distances","ip_marker_inverse_distances",
 		"ip_potential_values","ip_clock_potential_values","ip_velocity"],1),
-	protos.ip("ip2_steer","ip_concat",1,"xavier",std=0),
-	protos.euclidean("euclidean_steer","steer","ip2_steer"),
-	protos.ip("ip2_motor","ip_concat",1,"xavier",std=0),
-	protos.euclidean("euclidean_motor","motor","ip2_motor"),
+
+	protos.ip("ip2__steer","ip_concat",20,"xavier",std=0),
+	protos.relu('ip2__steer'),
+	protos.ip("ip3_steer","ip2__steer",1,"xavier",std=0),
+
+	protos.ip("ip2__motor","ip_concat",20,"xavier",std=0),
+	protos.relu('ip2__motor'),
+	protos.ip("ip3_motor","ip2__motor",1,"xavier",std=0),
+
+
+	protos.euclidean("euclidean_steer","steer","ip3_steer",loss_weight),
+	protos.euclidean("euclidean_motor","motor","ip3_motor",loss_weight),
 ]
 
 
@@ -84,7 +92,7 @@ solver_lst =  [
 	test_iter=1,
 	test_interval=1000000,
 	test_initialization='false',
-	base_lr = 0.001,
+	base_lr = 0.0001,
 	momentum=0.0001,
 	weight_decay='0.000005',
 	lr_policy="inv",
