@@ -15,7 +15,7 @@ import data.utils.general
 
 
 
-PROCESS_NUM = int(sys.argv[1])
+PROCESS_NUM = 0#= int(sys.argv[1])
 
 pd2s('PROCESS_NUM =',PROCESS_NUM)
 
@@ -30,8 +30,8 @@ def Processes():
 processes = Processes()
 
 run_values_dic = {}
-run_values_dic['GRAPHICS'] = False
-run_values_dic['SAVE_DATA'] = True
+run_values_dic['GRAPHICS'] = True
+run_values_dic['SAVE_DATA'] = False
 run_values_dic['T_OFFSET_VALUE'] = 0
 run_values_dic['TIME_STEP'] = 1/30.0
 run_values_dic['desired_direction'] = d2n("""\'""",processes['processes'][PROCESS_NUM][1],"""\'""")
@@ -46,7 +46,7 @@ print('*');print_stars()
 
 
 
-
+img_ctr = 0
 
 
 if GRAPHICS:
@@ -59,7 +59,7 @@ if 'N' not in locals():
 if True: #len(gg(opjD('the_arenas.pkl'))) == 0:
 	if 'the_arenas_ready' not in locals():
 		print("Creating arenas . . .")
-		arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field,Potential_Fields.Follow_Arena_Potential_Field]#,
+		arenas_tmp_lst = [Potential_Fields.Direct_Arena_Potential_Field]#,Potential_Fields.Follow_Arena_Potential_Field]#,
 		#Potential_Fields.Play_Arena_Potential_Field,
 		#Potential_Fields.Furtive_Arena_Potential_Field]
 		the_arenas = {}
@@ -149,7 +149,7 @@ for run_name in cars[car_name]['runs'].keys():
 
 						##################
 						#
-						if True: # len(car_angle_dist_view) > 0 and current_run['our_car']['current_velocity']()>0.6:
+						if len(car_angle_dist_view) > 0 and current_run['our_car']['current_velocity']()>0.6:
 						#
 						##################
 						
@@ -283,7 +283,11 @@ for run_name in cars[car_name]['runs'].keys():
 									plt.title(d2s(new_steer))
 									pause(0.0001)
 								
-								k = mci(images['left'][current_run['our_car']['near_t']],delay=1,title='images',scale=2.0)
+								near_t = current_run['our_car']['near_t']
+								img = images['left'][near_t]
+								k = mci(img,delay=1,title='images',scale=2.0)
+								imsave(opjD('cars',str(img_ctr)+'.png'),img)
+								img_ctr += 1
 								if k != -1:
 									pd2s("k =",k)
 									if not PAUSE:
