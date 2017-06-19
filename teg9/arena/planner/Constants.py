@@ -37,9 +37,9 @@ def Constants():
 
 	D['sensor_angles'] = -arange(-45,46,9)
 
-	D['view_angle'] = 35 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	D['view_angle'] = 35
 
-	D['view_angles'] = -D['sensor_angles']#arange(-D['view_angle'],D['view_angle']+1,10) #!!!!!!!!!!!!!!!!!!!!
+	D['view_angles'] = arange(-D['view_angle'],D['view_angle']+1,7)
 
 	D['DISPLAY_LEFT'] = True
 
