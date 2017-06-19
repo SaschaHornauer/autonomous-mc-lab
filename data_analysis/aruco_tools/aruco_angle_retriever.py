@@ -5,7 +5,7 @@ import numpy as np
 from numpy import average
 from kzpy3.data_analysis.aruco_tools.Marker import Marker
 import sys, os
-from data_parsing.Bagfile_Handler import Bagfile_Handler
+from kzpy3.data_analysis.data_parsing.Bagfile_Handler import Bagfile_Handler
 
 angleList = [0, 0, 0, 0]
 angleListIndex = 0

@@ -5,15 +5,15 @@ Created on Apr 11, 2017
 '''
 import cv2
 import cv2.aruco as aruco
-from aruco_tools.Board import Board
+from kzpy3.data_analysis.aruco_tools.Board import Board
 import sys
 from kzpy3.data_analysis.zed_parameter import Zed_Parameter
 import numpy as np
 from cv2 import polarToCart
 import math
-from aruco_tools.Marker import Marker
+from kzpy3.data_analysis.aruco_tools.Marker import Marker
 from numpy import average
-from aruco_tools import aruco_angle_retriever
+from kzpy3.data_analysis.aruco_tools import aruco_angle_retriever
 
 
 

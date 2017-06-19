@@ -777,7 +777,7 @@ def zdl(d,dic_show_ends,*alst):
         ks.append(k)
     out_str = ">> "+ZD_Dictionary_name #names[0]
     for k in ks:
-        if is_number(k):
+        if is_number(k) or type(k) == tuple:
             out_str += '['+str(k)+']'
         else:
             out_str += "['"+k+"']"
