@@ -46,19 +46,107 @@ class MyIter():
 
 
 
-    
+gyro_corr_x = 0.0
 
-def calculate_headings(gyro_values):
+
+def convert_encoder(encoder_list):
     
+    encoder_values = {}
+    
+    for encoder_value in encoder_list:
+        encoder_values[encoder_value['timestamp']]=encoder_value['encoder']
+
+    return encoder_values
+
+def convert_gyro(gyro_list):
+    
+    gyro_values = {}
+    
+    for gyro_value in gyro_list:
+        gyro_values[gyro_value['timestamp']]=gyro_value['gyro_xyz']
+
+    return gyro_values
+
+def find_closest_timestamp(input_timestamp, timestamp_list):
+    
+    candidate_timestamp = None
+    
+    if input_timestamp in timestamp_list:
+        return input_timestamp
+    
+    min_distance_timestamp = np.abs(input_timestamp-timestamp_list[0])
+    
+    for test_timestamp in timestamp_list:
+        
+        new_distance = np.abs(test_timestamp-input_timestamp)
+        if new_distance < min_distance_timestamp:
+            candidate_timestamp = test_timestamp
+            min_distance_timestamp = new_distance
+            
+    # Returns the closest timestamp as well as a measure of how close it was
+    return candidate_timestamp, min_distance_timestamp
+        
+
+def calculate_headings(gyro_xyz_list, encoder_list, mid_xy, timestamps):
+    '''
+    This method calculates a list of headings for the timestamps based on 
+    either the change in position if the car is fast enough moving in a certain
+    direction or based on the gyro_heading information.
+    
+    The moving heading is usually quite good as the car can only move into the direction
+    into which it is headed, however when the car is standing or going backwards
+    the information is unreliable
+    
+    The gyro heading information has a constant drift and changes also by a margin
+    when the car at any point was flipped over. Also these information are relative to
+    the first heading, meaning that once the system is started, this is where the
+    gyro heading will assume 0 degree. 
+    
+    The gyro heading will be used in the cases where the move-heading can not be
+    used, however while the move-heading is used, it will constantly calculate a 
+    correction factor for the gyro information, to remove the drift.
+    '''
+        
     headings = []
     
-    for gyro_xyz in gyro_values:
-        x_norm = gyro_xyz[0]%360.0
-        y_norm = gyro_xyz[1]%360.0
-        z_norm = gyro_xyz[2]%360.0
+    # This is a temporary fix since the encoder values are not in a 
+    # dict, index by timestamps, but in a list. It takes one hour to generate
+    # the original file so this is a temporary workaround.
+    encoder_values = convert_encoder(encoder_list)
+    gyro_values = convert_gyro(gyro_xyz_list)
         
-        headings.append(np.deg2rad(x_norm))
-        
+    # If the encoder is above 2 the speed is sufficient so the heading can be 
+    # used to determine the heading and the correction term for the gyro values
+    # will be fit to correct them
+    
+    
+    
+#     if encoder > 2.:
+#         local_own_xys = [own_xy for own_xy in mid_xy if own_xy != None]
+#                 heading = own_trajectory[list_index][2]
+#                 
+#                 #heading = heading - np.pi/12.
+#                 
+# #               heading = get_heading(local_own_xys)
+#     
+#     
+#     # If the encoder is 0 there is no movement. This means the gyro values
+    # have to be used
+    
+#     
+#     
+#     
+#     
+#     for i in range(len(gyro_values)):
+#         
+#          #encoder_val, mid_xy_val in zip(gyro_values,encoder,mid_xy[0]):
+#         
+#         x_norm = gyro_xyz[0]%360.0
+#         y_norm = gyro_xyz[1]%360.0
+#         z_norm = gyro_xyz[2]%360.0
+#         
+#         headings.append(np.deg2rad(x_norm))
+#         
         
     return headings
         
@@ -86,8 +174,9 @@ class Trajectory_List():
         timestamps = traj_dictionary[car_name][run_name]['self_trajectory']['ts']
         
         gyro_values = traj_dictionary[car_name][run_name]['self_trajectory']['left']['gyro_xyz']
+        encoder = traj_dictionary[car_name][run_name]['self_trajectory']['left']['encoder']
         
-        headings = calculate_headings(gyro_values)
+        headings = calculate_headings(gyro_values, encoder, mid_xy, timestamps)
         
         
         return zip(timestamps, zip(mid_xy[0], mid_xy[1]), headings)
@@ -223,7 +312,7 @@ class Collision_Scanner():
                 
                 #heading = heading - np.pi/12.
                 
-#                 heading = get_heading(local_own_xys)
+#               heading = get_heading(local_own_xys)
 #                 
 #                 print heading- headingA
                 own_fov = self.get_fov_triangle(local_own_xys[0], heading, fov_angle, distance)
@@ -351,7 +440,7 @@ if __name__ == '__main__':
     if animate:   
         plt.ion()
         
-    skip_no_bagfiles = 4
+    skip_no_bagfiles = 0
     i = 0
     
     for bagfile in bagfiles:
@@ -388,6 +477,12 @@ if __name__ == '__main__':
                     continue
                 if(cv_image == None):
                     continue
+                cv2.imshow('frame', cv_image)
+                key = cv2.waitKey(1) & 0xFF
+                
+                if key == ord('q'):
+                    break
+                
                 
                 if animate:   
                     delete_forms = []
@@ -415,12 +510,7 @@ if __name__ == '__main__':
                 
                 
                 
-                cv2.imshow('frame', cv_image)
-                key = cv2.waitKey(1) & 0xFF
-                
-                if key == ord('q'):
-                    break
-                
+              
                 
                         
                     
