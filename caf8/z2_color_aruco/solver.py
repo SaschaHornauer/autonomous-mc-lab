@@ -12,7 +12,7 @@ model_path = opjh(REPO,CAF,MODEL)
 
 batch_size = 1
 
-loss_weight = 0.1
+loss_weight = 1.0
 
 train_val_lst = [d2s('#',model_path),d2s('#',time_str('Pretty'))]
 

@@ -1,7 +1,7 @@
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Sunday, 18 Jun 2017, 11:15:38 AM
+# Sunday, 18 Jun 2017, 03:32:16 PM
 # /home/karlzipser/kzpy3/caf8/z2_color_aruco
-# Sunday, 18 Jun 2017, 11:15:38 AM
+# Sunday, 18 Jun 2017, 03:32:16 PM
 
 layer {
 	name: "other_car_inverse_distances"
@@ -323,7 +323,7 @@ layer {
 	bottom: "marker_inverse_distances"
 	bottom: "ip_marker_inverse_distances"
 	top: "euclidean_marker_inverse_distances"
-	loss_weight: 0.1
+	loss_weight: 1.0
 }
 	
 
@@ -347,7 +347,7 @@ layer {
 	bottom: "potential_values"
 	bottom: "ip_potential_values"
 	top: "euclidean_potential_values"
-	loss_weight: 0.1
+	loss_weight: 1.0
 }
 	
 
@@ -371,7 +371,7 @@ layer {
 	bottom: "clock_potential_values"
 	bottom: "ip_clock_potential_values"
 	top: "euclidean_clock_potential_values"
-	loss_weight: 0.1
+	loss_weight: 1.0
 }
 	
 
@@ -395,7 +395,7 @@ layer {
 	bottom: "velocity"
 	bottom: "ip_velocity"
 	top: "euclidean_velocity"
-	loss_weight: 0.1
+	loss_weight: 1.0
 }
 	
 
@@ -492,7 +492,7 @@ layer {
 	bottom: "steer"
 	bottom: "ip3_steer"
 	top: "euclidean_steer"
-	loss_weight: 0.1
+	loss_weight: 1.0
 }
 	
 
@@ -502,6 +502,6 @@ layer {
 	bottom: "motor"
 	bottom: "ip3_motor"
 	top: "euclidean_motor"
-	loss_weight: 0.1
+	loss_weight: 1.0
 }
 	

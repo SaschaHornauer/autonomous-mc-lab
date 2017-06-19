@@ -208,8 +208,10 @@ get_data_with_hdf5.load_Segment_Data(hdf5_segment_metadata_path,hdf5_runs_path)
 
 print('\nloading low_steer... (takes awhile)')
 low_steer = load_obj(opj(hdf5_segment_metadata_path,'low_steer'))
+random.shuffle(low_steer)
 print('\nloading high_steer... (takes awhile)')
 high_steer = load_obj(opj(hdf5_segment_metadata_path,'high_steer'))
+random.shuffle(high_steer)
 print('done')
 len_high_steer = len(high_steer)
 len_low_steer = len(low_steer)
@@ -263,6 +265,17 @@ high_loss_keys = []
 high_loss_key_ctr = 200000
 
 
+
+
+############################################
+#
+if weights_file_path:
+	print(d2s("Copying weights from",weights_file_path,"to",Solver.solver))
+	Solver.solver.net.copy_from(weights_file_path)
+else:
+	print(d2s("No weights loaded to",Solver.solver))
+#
+###########################
 
 
 def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
@@ -329,7 +342,7 @@ def get_data_considering_high_low_steer_and_valid_trajectory_timestamp():
 		data['desired_direction'] = desired_direction
  		for topic in Aruco_Steering_Trajectories[run_name][behavioral_mode][desired_direction][timestamp]:
  			data[topic] = Aruco_Steering_Trajectories[run_name][behavioral_mode][desired_direction][timestamp][topic]
- 		data['id'] = (run_name,behavioral_mode,timestamp,run_code,seg_num,offset)
+ 		data['id'] = (run_name,behavioral_mode,desired_direction,timestamp,run_code,seg_num,offset)
 
 
 	return data
@@ -358,30 +371,24 @@ velocity_data_timer = Timer(60)
 even_ctr = 0
 
 
-############################################
-#
-if weights_file_path:
-	print(d2s("Copying weights from",weights_file_path,"to",Solver.solver))
-	Solver.solver.net.copy_from(weights_file_path)
-else:
-	print(d2s("No weights loaded to",Solver.solver))
-#
-###########################
 
+data_log = {}
 
 while True:
 
 	for b in range(Solver.batch_size):
-		data = None
-		while data == None:
-			data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
+		_data = None
+		while _data == None:
+			_data = get_data_considering_high_low_steer_and_valid_trajectory_timestamp()
+		data = _data
 
-
-
+		if data['id'] not in data_log:
+			data_log[data['id']] = 0
+		data_log[data['id']] += 1
 
 		Solver.put_data_into_model(data,Solver.solver,b)
 	if len(data['other_car_inverse_distances']) == 0:
-		if np.random.random()<0.8:
+		if np.random.random()<0:#1.8:
 			continue
 
 	Solver.solver.step(1) # The training step. Everything below is for display.
@@ -420,7 +427,7 @@ while True:
 
 
 	if print_timer.check():#Solver.solver.net.blobs['metadata'].data[0,3,0,0] > 0 and the_loss > 0.1:#loss_threshold:
-		
+		print(d2s('len of data_log ='),len(data_log.keys()))
 		print(data['name'])
 		print(Solver.solver.net.blobs['metadata'].data[-1,:,5,5])
 
