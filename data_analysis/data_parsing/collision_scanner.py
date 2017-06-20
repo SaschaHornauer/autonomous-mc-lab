@@ -483,8 +483,8 @@ if __name__ == '__main__':
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
-    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
-    
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
+    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/'
     bagfiles =  [os.path.join(bagfile_path,file) for file in os.listdir(bagfile_path) if os.path.isfile(os.path.join(bagfile_path,file))] 
     
@@ -499,14 +499,20 @@ if __name__ == '__main__':
     if animate:   
         plt.ion()
         
-    skip_no_bagfiles = 0
+    skip_no_bagfiles = 18
     i = 0
     
     for bagfile in bagfiles:
         i += 1
         if i < skip_no_bagfiles:
+            print "Skipping bagfile " + str(bagfile)
             continue
-        bag_handler = Image_Bagfile_Handler(bagfile)
+            
+        try:
+            bag_handler = Image_Bagfile_Handler(bagfile)
+        except Exception as ex:
+            print str(ex)
+            continue
         print "Loading bagfiles"
 
         encounter_timestamps = []
@@ -519,7 +525,7 @@ if __name__ == '__main__':
         own_fov = {}
         
         # TODO: Get this for all cars
-        own_carname = 'Mr_Black'
+        own_carname = 'Mr_Blue'
         print "Creating list of timestamps with cars from camera from " + str(own_carname)
         for other_carname in encounter_situations[own_carname]:
             print "Parsing " + str(other_carname)
@@ -536,7 +542,8 @@ if __name__ == '__main__':
             while True:
                 try:
                     cv_image, timestamp = bag_handler.get_next_image()
-                except TypeError:
+                except TypeError as ex:
+                    print str(ex)
                     break
                 timestamp = np.round(timestamp.to_sec(),3)
                 if timestamp in encounter_timestamps:
