@@ -57,10 +57,10 @@ if False:
 def print_stars(n=1):
     for i in range(n):
         print("""*************************************************""")
-def print_stars0(n=1):
+def print_stars1(n=1):
     print_stars()
     print("*")
-def print_stars1(n=1):
+def print_stars2(n=1):
     print("*")
     print_stars()
 
@@ -236,11 +236,16 @@ def save_obj(obj, name ):
         name = name[:-len('.pkl')]
     with open(name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-def load_obj(name ):
+def load_obj(name,Verbose=False):
     if name.endswith('.pkl'):
         name = name[:-len('.pkl')]
+    if Verbose:
+        print("Loading "+name+' . . .')
     with open(name + '.pkl', 'rb') as f:
-        return pickle.load(f)
+        p = pickle.load(f)
+        if Verbose:
+            print(". . . done.")
+        return p
 lo = load_obj
 def so(arg1,arg2):
     if type(arg1) == str and type(arg2) != str:
@@ -999,10 +1004,14 @@ def args_to_dic(d):
             exec('rargs[k] = '+rargs[k])
     return rargs
 
-
+"""
 def translate_args(d):
     translation_dic = d['translation_dic']
     argument_dictionary = d['argument_dictionary']
+<<<<<<< HEAD
+
+=======
+>>>>>>> 78390cb408c18d13d99a7ef52e42c0f03ace9397
     for k in translation_dic.keys():
         v = translation_dic[k]
         translation_dic['-'+v] = v
@@ -1019,4 +1028,18 @@ def translate_args(d):
             del new_dictionary[k]
     return new_dictionary
 
+<<<<<<< HEAD
+"""
+def wait_for_enter():
+    raw_input('Hit <Enter> ')
+
+
+def finished():
+    print_stars1()
+    print("FINISHED")
+    print_stars2()
+"""
+=======
     
+>>>>>>> 78390cb408c18d13d99a7ef52e42c0f03ace9397
+"""

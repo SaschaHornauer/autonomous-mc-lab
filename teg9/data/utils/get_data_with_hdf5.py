@@ -195,7 +195,7 @@ def animate_segment(run_code_num,seg_num):
 
 
 
-def get_data(run_code_num,seg_num,offset,slen,img_offset,img_slen,ignore=[left,out1_in2],require_one=[],smooth_steer=True,use_states=[1,5,6,7]):
+def get_data(run_code_num,seg_num,offset,slen,img_offset,img_slen,ignore=[left,out1_in2],require_one=[],smooth_steer=True,use_states=[1,5,6,7],no_images=False):
 	"""
 	def get_data(run_code_num,seg_num,offset,slen,img_offset,img_slen,ignore=[left,out1_in2],require_one=[],smooth_steer=True):
 
@@ -236,8 +236,12 @@ def get_data(run_code_num,seg_num,offset,slen,img_offset,img_slen,ignore=[left,o
 		return None
 	if states[0] not in use_states: # This is not comprehensive, but is faster than checking every step. Think about this further . . .
 		return None
-	left_images = Segment_Data['runs'][run_name]['segments'][seg_num_str]['left'][ia:ib]
-	right_images = Segment_Data['runs'][run_name]['segments'][seg_num_str]['right'][ia:ib]
+	if no_images:
+		left_images = None
+		right_images = None
+	else:
+		left_images = Segment_Data['runs'][run_name]['segments'][seg_num_str]['left'][ia:ib]
+		right_images = Segment_Data['runs'][run_name]['segments'][seg_num_str]['right'][ia:ib]
 	if smooth_steer:
 		for i in range(2,len(steers)):
 			steers[i] = (3/6.)*steers[i] + (2/6.)*steers[i-1] + (1/6.)*steers[i-2]
