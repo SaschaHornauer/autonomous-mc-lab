@@ -509,7 +509,7 @@ if __name__ == '__main__':
         bag_handler = Image_Bagfile_Handler(bagfile)
         print "Loading bagfiles"
 
-        timestamps = []
+        encounter_timestamps = []
         run_names = []
         
     #     for own_carname in encounter_situations:
@@ -520,21 +520,34 @@ if __name__ == '__main__':
         
         # TODO: Get this for all cars
         own_carname = 'Mr_Black'
-        #for other_carname in encounter_situations[own_carname]:
-        other_carname = 'Mr_Blue'
-        for entry in encounter_situations[own_carname][other_carname]:
-            timestamps.append(entry['timestamp'])
-            own_xy[entry['timestamp']] = entry['own_xy']
-            other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
-            own_fov[entry['timestamp']] = entry['fov']
-            run_names.append(entry['run_name'])
+        print "Creating list of timestamps with cars from camera from " + str(own_carname)
+        for other_carname in encounter_situations[own_carname]:
+            print "Parsing " + str(other_carname)
+        #other_carname = 'Mr_Blue'
+        #other_carname = 'Mr_Yellow'
+            for entry in encounter_situations[own_carname][other_carname]:
+                encounter_timestamps.append(entry['timestamp'])
+                if animate:
+                    own_xy[entry['timestamp']] = entry['own_xy']
+                    other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
+                    own_fov[entry['timestamp']] = entry['fov']
+                    run_names.append(entry['run_name'])
         try:
-            for timestamp in timestamps:
-                
-                cv_image, timestamp, synced = bag_handler.get_image(timestamp)
-                if not synced:
-                    continue
+            while True:
+                try:
+                    cv_image, timestamp = bag_handler.get_next_image()
+                except TypeError:
+                    break
+                timestamp = np.round(timestamp.to_sec(),3)
+                if timestamp in encounter_timestamps:
+                    file_prefix = "car_"
+                else:
+                    file_prefix = "nocar_"
+                    
+                #if not synced:
+                #    continue
                 if(cv_image == None):
+                    print "Image is none, forwarding in bagfile"
                     continue
                 cv2.imshow('frame', cv_image)
                 key = cv2.waitKey(1) & 0xFF
@@ -542,7 +555,7 @@ if __name__ == '__main__':
                 if key == ord('q'):
                     break
                 
-                cv2.imwrite(os.path.join(save_path_prefix,"car_" + str(own_carname) + "_sees_" + str(other_carname) + "_" + str(timestamp) + "_.png"), cv_image)              
+                cv2.imwrite(os.path.join(save_path_prefix,file_prefix + str(own_carname) + "_sees_" + str(other_carname) + "_" + str(timestamp) + "_.png"), cv_image)              
                 if animate:   
                     delete_forms = []
                     delete_forms.append(plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1],color='red'))
