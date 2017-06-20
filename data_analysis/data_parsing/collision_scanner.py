@@ -3,7 +3,7 @@ Created on May 8, 2017
 
 @author: picard
 '''
-from trajectory_generator.trajectory_tools import *
+from kzpy3.data_analysis.trajectory_generator.trajectory_tools import *
 import cPickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,9 +19,11 @@ from kzpy3.data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile
 import angles
 
 
+
 distance = 8  # m
 fov_angle = 66.0  # deg
 smooth_heading_over_timesteps = 30 
+encoder_threshold = 0.5
 
 class MyIter():
     
@@ -198,18 +200,16 @@ def calculate_headings(gyro_xyz_list, encoder_list, mid_xy, timestamps):
             tmp_xy_list.append(mid_xy_list[mid_xy_index])
             mid_xy_index += 1
         
-        if encoder_values_aligned[timestamp] > 1.:
+        if encoder_values_aligned[timestamp] > encoder_threshold:
             # If the speed is sufficient use the xy values to get the heading
             # and also to correct the gyro headings
             
             current_heading = get_heading(tmp_xy_list)
             gyro_correction_value = get_heading_from_gyro(gyro_values_aligned[timestamp]) - current_heading 
-            headings.append(current_heading)
-            
+            headings.append(current_heading)            
         else:
             # If the speed is too slow we use the gyro values as heading instead
             headings.append(get_heading_from_gyro(gyro_values_aligned[timestamp]) - gyro_correction_value)
-        
         
     return headings
         
@@ -368,16 +368,11 @@ class Collision_Scanner():
                 if len(own_trajectory) < (list_index + smooth_factor):
                     smooth_factor = len(own_trajectory) - list_index
                 
-                # Calculate the heading based on values in the future or past, depending
+                # Calculate the heading based on values in the future or past, dependingencod
                 # on whether we are close to the beginning or end of the trajectory
                 local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index:list_index + smooth_factor] if own_xy != None]
                 heading = own_trajectory[list_index][2]
-                
-                #heading = heading - np.pi/12.
-                
-#               heading = get_heading(local_own_xys)
-#                 
-#                 print heading- headingA
+
                 own_fov = self.get_fov_triangle(local_own_xys[0], heading, fov_angle, distance)
                 
                 for other_carname in aligned_list:
@@ -474,6 +469,7 @@ pause = False
 if __name__ == '__main__':
     
     trajectories_path = sys.argv[1]
+    save_path_prefix = sys.argv[2]
     print "Opening trajectories file " + str(trajectories_path)
     trajectories_dict = pickle.load(open(trajectories_path, "rb"))
     
@@ -498,7 +494,7 @@ if __name__ == '__main__':
     col_scanner = Collision_Scanner()
     encounter_situations = col_scanner.get_encounters(trajectories_dict)
     
-    animate = True
+    animate = False
     
     if animate:   
         plt.ion()
@@ -546,7 +542,7 @@ if __name__ == '__main__':
                 if key == ord('q'):
                     break
                 
-                
+                cv2.imwrite(os.path.join(save_path_prefix,"car_" + str(own_carname) + "_sees_" + str(other_carname) + "_" + str(timestamp) + "_.png"), cv_image)              
                 if animate:   
                     delete_forms = []
                     delete_forms.append(plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1],color='red'))
