@@ -18,6 +18,7 @@ from tensorflow.contrib.learn.python.learn.graph_actions import run_n
 from kzpy3.data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile_Handler
 import angles
 
+
 distance = 8  # m
 fov_angle = 66.0  # deg
 smooth_heading_over_timesteps = 30 
@@ -67,25 +68,76 @@ def convert_gyro(gyro_list):
 
     return gyro_values
 
-def find_closest_timestamp(input_timestamp, timestamp_list):
+
+def align_dict(dict_values, timestamps):
+    '''
+    Alignes the entries in the dict, which should be indexed by timestamps
+    to fit to the given list of timestamps. It is right now expected
+    that the dict_values are less than the nr. of timestamps and dict_values
+    have to be spread to fit this
+    '''
+    aligned_values = {}
     
-    candidate_timestamp = None
+    sorted_dict_keys = sorted(dict_values.keys())
+    sorted_values = [dict_values[key] for key in sorted(dict_values)]
     
-    if input_timestamp in timestamp_list:
-        return input_timestamp
+    current_dict_value = sorted_values[0]
+    current_dict_key = sorted_dict_keys[0]
     
-    min_distance_timestamp = np.abs(input_timestamp-timestamp_list[0])
+    progress_checker = 0
     
-    for test_timestamp in timestamp_list:
+    sorted_timestamps = sorted(timestamps)
+    
+    for item_timestamp in sorted_timestamps:
+        progress_checker += 1
         
-        new_distance = np.abs(test_timestamp-input_timestamp)
-        if new_distance < min_distance_timestamp:
-            candidate_timestamp = test_timestamp
-            min_distance_timestamp = new_distance
+        # The -1 is used to signify the end of the current_dict_key list. Not
+        # the best way to solve this, I have to admit
+        if current_dict_key == -1:
+            aligned_values[item_timestamp] = current_dict_value
+            continue
+        
+        if item_timestamp == current_dict_key:
             
-    # Returns the closest timestamp as well as a measure of how close it was
-    return candidate_timestamp, min_distance_timestamp
-        
+            aligned_values[item_timestamp] = current_dict_value
+            
+            sorted_values.pop(0)
+            sorted_dict_keys.pop(0)
+            
+            if len(sorted_dict_keys) == 0:
+                current_dict_key = -1
+                continue
+            
+            current_dict_key = sorted_dict_keys[0]
+            current_dict_value=sorted_values[0]
+            
+            #print "* Adding " + str(current_dict_value) + " at " + str(item_timestamp)
+        else:
+            #print "+ Adding " + str(current_dict_value) + " at " + str(item_timestamp)
+            aligned_values[item_timestamp] = current_dict_value
+            
+        if progress_checker % 5000 == 0:
+            print str(np.round(((item_timestamp-sorted_timestamps[0])*100.0)/(sorted_timestamps[-1]-sorted_timestamps[0]),2))+ "% of dict aligned"  
+             
+    return aligned_values
+
+
+
+def get_heading_from_gyro(gyro_value):
+    '''
+    There are different ways to implement this. There is a drift of the gyro values
+    and also they will be in degree and just go over 360 until infinity.
+    Since right now a correction term is calculated this will not be corrected
+    but only the x part of the gyro value is used and converted to rad
+    '''
+    x_gyro_value = gyro_value[0]
+    #y_norm = gyro_xyz[1]%360.0
+    #z_norm = gyro_xyz[2]%360.0
+         
+    return np.deg2rad(x_gyro_value)
+     
+    
+
 
 def calculate_headings(gyro_xyz_list, encoder_list, mid_xy, timestamps):
     '''
@@ -108,45 +160,56 @@ def calculate_headings(gyro_xyz_list, encoder_list, mid_xy, timestamps):
     '''
         
     headings = []
+    smooth_over_no_timesteps = 3
     
     # This is a temporary fix since the encoder values are not in a 
     # dict, index by timestamps, but in a list. It takes one hour to generate
     # the original file so this is a temporary workaround.
     encoder_values = convert_encoder(encoder_list)
     gyro_values = convert_gyro(gyro_xyz_list)
-        
+    
+    # The encoder and gyro values are not received at exactly the same timestamps as
+    # the xyz information because the ROS messages come just a few microseconds
+    # later. Even though this is a bit of a hack,the encode timestamps will be shifted
+    # slightly to align to the xyz values.
+    
+    # TODO: For some reason and against expectation the values are actually aligned already.
+    # This might be a bug in the "pipeline_Bag_To_Trajectories" class and has to be checked.
+    # Also because the dicts are not ordered there seems to be a bug
+    encoder_values_aligned = align_dict(encoder_values, timestamps)
+    
+    gyro_values_aligned = align_dict(gyro_values,timestamps)
+    gyro_correction_value = 0.0
+
+    mid_xy_list = np.transpose(mid_xy).tolist()            
+    tmp_xy_list = mid_xy_list[0:smooth_over_no_timesteps]
+    mid_xy_index = smooth_over_no_timesteps
+    
     # If the encoder is above 2 the speed is sufficient so the heading can be 
     # used to determine the heading and the correction term for the gyro values
     # will be fit to correct them
-    
-    
-    
-#     if encoder > 2.:
-#         local_own_xys = [own_xy for own_xy in mid_xy if own_xy != None]
-#                 heading = own_trajectory[list_index][2]
-#                 
-#                 #heading = heading - np.pi/12.
-#                 
-# #               heading = get_heading(local_own_xys)
-#     
-#     
-#     # If the encoder is 0 there is no movement. This means the gyro values
-    # have to be used
-    
-#     
-#     
-#     
-#     
-#     for i in range(len(gyro_values)):
-#         
-#          #encoder_val, mid_xy_val in zip(gyro_values,encoder,mid_xy[0]):
-#         
-#         x_norm = gyro_xyz[0]%360.0
-#         y_norm = gyro_xyz[1]%360.0
-#         z_norm = gyro_xyz[2]%360.0
-#         
-#         headings.append(np.deg2rad(x_norm))
-#         
+    for timestamp in timestamps:
+        
+        # Move a sliding window over the xy values
+        if mid_xy_index < len(mid_xy_list):
+            # Keep it fixed over the last 3 entries in the list 
+            # at the end 
+            tmp_xy_list.pop(0)
+            tmp_xy_list.append(mid_xy_list[mid_xy_index])
+            mid_xy_index += 1
+        
+        if encoder_values_aligned[timestamp] > 1.:
+            # If the speed is sufficient use the xy values to get the heading
+            # and also to correct the gyro headings
+            
+            current_heading = get_heading(tmp_xy_list)
+            gyro_correction_value = get_heading_from_gyro(gyro_values_aligned[timestamp]) - current_heading 
+            headings.append(current_heading)
+            
+        else:
+            # If the speed is too slow we use the gyro values as heading instead
+            headings.append(get_heading_from_gyro(gyro_values_aligned[timestamp]) - gyro_correction_value)
+        
         
     return headings
         
