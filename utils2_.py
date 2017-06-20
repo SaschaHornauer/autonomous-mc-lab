@@ -1004,11 +1004,14 @@ def args_to_dic(d):
             exec('rargs[k] = '+rargs[k])
     return rargs
 
-
+"""
 def translate_args(d):
     translation_dic = d['translation_dic']
     argument_dictionary = d['argument_dictionary']
+<<<<<<< HEAD
 
+=======
+>>>>>>> 78390cb408c18d13d99a7ef52e42c0f03ace9397
     for k in translation_dic.keys():
         v = translation_dic[k]
         translation_dic['-'+v] = v
@@ -1025,7 +1028,8 @@ def translate_args(d):
             del new_dictionary[k]
     return new_dictionary
 
-
+<<<<<<< HEAD
+"""
 def wait_for_enter():
     raw_input('Hit <Enter> ')
 
@@ -1034,3 +1038,8 @@ def finished():
     print_stars1()
     print("FINISHED")
     print_stars2()
+"""
+=======
+    
+>>>>>>> 78390cb408c18d13d99a7ef52e42c0f03ace9397
+"""

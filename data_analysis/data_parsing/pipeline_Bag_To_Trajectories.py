@@ -23,7 +23,7 @@ shape = np.shape
 array = np.array
 plot = plt.plot
 
-from Angle_Dict_Creator import get_angles_and_distance
+from kzpy3.data_analysis.Angle_Dict_Creator import get_angles_and_distance
 
 change_stuff = False
 
@@ -75,7 +75,7 @@ def process_markers_in_bagfiles(abs_bagfolder_name, car_data_dict):
                 
                 if topic == '/bair_car/encoder':
                     car_data_dict['left'][timestamp] = {}
-                    car_data_dict['left'][timestamp]['encoder'] = message
+                    car_data_dict['left'][timestamp]['encoder'] = message.data
                     continue
                 
                 
@@ -121,6 +121,7 @@ def create_marker_data(abs_bagfolder_name, meta_path_name):
 
 def process_run_folder(run_folder_path, meta_path_name):
     print run_folder_path
+    
     
     
     for bag_folder_name in os.listdir(run_folder_path):
@@ -394,11 +395,11 @@ def process_run_data(run_name, marker_pkl_path, marker_dict):
                 
                 if side=='left' and 'gyro_x' in marker_dict[car_name][run_name][side]['raw_marker_data'][t].keys():
                     gyro_xyz = (marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['gyro_x'],marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['gyro_y'],marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['gyro_z'])
-                    marker_dict[car_name][run_name][side]['gyro_xyz'].append(gyro_xyz)
+                    marker_dict[car_name][run_name][side]['gyro_xyz'].append({'gyro_xyz':gyro_xyz,'timestamp':t})
                 
                 if side=='left' and 'encoder' in marker_dict[car_name][run_name][side]['raw_marker_data'][t].keys():  
                     encoder = marker_dict[car_name][run_name]['left']['raw_marker_data'][t]['encoder']  
-                    marker_dict[car_name][run_name][side]['encoder'].append(encoder) 
+                    marker_dict[car_name][run_name][side]['encoder'].append({'encoder':encoder,'timestamp':t}) 
                     
                     
             marker_dict[car_name][run_name][side]['x_smooth'] = mean_exclude_outliers(marker_dict[car_name][run_name][side]['x_avg'], 60, 0.33, 0.66)

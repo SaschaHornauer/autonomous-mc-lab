@@ -12,7 +12,7 @@ ignore = ['reject_run','left','out1_in2','Smyth','racing','local','Tilden','camp
 require_one = ['aruco_ring'] # at least one of this type of run lable is required
 use_states = [1,3,5,6,7]
 rate_timer_interval = 5.
-print_timer = Timer(10)
+print_timer = Timer(5)
 
 if False:
 	MODEL = 'z2_color'
@@ -28,8 +28,8 @@ if True:
 	MODEL = 'z2_color_aruco'
 	print(MODEL)
 	bair_car_data_path = opjD('bair_car_data_new_28April2017') #opjD('bair_car_data_Main_Dataset') # opjD('bair_car_data_new')
-	#weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
-	weights_file_path = opjh('caffe_models/z2_color/z2_color.caffemodel')
+	weights_file_path =  most_recent_file_in_folder(opjD(MODEL),['caffemodel'])
+	#weights_file_path = opjh('caffe_models/z2_color/z2_color.caffemodel')
 	N_FRAMES = 2 # how many timesteps with images.
 	N_STEPS = 10 # how many timestamps with non-image data
 	gpu = 1
@@ -388,7 +388,7 @@ while True:
 
 		Solver.put_data_into_model(data,Solver.solver,b)
 	if len(data['other_car_inverse_distances']) == 0:
-		if np.random.random()<1.:
+		if np.random.random()<0.:
 			continue
 
 	Solver.solver.step(1) # The training step. Everything below is for display.
