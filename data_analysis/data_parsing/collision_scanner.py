@@ -3,7 +3,7 @@ Created on May 8, 2017
 
 @author: picard
 '''
-from trajectory_generator.trajectory_tools import *
+from kzpy3.data_analysis.trajectory_generator.trajectory_tools import *
 import cPickle as pickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,9 +19,11 @@ from kzpy3.data_analysis.data_parsing.Image_Bagfile_Handler import Image_Bagfile
 import angles
 
 
+
 distance = 8  # m
 fov_angle = 66.0  # deg
 smooth_heading_over_timesteps = 30 
+encoder_threshold = 0.5
 
 class MyIter():
     
@@ -198,18 +200,16 @@ def calculate_headings(gyro_xyz_list, encoder_list, mid_xy, timestamps):
             tmp_xy_list.append(mid_xy_list[mid_xy_index])
             mid_xy_index += 1
         
-        if encoder_values_aligned[timestamp] > 1.:
+        if encoder_values_aligned[timestamp] > encoder_threshold:
             # If the speed is sufficient use the xy values to get the heading
             # and also to correct the gyro headings
             
             current_heading = get_heading(tmp_xy_list)
             gyro_correction_value = get_heading_from_gyro(gyro_values_aligned[timestamp]) - current_heading 
-            headings.append(current_heading)
-            
+            headings.append(current_heading)            
         else:
             # If the speed is too slow we use the gyro values as heading instead
             headings.append(get_heading_from_gyro(gyro_values_aligned[timestamp]) - gyro_correction_value)
-        
         
     return headings
         
@@ -368,16 +368,11 @@ class Collision_Scanner():
                 if len(own_trajectory) < (list_index + smooth_factor):
                     smooth_factor = len(own_trajectory) - list_index
                 
-                # Calculate the heading based on values in the future or past, depending
+                # Calculate the heading based on values in the future or past, dependingencod
                 # on whether we are close to the beginning or end of the trajectory
                 local_own_xys = [own_xy[1] for own_xy in own_trajectory[list_index:list_index + smooth_factor] if own_xy != None]
                 heading = own_trajectory[list_index][2]
-                
-                #heading = heading - np.pi/12.
-                
-#               heading = get_heading(local_own_xys)
-#                 
-#                 print heading- headingA
+
                 own_fov = self.get_fov_triangle(local_own_xys[0], heading, fov_angle, distance)
                 
                 for other_carname in aligned_list:
@@ -474,6 +469,7 @@ pause = False
 if __name__ == '__main__':
     
     trajectories_path = sys.argv[1]
+    save_path_prefix = sys.argv[2]
     print "Opening trajectories file " + str(trajectories_path)
     trajectories_dict = pickle.load(open(trajectories_path, "rb"))
     
@@ -487,8 +483,8 @@ if __name__ == '__main__':
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-19_10.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-28-49_11.bag'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/bair_car_2017-04-28-17-29-18_12.bag'
-    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
-    
+    #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m15s_Mr_Black/'
+    bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/new/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue'
     #bagfile_path = '/home/picard/2ndDisk/carData/run_28apr/direct_rewrite_test_28Apr17_17h23m10s_Mr_Blue/'
     bagfiles =  [os.path.join(bagfile_path,file) for file in os.listdir(bagfile_path) if os.path.isfile(os.path.join(bagfile_path,file))] 
     
@@ -498,22 +494,28 @@ if __name__ == '__main__':
     col_scanner = Collision_Scanner()
     encounter_situations = col_scanner.get_encounters(trajectories_dict)
     
-    animate = True
+    animate = False
     
     if animate:   
         plt.ion()
         
-    skip_no_bagfiles = 0
+    skip_no_bagfiles = 18
     i = 0
     
     for bagfile in bagfiles:
         i += 1
         if i < skip_no_bagfiles:
+            print "Skipping bagfile " + str(bagfile)
             continue
-        bag_handler = Image_Bagfile_Handler(bagfile)
+            
+        try:
+            bag_handler = Image_Bagfile_Handler(bagfile)
+        except Exception as ex:
+            print str(ex)
+            continue
         print "Loading bagfiles"
 
-        timestamps = []
+        encounter_timestamps = []
         run_names = []
         
     #     for own_carname in encounter_situations:
@@ -523,22 +525,36 @@ if __name__ == '__main__':
         own_fov = {}
         
         # TODO: Get this for all cars
-        own_carname = 'Mr_Black'
-        #for other_carname in encounter_situations[own_carname]:
-        other_carname = 'Mr_Blue'
-        for entry in encounter_situations[own_carname][other_carname]:
-            timestamps.append(entry['timestamp'])
-            own_xy[entry['timestamp']] = entry['own_xy']
-            other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
-            own_fov[entry['timestamp']] = entry['fov']
-            run_names.append(entry['run_name'])
+        own_carname = 'Mr_Blue'
+        print "Creating list of timestamps with cars from camera from " + str(own_carname)
+        for other_carname in encounter_situations[own_carname]:
+            print "Parsing " + str(other_carname)
+        #other_carname = 'Mr_Blue'
+        #other_carname = 'Mr_Yellow'
+            for entry in encounter_situations[own_carname][other_carname]:
+                encounter_timestamps.append(entry['timestamp'])
+                if animate:
+                    own_xy[entry['timestamp']] = entry['own_xy']
+                    other_xy[entry['timestamp']] = entry['other_ts_xy'][1]
+                    own_fov[entry['timestamp']] = entry['fov']
+                    run_names.append(entry['run_name'])
         try:
-            for timestamp in timestamps:
-                
-                cv_image, timestamp, synced = bag_handler.get_image(timestamp)
-                if not synced:
-                    continue
+            while True:
+                try:
+                    cv_image, timestamp = bag_handler.get_next_image()
+                except TypeError as ex:
+                    print str(ex)
+                    break
+                timestamp = np.round(timestamp.to_sec(),3)
+                if timestamp in encounter_timestamps:
+                    file_prefix = "car_"
+                else:
+                    file_prefix = "nocar_"
+                    
+                #if not synced:
+                #    continue
                 if(cv_image == None):
+                    print "Image is none, forwarding in bagfile"
                     continue
                 cv2.imshow('frame', cv_image)
                 key = cv2.waitKey(1) & 0xFF
@@ -546,7 +562,7 @@ if __name__ == '__main__':
                 if key == ord('q'):
                     break
                 
-                
+                cv2.imwrite(os.path.join(save_path_prefix,file_prefix + str(own_carname) + "_sees_" + str(other_carname) + "_" + str(timestamp) + "_.png"), cv_image)              
                 if animate:   
                     delete_forms = []
                     delete_forms.append(plt.scatter(own_xy[timestamp][0],own_xy[timestamp][1],color='red'))

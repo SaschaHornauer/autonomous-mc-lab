@@ -74,7 +74,7 @@ class Image_Bagfile_Handler(object):
             # Set stack to None if iterator ends. 
             self._current_bag_entry = None
         
-        return cv_image
+        return cv_image, bagfile_timestamp
 
     
     def fast_forward(self):
